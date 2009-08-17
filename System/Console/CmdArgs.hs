@@ -323,7 +323,7 @@ parseArgs flags (('-':x:xs):ys) | x /= '-' = parseArgs flags (x2:ys)
     where x2 = if null xs then '-':'-':x:[] else '-':'-':x:'=':xs
 
 parseArgs flags (('-':'-':x):xs)
-    | Left msg <- flg = Err msg : parseArgs flags xs
+    | Left msg <- flg = err msg : parseArgs flags xs
     | Right flag <- flg = let name = head [x | FldName x <- flag] in
     case flagType flag of
         FlagBool -> 
@@ -353,11 +353,11 @@ pickFlag :: [Flag] -> String -> Either String Flag
 pickFlag flags name = case (match,prefix) of
         ([x],_) -> Right x
         ([],[x]) -> Right x
-        ([],[]) -> Left "couldn't match"
-        _ -> Left "ambiguous flag"
+        ([],[]) -> Left "unknown"
+        _ -> Left "ambiguous"
     where
         match = [flag | flag <- flags, or [x == name | FldFlag x <- flag]]
-        prefix = [flag | flag <- flags, or [x `isPrefixOf` name | FldFlag x <- flag]]
+        prefix = [flag | flag <- flags, or [name `isPrefixOf` x | FldFlag x <- flag]]
 
 
 hasArg :: [Arg] -> String -> Bool
