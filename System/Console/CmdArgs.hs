@@ -316,7 +316,7 @@ data Arg = Field String (Dynamic -> Dynamic)
 parseArgs :: [Flag] -> [String] -> [Arg]
 parseArgs flags [] = []
 
-parseArgs flags (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs flags (['-',x]:xs:ys)
+parseArgs flags (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs flags (['-',x]:('-':xs):ys)
     where expand = [x | flag <- flags, isFlagBool flag, FldFlag [x] <- flag]
 
 parseArgs flags (('-':x:xs):ys) | x /= '-' = parseArgs flags (x2:ys)
