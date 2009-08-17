@@ -3,7 +3,13 @@
     Simple command line argument handling
 -}
 
-module System.Console.CmdArgs(module System.Console.CmdArgs, Data, Typeable) where
+module System.Console.CmdArgs(
+    Data, Typeable,
+    Default(..),
+    cmdArgs, (&),
+    isQuiet, isNormal, isLoud,
+    text, args, typ, typFile, typDir, helpSuffix, empty, flag
+    ) where
 
 import Prelude hiding (catch)
 import System.IO.Unsafe
@@ -60,6 +66,8 @@ collect = do
     x <- readIORef info
     writeIORef info []
     return x
+
+data CmdMode = CmdMode 
 
 ---------------------------------------------------------------------
 -- USER INTERFACE
