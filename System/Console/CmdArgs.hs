@@ -77,6 +77,7 @@ data Info
     | FldFlag String
     | FldArgs
     | FldArg Int
+    | FldExplicit
     | HelpSuffix [String]
       deriving Show
 
@@ -117,10 +118,24 @@ helpSuffix = HelpSuffix
 
 
 ---------------------------------------------------------------------
+-- PRESUPPLIED ARGS
+
+autoArgs :: [Flag]
+autoArgs = map (def++) $
+    [[FldName "!help", flag "help", flag "?", text "Show usage information"] -- , empty "", typ "FORMAT"]
+    ,[FldName "!version", flag "version", flag "V", text "Show version information"]
+    ,[FldName "!verbose", flag "verbose", flag "v", text "Higher verrbosity"]
+    ,[FldName "!quiet", flag "quiet", flag "q", text "Lower verbosity"]
+    ]
+    where def = [FldType (typeOf True), FldValue (toDyn False), FldExplicit]
+
+
+---------------------------------------------------------------------
 -- STRUCTURED FLAGS
 
 -- Simple stuff
 isFlagArgs xs = [] /= [() | FldArgs{} <- xs]
+isFlagExplicit xs = [] /= [() | FldExplicit{} <- xs]
 isFlagOpt = isJust . flagOpt
 flagOpt xs = listToMaybe [x | FldEmpty x <- xs]
 flagText xs = unwords [x | FldText x <- xs]
@@ -161,11 +176,11 @@ toFlagTypeRead list x
 -- MAIN DRIVERS
 
 cmdArgs :: Data a => String -> a -> IO a
-cmdArgs short x = do
-    evaluate x
+cmdArgs short val = do
+    evaluate val
     mode <- collect
-    ref <- newIORef (constrFields $ toConstr x, [])
-    x <- flip gmapM x $ \i -> do
+    ref <- newIORef (constrFields $ toConstr val, [])
+    val <- flip gmapM val $ \i -> do
         res <- evaluate i
         info <- collect
         let typ = typeOf i
@@ -174,18 +189,22 @@ cmdArgs short x = do
             then (flds, (FldName fld:FldType typ:FldValue (toDyn i):info):xs)
             else error $ "Can't handle a type of " ++ fld
         return res
-    flags <- fmap (reverse . snd) $ readIORef ref
-    flags <- return $ assignLong flags
-    flags <- return $ assignShort flags
+    flags <- fmap (flagsExpand . reverse . snd) $ readIORef ref
 
-    args <- expandShort flags `fmap` getArgs
-    when (any (`elem` args) ["-?","--help"]) $ do
+    args <- parseArgs flags `fmap` getArgs
+    when (hasArg args "!help") $ do
         showHelp short mode flags
         exitSuccess
-    when (any (`elem` args) ["-V","--version"]) $ do
+    args <- return $ expandArgs flags args
+    case [x | Err x <- args] of
+        x:_ -> putStrLn x >> exitFailure
+        [] -> return ()
+    when (hasArg args "!version") $ do
         putStrLn short
         exitSuccess
-    process flags args x
+    when (hasArg args "!verbose") $ writeIORef verbosity 2
+    when (hasArg args "!quiet") $ writeIORef verbosity 0
+    return $ applyArgs args val
 
 
 cmdArgsMode :: Data a => String -> [a] -> IO a
@@ -193,22 +212,15 @@ cmdArgsMode short xs = cmdArgs short (head xs)
 
 
 ---------------------------------------------------------------------
--- UTILITIES
+-- FLAG EXPANSION
 
-reservedShort = "?Vvq"
-
-
-expandShort :: [Flag] -> [String] -> [String]
-expandShort flags = concatMap f
-    where
-        expand = reservedShort ++ [x | flag <- flags, isFlagBool flag, FldFlag [x] <- flag]
-        f ('-':x:xs) | x `elem` expand && xs /= "" = ['-',x] : f ('-':xs)
-        f x = [x]
+flagsExpand :: [Flag] -> [Flag]
+flagsExpand = assignShort . assignLong . (autoArgs++)
 
 
 assignLong :: [Flag] -> [Flag]
 assignLong = map f
-    where f xs = [FldFlag $ flagName x | FldName x <- xs, not $ isFlagArgs xs] ++ xs
+    where f xs = [FldFlag $ flagName x | FldName x <- xs, not $ isFlagArgs xs, not $ isFlagExplicit xs] ++ xs
 
 
 assignShort :: [Flag] -> [Flag]
@@ -227,6 +239,9 @@ flagName :: String -> String
 flagName xs | "_" `isSuffixOf` xs = flagName $ init xs
 flagName xs = [if x == '_' then '-' else x | x <- xs]
 
+
+---------------------------------------------------------------------
+-- UTILITIES
 
 errorIO :: String -> IO a
 errorIO x = putStrLn x >> exitFailure
@@ -251,10 +266,6 @@ showHelp short mode flags = do
         Left "" :
         Left ("  " ++ map toLower (takeBaseName x) ++ " [FLAG] ["++ty++"]") :
         Left "" :
-        Right ("-?","--help","Show usage information") :
-        Right ("-V","--version","Show version information") :
-        Right ("-v","--verbose","Higher verbosity") :
-        Right ("-q","--quiet","Lower verbosity") :
         concatMap (map Right . showArg) flags ++
         concat [map Left $ "":xs | HelpSuffix xs <- mode]
 
@@ -297,48 +308,71 @@ defaultArg xs = listToMaybe $ [x | FldEmpty x <- xs] ++ case head [x | FldValue 
 ---------------------------------------------------------------------
 -- PROCESS FLAGS
 
-process :: Data a => [Flag] -> [String] -> a -> IO a
-process flags [] a = return a
-process flags (x:xs) a
-    | x `elem` ["-v","--verbose"] = writeIORef verbosity 2 >> process flags xs a
-    | x `elem` ["-q","--quiet"  ] = writeIORef verbosity 0 >> process flags xs a
-
-process flags xs a = f flags
-    where
-        f [] = errorIO $ "Unrecognised flag: " ++ head xs
-        f (y:ys) = case processOne y xs a of
-            Nothing -> f ys
-            Just v -> do (a,xs) <- v; process flags xs a
+data Arg = Field String (Dynamic -> Dynamic)
+         | Err String
+         | Arg String
 
 
-processOne :: Data a => Flag -> [String] -> a -> Maybe (IO (a, [String]))
-processOne flag (('-':x:xs):ys) val | x /= '-' = processOne flag (x2:ys) val
+parseArgs :: [Flag] -> [String] -> [Arg]
+parseArgs flags [] = []
+
+parseArgs flags (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs flags (['-',x]:xs:ys)
+    where expand = [x | flag <- flags, isFlagBool flag, FldFlag [x] <- flag]
+
+parseArgs flags (('-':x:xs):ys) | x /= '-' = parseArgs flags (x2:ys)
     where x2 = if null xs then '-':'-':x:[] else '-':'-':x:'=':xs
 
-processOne flag (('-':'-':x):xs) val | or [n == a | FldFlag n <- flag] = Just $
+parseArgs flags (('-':'-':x):xs)
+    | Left msg <- flg = Err msg : parseArgs flags xs
+    | Right flag <- flg = let name = head [x | FldName x <- flag] in
     case flagType flag of
-        FlagBool -> do
-            when (b /= "") $ err "does not take an argument"
-            return (setValue $ const $ toDyn True, xs)
-        FlagItem r -> do
-            (text,rest) <- case flagOpt flag of
-                Nothing | null b && (null xs || "-" `isPrefixOf` head xs) -> err "needs an argument"
-                Just v | null b -> return (v, xs)
-                _ | null b -> return (head xs, tail xs)
-                _ -> return (drop 1 b, xs)
-            upd <- case r text of
-                Nothing -> err "couldn't parse argument"
-                Just v -> return v
-            return (setValue upd, rest)
+        FlagBool -> 
+            [err "does not take an argument" | b /= ""] ++
+            [Field name (const $ toDyn True)] ++ parseArgs flags xs
+        FlagItem r ->
+            if not (isFlagOpt flag) && null b && (null xs || "-" `isPrefixOf` head xs)
+            then err "needs an argument" : parseArgs flags xs
+            else let (text,rest) = case flagOpt flag of
+                        Just v | null b -> (v, xs)
+                        _ | null b -> (head xs, tail xs)
+                        _ -> (drop 1 b, xs)
+                 in (case r text of
+                        Nothing -> err "couldn't parse argument" 
+                        Just v -> Field name v)
+                    : parseArgs flags rest
     where
+        flg = pickFlag flags a
         (a,b) = break (== '=') x
-        setValue = setField val (head [x | FldName x <- flag])
-        err msg = errorIO $ "Error on flag " ++ show x ++ ", flag " ++ msg
+        err msg = Err $ "Error on flag " ++ show x ++ ", flag " ++ msg
+
+parseArgs flags (x:xs) = Arg x : parseArgs flags xs
 
 
 
-processOne flag o@(x:xs) val | not ("-" `isPrefixOf` x) && isFlagArgs flag = Just $ return (val2,xs)
-    where val2 = setField val (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x])
+pickFlag :: [Flag] -> String -> Either String Flag
+pickFlag flags name = case (match,prefix) of
+        ([x],_) -> Right x
+        ([],[x]) -> Right x
+        ([],[]) -> Left "couldn't match"
+        _ -> Left "ambiguous flag"
+    where
+        match = [flag | flag <- flags, or [x == name | FldFlag x <- flag]]
+        prefix = [flag | flag <- flags, or [x `isPrefixOf` name | FldFlag x <- flag]]
 
-processOne _ _ _ = Nothing
 
+hasArg :: [Arg] -> String -> Bool
+hasArg xs name = or [x == name | Field x _ <- xs]
+
+
+-- expand out the Arg
+expandArgs :: [Flag] -> [Arg] -> [Arg]
+expandArgs flags (Arg x:xs) = case filter isFlagArgs flags of
+    flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : expandArgs flags xs
+    [] -> Err ("Can't deal with file arguments: " ++ show x) : expandArgs flags xs
+expandArgs flags (x:xs) = x : expandArgs flags xs
+expandArgs flags [] = []
+
+
+applyArgs :: Data a => [Arg] -> a -> a
+applyArgs (Field name upd:args) x = applyArgs args (setField x name upd)
+applyArgs [] x = x
