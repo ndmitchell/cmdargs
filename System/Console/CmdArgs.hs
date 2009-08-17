@@ -6,10 +6,10 @@
 module System.Console.CmdArgs(
     Data, Typeable,
     Default(..),
-    cmdMode,
+    cmdArgs, cmdModes,
     mode, modeValue, Mode, (&),
     isQuiet, isNormal, isLoud,
-    text, args, typ, typFile, typDir, helpSuffix, empty, flag
+    text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag
     ) where
 
 import Prelude hiding (catch)
@@ -204,8 +204,8 @@ toFlagTypeRead list x
 ---------------------------------------------------------------------
 -- MAIN DRIVERS
 
-cmdMode :: Data a => String -> Mode a -> IO a
-cmdMode short (Mode val top flags) = do
+cmdArgs :: Data a => String -> Mode a -> IO a
+cmdArgs short (Mode val top flags) = do
     flags <- return $ flagsExpand flags
     args <- parseArgs flags `fmap` getArgs
     when (hasArg args "!help") $ do
@@ -224,7 +224,7 @@ cmdMode short (Mode val top flags) = do
 
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
-cmdModes short xs = cmdMode short (head xs)
+cmdModes short xs = cmdArgs short (head xs)
 
 
 ---------------------------------------------------------------------

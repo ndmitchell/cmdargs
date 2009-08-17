@@ -9,16 +9,16 @@ data DirDiff = Create {src :: FilePath, out :: FilePath}
 
 outFlags = text "Output file" & typFile
 
-create = Create
+create = mode $ Create
     {src = "." & text "Source directory" & typDir
     ,out = "ls.txt" & outFlags
     } & text "Create a fingerprint"
 
-diff = Diff
+diff = mode $ Diff
     {old = def & argPos 0
     ,new = def & argPos 1
     ,out = "diff.txt" & outFlags
     } & text "Perform a diff"
 
 
-main = print =<< cmdArgsMode "DirDiff v1.0" [create,diff]
+main = print =<< cmdModes "DirDiff v1.0" [create,diff]

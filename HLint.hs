@@ -36,7 +36,7 @@ hlint = mode $ HLint
                ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
 
-main = print =<< cmdMode "HLint v1.6.5, (C) Neil Mitchell 2006-2009" hlint
+main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" hlint
 
 
 smoke = do
@@ -45,6 +45,7 @@ smoke = do
     fails ["-ch"]
     ["--colo"] === v{color=True}
     ["-ct"] === v{color=True,test=True}
+    ["--colour","--test"] === v{color=True,test=True}
     ["-thfoo"] === v{test=True,hint=["foo"]}
     ["-cr"] === v{color=True,report=["report.html"]}
     ["--cpp-define=val","x"] === v{cpp_define=["val"],files=["x"]}
