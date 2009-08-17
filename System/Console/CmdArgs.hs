@@ -101,12 +101,13 @@ data Info
     | FldType TypeRep -- the field type
     | FldValue Dynamic
     | FldEmpty String
-    | FldTyp String
-    | FldText String
-    | FldFlag String
     | FldArgs
     | FldArgPos Int
-    | FldExplicit
+    | FldTyp String
+    | ModName String -- the constructor name
+    | Text String
+    | Flag String
+    | Explicit
     | HelpSuffix [String]
       deriving Show
 
@@ -122,11 +123,11 @@ typ = FldTyp
 
 -- | Descriptive text for the option
 text :: String -> Info
-text = FldText
+text = Text
 
 -- | Flags which work
 flag :: String -> Info
-flag = FldFlag
+flag = Flag
 
 -- | Where to put the non-flag arguments
 args :: Info
@@ -156,7 +157,7 @@ autoArgs = map (def++) $
     ,[FldName "!verbose", flag "verbose", flag "v", text "Higher verrbosity"]
     ,[FldName "!quiet", flag "quiet", flag "q", text "Lower verbosity"]
     ]
-    where def = [FldType (typeOf True), FldValue (toDyn False), FldExplicit]
+    where def = [FldType (typeOf True), FldValue (toDyn False), Explicit]
 
 
 ---------------------------------------------------------------------
@@ -166,10 +167,10 @@ autoArgs = map (def++) $
 isFlagArgs xs = [] /= [() | FldArgs{} <- xs]
 isFlagArgPos xs = [] /= [() | FldArgPos{} <- xs]
 isFlagFlag xs = not $ isFlagArgs xs || isFlagArgPos xs
-isFlagExplicit xs = [] /= [() | FldExplicit{} <- xs]
+isExplicit xs = [] /= [() | Explicit{} <- xs]
 isFlagOpt = isJust . flagOpt
 flagOpt xs = listToMaybe [x | FldEmpty x <- xs]
-flagText xs = unwords [x | FldText x <- xs]
+flagText xs = unwords [x | Text x <- xs]
 isFlagBool xs = case flagType xs of FlagBool -> True; _ -> False
 hasFlagType = isJust . toFlagType
 flagType = fromJust . toFlagType
@@ -213,7 +214,7 @@ cmdArgs short (Mode val top flags) = do
     when (hasArg args "!help") $ do
         showHelp short $ Mode val top flags
         exitSuccess
-    args <- return $ expandArgs flags args
+    args <- return $ fileArgs flags args
     case [x | Err x <- args] of
         x:_ -> putStrLn x >> exitFailure
         [] -> return ()
@@ -226,11 +227,16 @@ cmdArgs short (Mode val top flags) = do
 
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
-cmdModes short xs = cmdArgs short (head xs)
+cmdModes short xs = do
+    forM_ xs $ \(Mode a b c) ->
+        showHelp short $ Mode a b (flagsExpand c)
+    error "cmdModes, todo"
 
 
 ---------------------------------------------------------------------
 -- FLAG EXPANSION
+
+
 
 flagsExpand :: [Flag] -> [Flag]
 flagsExpand = assignShort . assignLong . (autoArgs++)
@@ -238,19 +244,19 @@ flagsExpand = assignShort . assignLong . (autoArgs++)
 
 assignLong :: [Flag] -> [Flag]
 assignLong = map f
-    where f xs = [FldFlag $ flagName x | FldName x <- xs, isFlagFlag xs, not $ isFlagExplicit xs] ++ xs
+    where f xs = [Flag $ flagName x | FldName x <- xs, isFlagFlag xs, not $ isExplicit xs] ++ xs
 
 
 assignShort :: [Flag] -> [Flag]
 assignShort xs = zipWith (++) flags xs
     where
-        seen = [y | x <- xs, FldFlag [y] <- x]
+        seen = [y | x <- xs, Flag [y] <- x]
         guesses = map guess xs
         dupes = nub $ concat guesses \\ nub (concat guesses)
-        flags = [[FldFlag [i] | i <- g, i `notElem` (seen++dupes)] | g <- guesses]
+        flags = [[Flag [i] | i <- g, i `notElem` (seen++dupes)] | g <- guesses]
 
         -- guess at a possible short flag
-        guess ys = if [() | FldFlag [_] <- ys] /= [] then [] else take 1 [x | FldFlag (x:_) <- ys]
+        guess ys = if [() | Flag [_] <- ys] /= [] then [] else take 1 [x | Flag (x:_) <- ys]
 
 
 flagName :: String -> String
@@ -314,7 +320,7 @@ showFlag xs =
      ,flagText xs ++ maybe "" (\x -> " (default=" ++ x ++ ")") (defaultArg xs))
     | isFlagFlag xs]
     where
-        (short,long) = partition ((==) 1 . length) [x | FldFlag x <- xs]
+        (short,long) = partition ((==) 1 . length) [x | Flag x <- xs]
         val = if isFlagBool xs then ""
               else ['['|opt] ++ "=" ++ typ ++ [']'|opt]
         typ = head $ [x | FldTyp x <- xs] ++ ["VALUE"]
@@ -343,7 +349,7 @@ parseArgs :: [Flag] -> [String] -> [Arg]
 parseArgs flags [] = []
 
 parseArgs flags (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs flags (['-',x]:('-':xs):ys)
-    where expand = [x | flag <- flags, isFlagBool flag, FldFlag [x] <- flag]
+    where expand = [x | flag <- flags, isFlagBool flag, Flag [x] <- flag]
 
 parseArgs flags (('-':x:xs):ys) | x /= '-' = parseArgs flags (x2:ys)
     where x2 = if null xs then '-':'-':x:[] else '-':'-':x:'=':xs
@@ -382,8 +388,8 @@ pickFlag flags name = case (match,prefix) of
         ([],[]) -> Left "unknown"
         _ -> Left "ambiguous"
     where
-        match = [flag | flag <- flags, or [x == name | FldFlag x <- flag]]
-        prefix = [flag | flag <- flags, or [name `isPrefixOf` x | FldFlag x <- flag]]
+        match = [flag | flag <- flags, or [x == name | Flag x <- flag]]
+        prefix = [flag | flag <- flags, or [name `isPrefixOf` x | Flag x <- flag]]
 
 
 hasArg :: [Arg] -> String -> Bool
@@ -391,12 +397,12 @@ hasArg xs name = or [x == name | Field x _ <- xs]
 
 
 -- expand out the Arg
-expandArgs :: [Flag] -> [Arg] -> [Arg]
-expandArgs flags (Arg x:xs) = case filter (not . isFlagFlag) flags of
-    flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : expandArgs flags xs
-    [] -> Err ("Can't deal with file arguments: " ++ show x) : expandArgs flags xs
-expandArgs flags (x:xs) = x : expandArgs flags xs
-expandArgs flags [] = []
+fileArgs :: [Flag] -> [Arg] -> [Arg]
+fileArgs flags (Arg x:xs) = case filter (not . isFlagFlag) flags of
+    flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : fileArgs flags xs
+    [] -> Err ("Can't deal with file arguments: " ++ show x) : fileArgs flags xs
+fileArgs flags (x:xs) = x : fileArgs flags xs
+fileArgs flags [] = []
 
 
 applyArgs :: Data a => [Arg] -> a -> a

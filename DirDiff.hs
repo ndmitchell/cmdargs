@@ -7,18 +7,18 @@ data DirDiff = Create {src :: FilePath, out :: FilePath}
                deriving (Data,Typeable,Show)
 
 
-outFlags = text "Output file" & typFile
+outFlags x = x & text "Output file" & typFile
 
 create = mode $ Create
     {src = "." & text "Source directory" & typDir
-    ,out = "ls.txt" & outFlags
+    ,out = outFlags "ls.txt"
     } & text "Create a fingerprint"
 
 diff = mode $ Diff
     {old = def & typ "OLDFILE" & argPos 0
     ,new = def & typ "NEWFILE" & argPos 1
-    ,out = "diff.txt" & outFlags
+    ,out = outFlags "diff.txt"
     } & text "Perform a diff"
 
 
-main = print =<< cmdModes "DirDiff v1.0" [diff,create] -- create,diff]
+main = print =<< cmdModes "DirDiff v1.0" [create,diff]
