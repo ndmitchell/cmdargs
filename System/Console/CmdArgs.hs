@@ -264,7 +264,7 @@ showHelp short mode flags = do
     showBlock $
         Left short :
         Left "" :
-        Left ("  " ++ map toLower (takeBaseName x) ++ " [FLAG] ["++ty++"]") :
+        Left (map toLower (takeBaseName x) ++ " [FLAG] ["++ty++"]") :
         Left "" :
         concatMap (map Right . showArg) flags ++
         concat [map Left $ "":xs | HelpSuffix xs <- mode]
