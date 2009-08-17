@@ -15,7 +15,7 @@ data HLint = HLint
     }
     deriving (Data,Typeable,Show)
 
-hlint = HLint
+hlint = mode $ HLint
     {report = def & empty "report.html" & typFile & text "Generate a report in HTML"
     ,hint = def & typFile & text "Hint/ignore file to use"
     ,color = def & flag "c" & flag "colour" & text "Color the output (requires ANSI terminal)"

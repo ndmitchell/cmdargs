@@ -6,7 +6,8 @@
 module System.Console.CmdArgs(
     Data, Typeable,
     Default(..),
-    cmdArgs, (&),
+    cmdMode,
+    mode, modeValue, Mode, (&),
     isQuiet, isNormal, isLoud,
     text, args, typ, typFile, typDir, helpSuffix, empty, flag
     ) where
@@ -37,7 +38,7 @@ instance Default Bool where def = False
 instance Default [a] where def = []
 
 ---------------------------------------------------------------------
--- STATE MANAGEMENT
+-- VERBOSITY CONTROL
 
 {-# NOINLINE verbosity #-}
 verbosity :: IORef Int -- 0 = quiet, 1 = normal, 2 = verbose
@@ -67,13 +68,33 @@ collect = do
     writeIORef info []
     return x
 
-data CmdMode = CmdMode 
+type Flag = [Info]
+
+data Mode a = Mode a [Info] [Flag]
+
+modeValue :: Mode a -> a
+modeValue (Mode x _ _) = x
+
+mode :: Data a => a -> Mode a
+mode val = unsafePerformIO $ do
+    evaluate val
+    top <- collect
+    ref <- newIORef (constrFields $ toConstr val, [])
+    val <- flip gmapM val $ \i -> do
+        res <- evaluate i
+        info <- collect
+        let typ = typeOf i
+        modifyIORef ref $ \(fld:flds, xs) ->
+            if hasFlagType [FldType typ]
+            then (flds, (FldName fld:FldType typ:FldValue (toDyn i):info):xs)
+            else error $ "Can't handle a type of " ++ fld
+        return res
+    flags <- fmap (reverse . snd) $ readIORef ref
+    return $ Mode val top flags
+
 
 ---------------------------------------------------------------------
 -- USER INTERFACE
-
-type Flag = [Info]
-type Mode = [Info]
 
 data Info
     = FldName String -- the record name
@@ -183,25 +204,12 @@ toFlagTypeRead list x
 ---------------------------------------------------------------------
 -- MAIN DRIVERS
 
-cmdArgs :: Data a => String -> a -> IO a
-cmdArgs short val = do
-    evaluate val
-    mode <- collect
-    ref <- newIORef (constrFields $ toConstr val, [])
-    val <- flip gmapM val $ \i -> do
-        res <- evaluate i
-        info <- collect
-        let typ = typeOf i
-        modifyIORef ref $ \(fld:flds, xs) ->
-            if hasFlagType [FldType typ]
-            then (flds, (FldName fld:FldType typ:FldValue (toDyn i):info):xs)
-            else error $ "Can't handle a type of " ++ fld
-        return res
-    flags <- fmap (flagsExpand . reverse . snd) $ readIORef ref
-
+cmdMode :: Data a => String -> Mode a -> IO a
+cmdMode short (Mode val top flags) = do
+    flags <- return $ flagsExpand flags
     args <- parseArgs flags `fmap` getArgs
     when (hasArg args "!help") $ do
-        showHelp short mode flags
+        showHelp short top flags
         exitSuccess
     args <- return $ expandArgs flags args
     case [x | Err x <- args] of
@@ -215,8 +223,8 @@ cmdArgs short val = do
     return $ applyArgs args val
 
 
-cmdArgsMode :: Data a => String -> [a] -> IO a
-cmdArgsMode short xs = cmdArgs short (head xs)
+cmdModes :: Data a => String -> [Mode a] -> IO a
+cmdModes short xs = cmdMode short (head xs)
 
 
 ---------------------------------------------------------------------
@@ -265,7 +273,7 @@ setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ 
 ---------------------------------------------------------------------
 -- HELP INFORMATION
 
-showHelp :: String -> Mode -> [Flag] -> IO ()
+showHelp :: String -> [Info] -> [Flag] -> IO ()
 showHelp short mode flags = do
     x <- getProgName
     let ty = head $ [y | x <- flags, isFlagArgs x, FldTyp y <- x] ++ ["FILE"]
