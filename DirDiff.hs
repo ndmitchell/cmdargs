@@ -15,10 +15,10 @@ create = mode $ Create
     } & text "Create a fingerprint"
 
 diff = mode $ Diff
-    {old = def & argPos 0
-    ,new = def & argPos 1
+    {old = def & typ "OLDFILE" & argPos 0
+    ,new = def & typ "NEWFILE" & argPos 1
     ,out = "diff.txt" & outFlags
     } & text "Perform a diff"
 
 
-main = print =<< cmdModes "DirDiff v1.0" [create,diff]
+main = print =<< cmdModes "DirDiff v1.0" [diff,create] -- create,diff]

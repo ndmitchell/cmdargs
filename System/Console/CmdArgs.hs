@@ -105,7 +105,7 @@ data Info
     | FldText String
     | FldFlag String
     | FldArgs
-    | FldArg Int
+    | FldArgPos Int
     | FldExplicit
     | HelpSuffix [String]
       deriving Show
@@ -132,9 +132,9 @@ flag = FldFlag
 args :: Info
 args = FldArgs
 
-
+-- | 0-based argument position
 argPos :: Int -> Info
-argPos = FldArg
+argPos = FldArgPos
 
 
 typDir, typFile :: Info
@@ -164,6 +164,8 @@ autoArgs = map (def++) $
 
 -- Simple stuff
 isFlagArgs xs = [] /= [() | FldArgs{} <- xs]
+isFlagArgPos xs = [] /= [() | FldArgPos{} <- xs]
+isFlagFlag xs = not $ isFlagArgs xs || isFlagArgPos xs
 isFlagExplicit xs = [] /= [() | FldExplicit{} <- xs]
 isFlagOpt = isJust . flagOpt
 flagOpt xs = listToMaybe [x | FldEmpty x <- xs]
@@ -209,7 +211,7 @@ cmdArgs short (Mode val top flags) = do
     flags <- return $ flagsExpand flags
     args <- parseArgs flags `fmap` getArgs
     when (hasArg args "!help") $ do
-        showHelp short top flags
+        showHelp short $ Mode val top flags
         exitSuccess
     args <- return $ expandArgs flags args
     case [x | Err x <- args] of
@@ -236,7 +238,7 @@ flagsExpand = assignShort . assignLong . (autoArgs++)
 
 assignLong :: [Flag] -> [Flag]
 assignLong = map f
-    where f xs = [FldFlag $ flagName x | FldName x <- xs, not $ isFlagArgs xs, not $ isFlagExplicit xs] ++ xs
+    where f xs = [FldFlag $ flagName x | FldName x <- xs, isFlagFlag xs, not $ isFlagExplicit xs] ++ xs
 
 
 assignShort :: [Flag] -> [Flag]
@@ -273,17 +275,16 @@ setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ 
 ---------------------------------------------------------------------
 -- HELP INFORMATION
 
-showHelp :: String -> [Info] -> [Flag] -> IO ()
-showHelp short mode flags = do
+showHelp :: String -> Mode a -> IO ()
+showHelp short (Mode _ top flags) = do
     x <- getProgName
-    let ty = head $ [y | x <- flags, isFlagArgs x, FldTyp y <- x] ++ ["FILE"]
     showBlock $
         Left short :
         Left "" :
-        Left (map toLower (takeBaseName x) ++ " [FLAG] ["++ty++"]") :
+        Left (map toLower (takeBaseName x) ++ " [FLAG]" ++ showArgs flags) :
         Left "" :
-        concatMap (map Right . showArg) flags ++
-        concat [map Left $ "":xs | HelpSuffix xs <- mode]
+        concatMap (map Right . showFlag) flags ++
+        concat [map Left $ "":xs | HelpSuffix xs <- top]
 
 
 showBlock :: [Either String (String,String,String)] -> IO ()
@@ -297,12 +298,21 @@ showBlock xs = putStr $ unlines $ map f xs
           pad n x = x ++ replicate (n - length x + 1) ' '
 
 
-showArg :: Flag -> [(String,String,String)]
-showArg xs =
+showArgs :: [Flag] -> String
+showArgs = concatMap ((' ':) . snd) . sort . concatMap f
+    where
+        f xs = case (isFlagArgs xs, [x | FldArgPos x <- xs], head $ [x | FldTyp x <- xs] ++ ["FILE"]) of
+            (True,_,x) -> [(maxBound :: Int,"[" ++ x ++ "]")]
+            (_,[i],x) -> [(i,x)]
+            _ -> []
+
+
+showFlag :: Flag -> [(String,String,String)]
+showFlag xs =
     [(unwords (map ("-"++) short)
      ,unwords (map ("--"++) long) ++ val
      ,flagText xs ++ maybe "" (\x -> " (default=" ++ x ++ ")") (defaultArg xs))
-    | not $ isFlagArgs xs]
+    | isFlagFlag xs]
     where
         (short,long) = partition ((==) 1 . length) [x | FldFlag x <- xs]
         val = if isFlagBool xs then ""
@@ -382,7 +392,7 @@ hasArg xs name = or [x == name | Field x _ <- xs]
 
 -- expand out the Arg
 expandArgs :: [Flag] -> [Arg] -> [Arg]
-expandArgs flags (Arg x:xs) = case filter isFlagArgs flags of
+expandArgs flags (Arg x:xs) = case filter (not . isFlagFlag) flags of
     flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : expandArgs flags xs
     [] -> Err ("Can't deal with file arguments: " ++ show x) : expandArgs flags xs
 expandArgs flags (x:xs) = x : expandArgs flags xs

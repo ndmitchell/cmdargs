@@ -55,12 +55,12 @@ smoke = do
     where
 
 (===) args v = do
-    res <- withArgs args $ cmdMode "" hlint
+    res <- withArgs args $ cmdArgs "" hlint
     when (res /= v) $
         error $ "Mismatch on flags " ++ show args
 
 fails args = do
-    res <- try $ withArgs args $ cmdMode "" hlint
+    res <- try $ withArgs args $ cmdArgs "" hlint
     case res of
         Left (e :: SomeException) -> return ()
         Right _ -> error $ "Expected failure " ++ show args
