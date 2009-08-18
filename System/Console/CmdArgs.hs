@@ -26,6 +26,7 @@ import System.Exit
 import System.FilePath
 import Data.Char
 import Control.Monad.State
+import Data.Function
 
 
 ---------------------------------------------------------------------
@@ -167,6 +168,9 @@ autoArgs = map (def++) $
 isFlagArgs xs = [] /= [() | FldArgs{} <- xs]
 isFlagArgPos xs = [] /= [() | FldArgPos{} <- xs]
 isFlagFlag xs = not $ isFlagArgs xs || isFlagArgPos xs
+flagName xs = head [x | FldName x <- xs]
+isFldFlag Flag{} = True; isFldFlag _ = False
+fldFlags xs = [x | Flag x <- xs]
 isExplicit xs = [] /= [() | Explicit{} <- xs]
 isFlagOpt = isJust . flagOpt
 flagOpt xs = listToMaybe [x | FldEmpty x <- xs]
@@ -208,11 +212,11 @@ toFlagTypeRead list x
 -- MAIN DRIVERS
 
 cmdArgs :: Data a => String -> Mode a -> IO a
-cmdArgs short (Mode val top flags) = do
-    flags <- return $ flagsExpand flags
+cmdArgs short mode = do
+    [mode@(Mode val top flags)] <- return $ expand [mode]
     args <- parseArgs flags `fmap` getArgs
     when (hasArg args "!help") $ do
-        showHelp short $ Mode val top flags
+        showHelp short mode
         exitSuccess
     args <- return $ fileArgs flags args
     case [x | Err x <- args] of
@@ -228,40 +232,57 @@ cmdArgs short (Mode val top flags) = do
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
 cmdModes short xs = do
-    forM_ xs $ \(Mode a b c) ->
-        showHelp short $ Mode a b (flagsExpand c)
+    forM_ (expand xs) $ showHelp short
     error "cmdModes, todo"
 
 
 ---------------------------------------------------------------------
 -- FLAG EXPANSION
 
+-- (fldname,([flags],explicit))
+type FlagNames = [(String,([String],Bool))]
 
-
-flagsExpand :: [Flag] -> [Flag]
-flagsExpand = assignShort . assignLong . (autoArgs++)
-
-
-assignLong :: [Flag] -> [Flag]
-assignLong = map f
-    where f xs = [Flag $ flagName x | FldName x <- xs, isFlagFlag xs, not $ isExplicit xs] ++ xs
-
-
-assignShort :: [Flag] -> [Flag]
-assignShort xs = zipWith (++) flags xs
+-- Error if:
+--   Two things with the same FldName have different FldFlag or Explicit
+--   Two fields without the same FldName have different FldFlag
+expand :: [Mode a] -> [Mode a]
+expand xs | not $ checkFlags ys = error "Flag's don't meet their condition"
+          | otherwise = xs3
     where
-        seen = [y | x <- xs, Flag [y] <- x]
-        guesses = map guess xs
-        dupes = nub $ concat guesses \\ nub (concat guesses)
-        flags = [[Flag [i] | i <- g, i `notElem` (seen++dupes)] | g <- guesses]
+        xs3 = [Mode a b [if isFlagFlag c then filter (not . isFldFlag) c ++ map Flag (fst $ fromJust $ lookup (flagName c) ys2) else c | c <- cs] | Mode a b cs <- xs2]
+        ys2 = assignShort $ assignLong ys
+        ys = sort $ nub [(flagName x, (fldFlags x, isExplicit x)) | Mode _ _ x <- xs2, x <- x, isFlagFlag x]
+        xs2 = [Mode a b (autoArgs++c) | Mode a b c <- xs]
+
+
+checkFlags :: FlagNames -> Bool
+checkFlags xs | any ((/=) 1 . length) $ groupBy ((==) `on` fst) xs = error "Two record names have different flags"
+              | nub names /= names = error "One flag has been assigned twice"
+              | otherwise = True
+    where names = concatMap (fst . snd) xs
+
+
+assignLong :: FlagNames -> FlagNames
+assignLong xs = map f xs
+    where
+        seen = concatMap (fst . snd) xs
+        f (name,(already,False)) | name `notElem` seen = (name,(g name:already,False))
+        f x = x
+        g xs | "_" `isSuffixOf` xs = g $ init xs
+        g xs = [if x == '_' then '-' else x | x <- xs]
+
+
+assignShort :: FlagNames -> FlagNames
+assignShort xs = zipWith (\x (a,(b,c)) -> (a,(maybe [] (return . return) x ++ b,c))) good xs
+    where
+        seen = concat $ filter ((==) 1 . length) $ concatMap (fst . snd) xs
+        guesses = map guess xs :: [Maybe Char]
+        dupes = let gs = catMaybes guesses in nub $ gs \\ nub gs
+        good = [if maybe True (`elem` (dupes++seen)) g then Nothing else g | g <- guesses] :: [Maybe Char]
 
         -- guess at a possible short flag
-        guess ys = if [() | Flag [_] <- ys] /= [] then [] else take 1 [x | Flag (x:_) <- ys]
-
-
-flagName :: String -> String
-flagName xs | "_" `isSuffixOf` xs = flagName $ init xs
-flagName xs = [if x == '_' then '-' else x | x <- xs]
+        guess (name,(already,False)) | all ((/=) 1 . length) already = Just $ head $ head already
+        guess _ = Nothing
 
 
 ---------------------------------------------------------------------
