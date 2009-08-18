@@ -308,13 +308,14 @@ showHelp :: String -> [Mode a] -> IO ()
 showHelp short xs = do
     prog <- fmap (map toLower . takeBaseName) getProgName
     let one = length xs == 1
-    let info = [(prog ++ (if one then "" else " " ++ modeName top) ++ " [FLAG]" ++ showArgs flags
+    let info = [([prog ++ (if one then "" else " " ++ modeName top) ++ " [FLAG]" ++ showArgs flags
+                 ,"  " ++ flagText top]
                 ,concatMap showFlag flags)
-               | Mode _ top flags <- xs] :: [(String,[(String,String,String)])]
-    let dupes = if one then [] else foldr1 intersect (map snd info) :: [(String,String,String)]
+               | Mode _ top flags <- xs]
+    let dupes = if one then [] else foldr1 intersect (map snd info)
     showBlock $
         Left short :
-        concat [Left "" : Left mode : Left "" : map Right (args \\ dupes) | (mode,args) <- info] ++
+        concat [Left "" : map Left mode ++ Left "" : map Right (args \\ dupes) | (mode,args) <- info] ++
         (if null dupes then [] else Left "":Left "Common flags:":map Right dupes) ++
         concat [map Left $ "":suf | Mode _ top _ <- xs, HelpSuffix suf <- top]
 
