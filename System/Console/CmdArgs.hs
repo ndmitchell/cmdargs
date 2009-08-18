@@ -306,20 +306,17 @@ setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ 
 
 showHelp :: String -> [Mode a] -> IO ()
 showHelp short xs = do
-    x <- fmap (map toLower . takeBaseName) getProgName
+    prog <- fmap (map toLower . takeBaseName) getProgName
+    let one = length xs == 1
+    let info = [(prog ++ (if one then "" else " " ++ modeName top) ++ " [FLAG]" ++ showArgs flags
+                ,concatMap showFlag flags)
+               | Mode _ top flags <- xs] :: [(String,[(String,String,String)])]
+    let dupes = if one then [] else foldr1 intersect (map snd info) :: [(String,String,String)]
     showBlock $
         Left short :
-        Left "" :
-        concatMap (showHelpMode x (length xs == 1)) xs ++ 
-        concat [map Left suf | Mode _ top _ <- xs, HelpSuffix suf <- top]
-
-
-showHelpMode :: String -> Bool -> Mode a -> [Either String (String,String,String)]
-showHelpMode prog one (Mode _ top flags) =
-    Left (prog ++ (if one then "" else " " ++ modeName top) ++ " [FLAG]" ++ showArgs flags) :
-    Left "" :
-    concatMap (map Right . showFlag) flags ++
-    Left "" : []
+        concat [Left "" : Left mode : Left "" : map Right (args \\ dupes) | (mode,args) <- info] ++
+        (if null dupes then [] else Left "":Left "Common flags:":map Right dupes) ++
+        concat [map Left $ "":suf | Mode _ top _ <- xs, HelpSuffix suf <- top]
 
 
 showBlock :: [Either String (String,String,String)] -> IO ()
