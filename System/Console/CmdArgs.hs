@@ -79,8 +79,9 @@ modeValue (Mode x _ _) = x
 mode :: Data a => a -> Mode a
 mode val = unsafePerformIO $ do
     evaluate val
-    top <- collect
-    ref <- newIORef (constrFields $ toConstr val, [])
+    let con = toConstr val
+    top <- fmap (ModName (map toLower $ showConstr con):) collect
+    ref <- newIORef (constrFields con, [])
     val <- flip gmapM val $ \i -> do
         res <- evaluate i
         info <- collect
@@ -178,6 +179,7 @@ flagText xs = unwords [x | Text x <- xs]
 isFlagBool xs = case flagType xs of FlagBool -> True; _ -> False
 hasFlagType = isJust . toFlagType
 flagType = fromJust . toFlagType
+modeName xs = head [x | ModName x <- xs]
 
 
 -- Flag types
@@ -216,7 +218,7 @@ cmdArgs short mode = do
     [mode@(Mode val top flags)] <- return $ expand [mode]
     args <- parseArgs flags `fmap` getArgs
     when (hasArg args "!help") $ do
-        showHelp short mode
+        showHelp short [mode]
         exitSuccess
     args <- return $ fileArgs flags args
     case [x | Err x <- args] of
@@ -232,7 +234,7 @@ cmdArgs short mode = do
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
 cmdModes short xs = do
-    forM_ (expand xs) $ showHelp short
+    showHelp short $ expand xs
     error "cmdModes, todo"
 
 
@@ -302,16 +304,22 @@ setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ 
 ---------------------------------------------------------------------
 -- HELP INFORMATION
 
-showHelp :: String -> Mode a -> IO ()
-showHelp short (Mode _ top flags) = do
-    x <- getProgName
+showHelp :: String -> [Mode a] -> IO ()
+showHelp short xs = do
+    x <- fmap (map toLower . takeBaseName) getProgName
     showBlock $
         Left short :
         Left "" :
-        Left (map toLower (takeBaseName x) ++ " [FLAG]" ++ showArgs flags) :
-        Left "" :
-        concatMap (map Right . showFlag) flags ++
-        concat [map Left $ "":xs | HelpSuffix xs <- top]
+        concatMap (showHelpMode x (length xs == 1)) xs ++ 
+        concat [map Left suf | Mode _ top _ <- xs, HelpSuffix suf <- top]
+
+
+showHelpMode :: String -> Bool -> Mode a -> [Either String (String,String,String)]
+showHelpMode prog one (Mode _ top flags) =
+    Left (prog ++ (if one then "" else " " ++ modeName top) ++ " [FLAG]" ++ showArgs flags) :
+    Left "" :
+    concatMap (map Right . showFlag) flags ++
+    Left "" : []
 
 
 showBlock :: [Either String (String,String,String)] -> IO ()
