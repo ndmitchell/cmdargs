@@ -450,6 +450,8 @@ modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Mode a))
 modeArgs [mode] xs = (xs, Right mode)
 modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode@(Mode _ top _) <- modes, x `isPrefixOf` modeName top] of
     [] -> Left $ "Unknown mode: " ++ x
-    [x] -> Right x
+    [x@(Mode _ _ flags)] -> case [n | Field n _ <- xs, n `notElem` map flagName flags] of
+        [] -> Right x
+        bad:_ -> Left $ "Flag " ++ show bad ++ " not permitted in this mode"
     xs -> Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName [x | Mode _ x _ <- xs])
 modeArgs modes xs = (xs, Left "No mode given")
