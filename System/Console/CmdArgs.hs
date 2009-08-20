@@ -430,11 +430,15 @@ hasArg xs name = or [x == name | Field x _ <- xs]
 
 -- expand out the Arg
 fileArgs :: Mode a -> [Arg] -> [Arg]
-fileArgs mode@(Mode _ _ flags) (Arg x:xs) = case filter (not . isFlagFlag) flags of
-    flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : fileArgs mode xs
-    [] -> Err ("Can't deal with file arguments: " ++ show x) : fileArgs mode xs
-fileArgs mode (x:xs) = x : fileArgs mode xs
-fileArgs mode [] = []
+fileArgs (Mode _ _ flags) = f (flgPos ++ flgArg ++ flgErr)
+    where
+        flgPos = map snd $ sortBy (compare `on` fst) [(i,\x -> Field (flagName flag) (const $ toDyn x)) | flag <- flags, FldArgPos i <- flag]
+        flgArg = concat [repeat $ \x -> Field (flagName flag) (\v -> toDyn $ fromDyn v [""] ++ [x]) | flag <- flags, isFlagArgs flag]
+        flgErr = repeat $ \x -> Err $ "Can't deal with further file arguments: " ++ show x
+
+        f (t:ts) (Arg x:xs) = t x : f ts xs
+        f ts (x:xs) = x : f ts xs
+        f ts [] = []
 
 
 applyArgs :: Data a => [Arg] -> a -> a
@@ -449,4 +453,3 @@ modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode@(Mode _ top _) <- modes, 
     [x] -> Right x
     xs -> Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName [x | Mode _ x _ <- xs])
 modeArgs modes xs = (xs, Left "No mode given")
-
