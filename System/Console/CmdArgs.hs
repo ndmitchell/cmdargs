@@ -215,12 +215,12 @@ toFlagTypeRead list x
 
 cmdArgs :: Data a => String -> Mode a -> IO a
 cmdArgs short mode = do
-    [mode@(Mode val top flags)] <- return $ expand [mode]
-    args <- parseArgs flags `fmap` getArgs
+    modes@[mode@(Mode val top flags)] <- return $ expand [mode]
+    args <- parseArgs modes `fmap` getArgs
     when (hasArg args "!help") $ do
-        showHelp short [mode]
+        showHelp short modes
         exitSuccess
-    args <- return $ fileArgs flags args
+    args <- return $ fileArgs mode args
     case [x | Err x <- args] of
         x:_ -> putStrLn x >> exitFailure
         [] -> return ()
@@ -233,9 +233,26 @@ cmdArgs short mode = do
 
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
-cmdModes short xs = do
-    showHelp short $ expand xs
-    error "cmdModes, todo"
+cmdModes short modes = do
+    modes <- return $ expand modes
+    args <- parseArgs modes `fmap` getArgs
+    (args,mode) <- return $ modeArgs modes args
+    when (hasArg args "!help") $ do
+        case mode of
+            Right mode -> showHelp short [mode]
+            Left err -> showHelp short modes
+        exitSuccess
+    mode <- case mode of
+        Right x -> return x
+        Left x -> putStrLn x >> exitFailure
+    args <- return $ fileArgs mode args
+    sequence_ [putStrLn x >> exitFailure | Err x <- args]
+    when (hasArg args "!version") $ do
+        putStrLn short
+        exitSuccess
+    when (hasArg args "!verbose") $ writeIORef verbosity 2
+    when (hasArg args "!quiet") $ writeIORef verbosity 0
+    return $ applyArgs args $ modeValue mode
 
 
 ---------------------------------------------------------------------
@@ -372,25 +389,28 @@ data Arg = Field String (Dynamic -> Dynamic)
          | Arg String
 
 
-parseArgs :: [Flag] -> [String] -> [Arg]
-parseArgs flags [] = []
+modesFlags :: [Mode a] -> [Flag]
+modesFlags xs = nubBy ((==) `on` flagName) $ concat [x | Mode _ _ x <- xs]
 
-parseArgs flags (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs flags (['-',x]:('-':xs):ys)
-    where expand = [x | flag <- flags, isFlagBool flag, Flag [x] <- flag]
+parseArgs :: [Mode a] -> [String] -> [Arg]
+parseArgs modes [] = []
 
-parseArgs flags (('-':x:xs):ys) | x /= '-' = parseArgs flags (x2:ys)
+parseArgs modes (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs modes (['-',x]:('-':xs):ys)
+    where expand = [x | flag <- modesFlags modes, isFlagBool flag, Flag [x] <- flag]
+
+parseArgs modes (('-':x:xs):ys) | x /= '-' = parseArgs modes (x2:ys)
     where x2 = if null xs then '-':'-':x:[] else '-':'-':x:'=':xs
 
-parseArgs flags (('-':'-':x):xs)
-    | Left msg <- flg = err msg : parseArgs flags xs
+parseArgs modes (('-':'-':x):xs)
+    | Left msg <- flg = err msg : parseArgs modes xs
     | Right flag <- flg = let name = head [x | FldName x <- flag] in
     case flagType flag of
         FlagBool -> 
             [err "does not take an argument" | b /= ""] ++
-            [Field name (const $ toDyn True)] ++ parseArgs flags xs
+            [Field name (const $ toDyn True)] ++ parseArgs modes xs
         FlagItem r ->
             if not (isFlagOpt flag) && null b && (null xs || "-" `isPrefixOf` head xs)
-            then err "needs an argument" : parseArgs flags xs
+            then err "needs an argument" : parseArgs modes xs
             else let (text,rest) = case flagOpt flag of
                         Just v | null b -> (v, xs)
                         _ | null b -> (head xs, tail xs)
@@ -398,9 +418,9 @@ parseArgs flags (('-':'-':x):xs)
                  in (case r text of
                         Nothing -> err "couldn't parse argument" 
                         Just v -> Field name v)
-                    : parseArgs flags rest
+                    : parseArgs modes rest
     where
-        flg = pickFlag flags a
+        flg = pickFlag (modesFlags modes) a
         (a,b) = break (== '=') x
         err msg = Err $ "Error on flag " ++ show x ++ ", flag " ++ msg
 
@@ -424,14 +444,23 @@ hasArg xs name = or [x == name | Field x _ <- xs]
 
 
 -- expand out the Arg
-fileArgs :: [Flag] -> [Arg] -> [Arg]
-fileArgs flags (Arg x:xs) = case filter (not . isFlagFlag) flags of
-    flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : fileArgs flags xs
-    [] -> Err ("Can't deal with file arguments: " ++ show x) : fileArgs flags xs
-fileArgs flags (x:xs) = x : fileArgs flags xs
-fileArgs flags [] = []
+fileArgs :: Mode a -> [Arg] -> [Arg]
+fileArgs mode@(Mode _ _ flags) (Arg x:xs) = case filter (not . isFlagFlag) flags of
+    flag:_ -> Field (head [x | FldName x <- flag]) (\v -> toDyn $ fromDyn v [""] ++ [x]) : fileArgs mode xs
+    [] -> Err ("Can't deal with file arguments: " ++ show x) : fileArgs mode xs
+fileArgs mode (x:xs) = x : fileArgs mode xs
+fileArgs mode [] = []
 
 
 applyArgs :: Data a => [Arg] -> a -> a
 applyArgs (Field name upd:args) x = applyArgs args (setField x name upd)
 applyArgs [] x = x
+
+
+modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Mode a))
+modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode@(Mode _ top _) <- modes, x `isPrefixOf` modeName top] of
+    [] -> Left $ "Unknown mode: " ++ x
+    [x] -> Right x
+    xs -> Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName [x | Mode _ x _ <- xs])
+modeArgs modes xs = (xs, Left "No mode given")
+
