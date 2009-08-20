@@ -1,11 +1,8 @@
-{-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+
+module HLint where
 
 import System.Console.CmdArgs
-
--- for the tests only
-import Control.Monad
-import System.Environment
-import Control.Exception
 
 
 data HLint = HLint
@@ -36,32 +33,4 @@ hlint = mode $ HLint
     helpSuffix ["HLint gives hints on how to improve Haskell code.",""
                ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
-
 main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" hlint
-
-
-smoke = do
-    let v = modeValue hlint
-    [] === v
-    fails ["-ch"]
-    ["--colo"] === v{color=True}
-    ["-ct"] === v{color=True,test=True}
-    ["--colour","--test"] === v{color=True,test=True}
-    ["-thfoo"] === v{test=True,hint=["foo"]}
-    ["-cr"] === v{color=True,report=["report.html"]}
-    ["--cpp-define=val","x"] === v{cpp_define=["val"],files=["x"]}
-    fails ["--cpp-define"]
-    ["--cpp-define","val","x","y"] === v{cpp_define=["val"],files=["x","y"]}
-    putStrLn "Tests successful"
-    where
-
-(===) args v = do
-    res <- withArgs args $ cmdArgs "" hlint
-    when (res /= v) $
-        error $ "Mismatch on flags " ++ show args
-
-fails args = do
-    res <- try $ withArgs args $ cmdArgs "" hlint
-    case res of
-        Left (e :: SomeException) -> return ()
-        Right _ -> error $ "Expected failure " ++ show args
