@@ -30,26 +30,36 @@ info = unsafePerformIO $ newIORef []
     modifyIORef info (i:)
     return x
 
-collect :: IO [Info]
-collect = do
-    x <- readIORef info
+collect :: a -> IO [Info]
+collect x = do
     writeIORef info []
+    evaluate x
+    x <- readIORef info
     return x
 
 mode :: Data a => a -> Mode a
 mode val = unsafePerformIO $ do
-    evaluate val
+    info <- collect val
     let con = toConstr val
-    top <- fmap (ModName (map toLower $ showConstr con):) collect
+        name = map toLower $ showConstr con
     flags <- sequence $ flip gmapQ val $ \i -> do
-        res <- evaluate i
-        info <- collect
+        info <- collect i
         let typ = typeOf i
         if hasFlagType [FldType typ]
             then return $ FldType typ:FldValue (toDyn i):info
             else error $ "Can't handle a type of " ++ show typ
     flags <- return $ zipWith (:) (map FldName $ constrFields con) flags
-    return $ Mode val top flags
+    return $ modeInfo modeDefault{modeVal=val,modeName=name,modeFlags=flags} info
+
+
+---------------------------------------------------------------------
+-- INFO ITEMS
+
+modeInfo :: Mode a -> [Info] -> Mode a
+modeInfo = foldl $ \m x -> case x of
+    Text x -> m{modeText=x}
+    HelpSuffix x -> m{modeHelpSuffix=x}
+    x -> error $ "Invalid info at mode level: " ++ show x
 
 
 ---------------------------------------------------------------------

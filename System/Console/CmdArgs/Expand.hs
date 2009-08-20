@@ -37,10 +37,10 @@ expand :: [Mode a] -> [Mode a]
 expand xs | not $ checkFlags ys = error "Flag's don't meet their condition"
           | otherwise = xs3
     where
-        xs3 = [Mode a b [if isFlagFlag c then filter (not . isFldFlag) c ++ map Flag (fst $ fromJust $ lookup (flagName c) ys2) else c | c <- cs] | Mode a b cs <- xs2]
+        xs3 = map (\x -> x{modeFlags=[if isFlagFlag c then filter (not . isFldFlag) c ++ map Flag (fst $ fromJust $ lookup (flagName c) ys2) else c | c <- modeFlags x]}) xs2        
         ys2 = assignShort $ assignLong ys
-        ys = sort $ nub [(flagName x, (fldFlags x, isExplicit x)) | Mode _ _ x <- xs2, x <- x, isFlagFlag x]
-        xs2 = [Mode a b (autoArgs++c) | Mode a b c <- xs]
+        ys = sort $ nub [(flagName x, (fldFlags x, isExplicit x)) | x <- map modeFlags xs2, x <- x, isFlagFlag x]
+        xs2 = map (\x -> x{modeFlags = autoArgs ++ modeFlags x}) xs
 
 
 checkFlags :: FlagNames -> Bool

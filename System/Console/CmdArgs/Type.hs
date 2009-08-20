@@ -30,7 +30,17 @@ data Info
 
 type Flag = [Info]
 
-data Mode a = Mode a [Info] [Flag]
+data Mode a = Mode
+    {modeVal :: a
+    ,modeName :: String
+    ,modeText :: String
+    ,modeHelpSuffix :: [String]
+    ,modeExplicit :: Bool
+    ,modeFlags :: [Flag]
+    }
+
+modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False}
+
 
 ---------------------------------------------------------------------
 -- STRUCTURED FLAGS
@@ -49,7 +59,6 @@ flagText xs = unwords [x | Text x <- xs]
 isFlagBool xs = case flagType xs of FlagBool -> True; _ -> False
 hasFlagType = isJust . toFlagType
 flagType = fromJust . toFlagType
-modeName xs = head [x | ModName x <- xs]
 
 
 -- Flag types

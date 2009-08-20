@@ -55,6 +55,10 @@ isLoud = fmap (>=2) $ readIORef verbosity
 ---------------------------------------------------------------------
 -- MAIN DRIVERS
 
+modeValue :: Mode a -> a
+modeValue = modeVal
+
+
 cmdArgs :: Data a => String -> Mode a -> IO a
 cmdArgs short mode = cmdModes short [mode]
 
@@ -82,10 +86,6 @@ cmdModes short modes = do
     return $ applyArgs args $ modeValue mode
 
 
-modeValue :: Mode a -> a
-modeValue (Mode x _ _) = x
-
-
 ---------------------------------------------------------------------
 -- UTILITIES
 
@@ -103,16 +103,16 @@ showHelp :: String -> [Mode a] -> IO ()
 showHelp short xs = do
     prog <- fmap (map toLower . takeBaseName) getProgName
     let one = length xs == 1
-    let info = [([prog ++ (if one then "" else " " ++ modeName top) ++ " [FLAG]" ++ showArgs flags
-                 ,"  " ++ flagText top]
+    let info = [([prog ++ (if one then "" else " " ++ name) ++ " [FLAG]" ++ showArgs flags
+                 ,"  " ++ text]
                 ,concatMap showFlag flags)
-               | Mode _ top flags <- xs]
+               | Mode{modeName=name,modeFlags=flags,modeText=text} <- xs]
     let dupes = if one then [] else foldr1 intersect (map snd info)
     showBlock $
         Left short :
         concat [Left "" : map Left mode ++ Left "" : map Right (args \\ dupes) | (mode,args) <- info] ++
         (if null dupes then [] else Left "":Left "Common flags:":map Right dupes) ++
-        concat [map Left $ "":suf | Mode _ top _ <- xs, HelpSuffix suf <- top]
+        concat [map Left $ "":suf | suf@(_:_) <- map modeHelpSuffix xs]
 
 
 showBlock :: [Either String (String,String,String)] -> IO ()
@@ -168,7 +168,7 @@ data Arg = Field String (Dynamic -> Dynamic)
 
 
 modesFlags :: [Mode a] -> [Flag]
-modesFlags xs = nubBy ((==) `on` flagName) $ concat [x | Mode _ _ x <- xs]
+modesFlags xs = nubBy ((==) `on` flagName) $ concatMap modeFlags xs
 
 parseArgs :: [Mode a] -> [String] -> [Arg]
 parseArgs modes [] = []
@@ -223,7 +223,7 @@ hasArg xs name = or [x == name | Field x _ <- xs]
 
 -- expand out the Arg
 fileArgs :: Mode a -> [Arg] -> [Arg]
-fileArgs (Mode _ _ flags) = f (flgPos ++ flgArg ++ flgErr)
+fileArgs Mode{modeFlags=flags} = f (flgPos ++ flgArg ++ flgErr)
     where
         flgPos = map snd $ sortBy (compare `on` fst) [(i,\x -> Field (flagName flag) (const $ toDyn x)) | flag <- flags, FldArgPos i <- flag]
         flgArg = concat [repeat $ \x -> Field (flagName flag) (\v -> toDyn $ fromDyn v [""] ++ [x]) | flag <- flags, isFlagArgs flag]
@@ -241,10 +241,10 @@ applyArgs [] x = x
 
 modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Mode a))
 modeArgs [mode] xs = (xs, Right mode)
-modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode@(Mode _ top _) <- modes, x `isPrefixOf` modeName top] of
+modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode <- modes, x `isPrefixOf` modeName mode] of
     [] -> Left $ "Unknown mode: " ++ x
-    [x@(Mode _ _ flags)] -> case [n | Field n _ <- xs, n `notElem` map flagName flags] of
-        [] -> Right x
+    [mode] -> case [n | Field n _ <- xs, n `notElem` map flagName (modeFlags mode)] of
+        [] -> Right mode
         bad:_ -> Left $ "Flag " ++ show bad ++ " not permitted in this mode"
-    xs -> Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName [x | Mode _ x _ <- xs])
+    xs -> Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName xs)
 modeArgs modes xs = (xs, Left "No mode given")
