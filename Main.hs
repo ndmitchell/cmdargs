@@ -50,4 +50,11 @@ testHLint = do
 testDirDiff = do
     let ([create,diff],(===),fails) = test D.modes
     fails []
-
+    ["create"] === create
+    fails ["create","file1"]
+    ["create","--src","x"] === create{D.src="x"}
+    ["create","--src","x","--src","y"] === create{D.src="y"}
+    fails ["diff","--src","x"]
+    fails ["create","foo"]
+    fails ["diff","foo1","foo2","foo3"]
+    ["diff","foo1","foo2"] === diff{D.old="foo1",D.new="foo2"}
