@@ -227,14 +227,14 @@ cmdModes short modes = do
             Right mode -> showHelp short [mode]
             Left err -> showHelp short modes
         exitSuccess
+    when (hasArg args "!version") $ do
+        putStrLn short
+        exitSuccess
     mode <- case mode of
         Right x -> return x
         Left x -> putStrLn x >> exitFailure
     args <- return $ fileArgs mode args
     sequence_ [putStrLn x >> exitFailure | Err x <- args]
-    when (hasArg args "!version") $ do
-        putStrLn short
-        exitSuccess
     when (hasArg args "!verbose") $ writeIORef verbosity 2
     when (hasArg args "!quiet") $ writeIORef verbosity 0
     return $ applyArgs args $ modeValue mode
