@@ -41,17 +41,14 @@ mode val = unsafePerformIO $ do
     evaluate val
     let con = toConstr val
     top <- fmap (ModName (map toLower $ showConstr con):) collect
-    ref <- newIORef (constrFields con, [])
-    val <- flip gmapM val $ \i -> do
+    flags <- sequence $ flip gmapQ val $ \i -> do
         res <- evaluate i
         info <- collect
         let typ = typeOf i
-        modifyIORef ref $ \(fld:flds, xs) ->
-            if hasFlagType [FldType typ]
-            then (flds, (FldName fld:FldType typ:FldValue (toDyn i):info):xs)
-            else error $ "Can't handle a type of " ++ fld
-        return res
-    flags <- fmap (reverse . snd) $ readIORef ref
+        if hasFlagType [FldType typ]
+            then return $ FldType typ:FldValue (toDyn i):info
+            else error $ "Can't handle a type of " ++ show typ
+    flags <- return $ zipWith (:) (map FldName $ constrFields con) flags
     return $ Mode val top flags
 
 
