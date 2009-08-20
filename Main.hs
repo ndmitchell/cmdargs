@@ -8,15 +8,15 @@ import System.Environment
 import Control.Exception
 
 import qualified HLint as H
-import qualified DirDiff as D
+import qualified Diffy as D
 
 
 main = do
     x:xs <- getArgs
     case x of
         "hlint" -> withArgs xs H.main
-        "dirdiff" -> withArgs xs D.main
-        "test" -> testHLint >> testDirDiff >> putStrLn "Test successful"
+        "diffy" -> withArgs xs D.main
+        "test" -> testHLint >> testDiffy >> putStrLn "Test successful"
 
 
 test x = (map modeValue x, (===), fails)
@@ -47,7 +47,7 @@ testHLint = do
     ["--cpp-define","val","x","y"] === v{H.cpp_define=["val"],H.files=["x","y"]}
 
 
-testDirDiff = do
+testDiffy = do
     let ([create,diff],(===),fails) = test D.modes
     fails []
     ["create"] === create
