@@ -216,24 +216,6 @@ toFlagTypeRead list x
 cmdArgs :: Data a => String -> Mode a -> IO a
 cmdArgs short mode = cmdModes short [mode]
 
-cmdArgs short mode = do
-    modes@[mode@(Mode val top flags)] <- return $ expand [mode]
-    args <- parseArgs modes `fmap` getArgs
-    when (hasArg args "!help") $ do
-        showHelp short modes
-        exitSuccess
-    args <- return $ fileArgs mode args
-    case [x | Err x <- args] of
-        x:_ -> putStrLn x >> exitFailure
-        [] -> return ()
-    when (hasArg args "!version") $ do
-        putStrLn short
-        exitSuccess
-    when (hasArg args "!verbose") $ writeIORef verbosity 2
-    when (hasArg args "!quiet") $ writeIORef verbosity 0
-    return $ applyArgs args val
-
-
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
 cmdModes short modes = do
