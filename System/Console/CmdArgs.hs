@@ -19,8 +19,6 @@ import Data.List
 import Data.Maybe
 import Data.IORef
 import System.Environment
-import Control.Monad
-import Control.Exception
 import System.Exit
 import System.FilePath
 import Data.Char
@@ -90,10 +88,6 @@ modeValue (Mode x _ _) = x
 
 ---------------------------------------------------------------------
 -- UTILITIES
-
-errorIO :: String -> IO a
-errorIO x = putStrLn x >> exitFailure
-
 
 setField :: Data a => a -> String -> (Dynamic -> Dynamic) -> a
 setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ \i -> do

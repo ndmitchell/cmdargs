@@ -12,11 +12,7 @@ import Data.Data
 import Data.List
 import Data.Maybe
 import Data.IORef
-import System.Environment
-import Control.Monad
 import Control.Exception
-import System.Exit
-import System.FilePath
 import Data.Char
 import Control.Monad.State
 import Data.Function
