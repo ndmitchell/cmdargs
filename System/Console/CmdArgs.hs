@@ -214,6 +214,8 @@ toFlagTypeRead list x
 -- MAIN DRIVERS
 
 cmdArgs :: Data a => String -> Mode a -> IO a
+cmdArgs short mode = cmdModes short [mode]
+
 cmdArgs short mode = do
     modes@[mode@(Mode val top flags)] <- return $ expand [mode]
     args <- parseArgs modes `fmap` getArgs
@@ -230,6 +232,7 @@ cmdArgs short mode = do
     when (hasArg args "!verbose") $ writeIORef verbosity 2
     when (hasArg args "!quiet") $ writeIORef verbosity 0
     return $ applyArgs args val
+
 
 
 cmdModes :: Data a => String -> [Mode a] -> IO a
@@ -458,6 +461,7 @@ applyArgs [] x = x
 
 
 modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Mode a))
+modeArgs [mode] xs = (xs, Right mode)
 modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode@(Mode _ top _) <- modes, x `isPrefixOf` modeName top] of
     [] -> Left $ "Unknown mode: " ++ x
     [x] -> Right x

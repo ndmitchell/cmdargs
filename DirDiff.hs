@@ -1,10 +1,12 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
+module DirDiff where
+
 import System.Console.CmdArgs
 
 data DirDiff = Create {src :: FilePath, out :: FilePath}
              | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
-               deriving (Data,Typeable,Show)
+               deriving (Data,Typeable,Show,Eq)
 
 
 outFlags x = x & text "Output file" & typFile
@@ -20,5 +22,6 @@ diff = mode $ Diff
     ,out = outFlags "diff.txt"
     } & text "Perform a diff"
 
+modes = [create,diff]
 
-main = print =<< cmdModes "DirDiff v1.0" [create,diff]
+main = print =<< cmdModes "DirDiff v1.0" modes

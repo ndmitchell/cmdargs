@@ -33,4 +33,6 @@ hlint = mode $ HLint
     helpSuffix ["HLint gives hints on how to improve Haskell code.",""
                ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
+modes = [hlint]
+
 main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" hlint
