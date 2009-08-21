@@ -67,6 +67,7 @@ testMaker = do
     let ([build,wipe,tst],(===),fails) = test M.modes
     [] === build
     ["build","foo","--profile"] === build{M.files=["foo"],M.profile=True}
+    ["foo","--profile"] === build{M.files=["foo"],M.profile=True}
     ["build","-j3"] === build{M.threads=3}
     ["build","-j=3"] === build{M.threads=3}
     fails ["build","-jN"]

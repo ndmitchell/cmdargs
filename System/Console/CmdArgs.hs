@@ -245,12 +245,12 @@ applyArgs [] x = x
 
 modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Mode a))
 modeArgs [mode] xs = (xs, Right mode)
-modeArgs modes (Arg x:xs) = (,) xs $ case [mode | mode <- modes, x `isPrefixOf` modeName mode] of
-    [] -> modeArgsDefault modes "Unknown mode: "
+modeArgs modes o@(Arg x:xs) = case [mode | mode <- modes, x `isPrefixOf` modeName mode] of
+    [] -> (,) o $ modeArgsDefault modes "Unknown mode: "
     [mode] -> case [n | Field n _ <- xs, n `notElem` map flagName (modeFlags mode)] of
-        [] -> Right mode
-        bad:_ -> Left $ "Flag " ++ show bad ++ " not permitted in this mode"
-    xs -> Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName xs)
+        [] -> (,) xs $ Right mode
+        bad:_ -> (,) o $ Left $ "Flag " ++ show bad ++ " not permitted in this mode"
+    xs -> (,) o $ Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName xs)
 modeArgs modes xs = (xs, modeArgsDefault modes "No mode given")
 
 modeArgsDefault modes err = case filter modeDef modes of
