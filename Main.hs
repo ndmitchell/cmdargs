@@ -19,6 +19,7 @@ main = do
         "diffy" -> withArgs xs D.main
         "maker" -> withArgs xs M.main
         "test" -> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
+        _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
 
 
 test x = (map modeValue x, (===), fails)
