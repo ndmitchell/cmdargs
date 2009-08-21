@@ -1,0 +1,36 @@
+cabal-version:      >= 1.6
+build-type:         Simple
+name:               hlint
+version:            0.1
+license:            BSD3
+license-file:       LICENSE
+category:           Development
+author:             Neil Mitchell <ndmitchell@gmail.com>
+maintainer:         Neil Mitchell <ndmitchell@gmail.com>
+copyright:          Neil Mitchell 2009
+synopsis:           Command line argument processing
+description:
+    An easy way to extra structured arguments from a program. It's main
+    features over other packages (getopt) is that it's less verbose to write
+    a command line, and it supports programs with modes (i.e. darcs or cabal)
+homepage:           http://community.haskell.org/~ndm/cmdargs/
+stability:          Beta
+extra-source-files:
+    cmdargs.htm
+
+library
+    build-depends: base == 4.*, mtl, filepath
+
+    exposed-modules:
+        System.Console.CmdArgs
+    other-modules:
+        System.Console.CmdArgs.UI
+        System.Console.CmdArgs.Type
+        System.Console.CmdArgs.Expand
+
+executable cmdargs
+    main-is: Main.hs
+    other-modules:
+        HLint
+        Diffy
+        Maker

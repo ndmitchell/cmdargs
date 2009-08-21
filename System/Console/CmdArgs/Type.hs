@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
 
 module System.Console.CmdArgs.Type where
 
