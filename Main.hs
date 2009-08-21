@@ -13,12 +13,12 @@ import qualified Maker as M
 
 
 main = do
-    x:xs <- getArgs
-    case x of
-        "hlint" -> withArgs xs H.main
-        "diffy" -> withArgs xs D.main
-        "maker" -> withArgs xs M.main
-        "test" -> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
+    args <- getArgs
+    case args of
+        "hlint":xs -> withArgs xs H.main
+        "diffy":xs -> withArgs xs D.main
+        "maker":xs -> withArgs xs M.main
+        "test":_ -> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
         _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
 
 
