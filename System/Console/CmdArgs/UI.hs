@@ -2,7 +2,8 @@
 
 module System.Console.CmdArgs.UI(
     mode, Mode, (&),
-    text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag
+    text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag,
+    unknownFlags, defMode
     ) where
 
 import System.Console.CmdArgs.Type
@@ -63,6 +64,8 @@ data Info
     | FldFlag String
     | Explicit
     | HelpSuffix [String]
+    | FldUnknown
+    | ModDefault
       deriving Show
 
 
@@ -122,3 +125,10 @@ typDir = typ "DIR"
 
 helpSuffix :: [String] -> Info
 helpSuffix = HelpSuffix
+
+
+unknownFlags :: Info
+unknownFlags = FldUnknown
+
+defMode :: Info
+defMode = ModDefault

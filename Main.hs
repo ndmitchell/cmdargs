@@ -9,6 +9,7 @@ import Control.Exception
 
 import qualified HLint as H
 import qualified Diffy as D
+import qualified Maker as M
 
 
 main = do
@@ -16,7 +17,8 @@ main = do
     case x of
         "hlint" -> withArgs xs H.main
         "diffy" -> withArgs xs D.main
-        "test" -> testHLint >> testDiffy >> putStrLn "Test successful"
+        "maker" -> withArgs xs M.main
+        "test" -> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
 
 
 test x = (map modeValue x, (===), fails)
@@ -58,3 +60,14 @@ testDiffy = do
     fails ["create","foo"]
     fails ["diff","foo1","foo2","foo3"]
     ["diff","foo1","foo2"] === diff{D.old="foo1",D.new="foo2"}
+
+
+testMaker = do
+    let ([build,wipe,tst],(===),fails) = test M.modes
+    [] === build
+    ["build","foo","--profile"] === build{M.files=["foo"],M.profile=True}
+    ["build","-j3"] === build{M.threads=3}
+    fails ["build","-jN"]
+    ["wipe"] === wipe
+    ["test","foo"] === tst{M.extra=["foo"]}
+    ["test","foo","-test","-j3","--what=1"] === tst{M.extra=["foo","-test","--what=1"],M.threads=3}

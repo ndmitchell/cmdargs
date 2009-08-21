@@ -38,6 +38,11 @@ class Default a where
 
 instance Default Bool where def = False
 instance Default [a] where def = []
+instance Default Int where def = 0
+instance Default Integer where def = 0
+instance Default Float where def = 0
+instance Default Double where def = 0
+
 
 ---------------------------------------------------------------------
 -- VERBOSITY CONTROL
