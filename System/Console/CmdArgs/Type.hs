@@ -16,6 +16,7 @@ data Mode a = Mode
     ,modeText :: String
     ,modeHelpSuffix :: [String]
     ,modeExplicit :: Bool
+    ,modeDef :: Bool
     ,modeFlags :: [Flag]
     }
 
@@ -31,6 +32,7 @@ data Flag = Flag
     ,flagTyp :: String
     ,flagText :: String
     ,flagFlag :: [String]
+    ,flagDump :: Bool
     ,flagExplicit :: Bool
     }
 

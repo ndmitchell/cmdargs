@@ -73,6 +73,7 @@ modeInfo :: Mode a -> [Info] -> Mode a
 modeInfo = foldl $ \m x -> case x of
     Text x -> m{modeText=x}
     HelpSuffix x -> m{modeHelpSuffix=x}
+    ModDefault -> m{modeDef=True}
     x -> error $ "Invalid info at mode level: " ++ show x
 
 
@@ -85,6 +86,7 @@ flagInfo = foldl $ \m x -> case x of
     FldFlag x -> m{flagFlag=x:flagFlag m}
     FldArgs -> m{flagArgs=Just Nothing}
     FldArgPos i -> m{flagArgs=Just (Just i)}
+    FldUnknown -> m{flagDump=True}
     x -> error $ "Invalid info at argument level: " ++ show x
 
 
