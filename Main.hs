@@ -67,6 +67,7 @@ testMaker = do
     [] === build
     ["build","foo","--profile"] === build{M.files=["foo"],M.profile=True}
     ["build","-j3"] === build{M.threads=3}
+    ["build","-j=3"] === build{M.threads=3}
     fails ["build","-jN"]
     ["wipe"] === wipe
     ["test","foo"] === tst{M.extra=["foo"]}

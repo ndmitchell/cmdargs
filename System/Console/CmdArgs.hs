@@ -181,7 +181,7 @@ parseArgs modes (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs modes 
     where expand = [x | flag <- modesFlags modes, isFlagBool flag, [x] <- flagFlag flag]
 
 parseArgs modes (('-':x:xs):ys) | x /= '-' = parseArgs modes (x2:ys)
-    where x2 = if null xs then '-':'-':x:[] else '-':'-':x:'=':xs
+    where x2 = '-':'-':x:['='| xs /= [] && head xs /= '=']++xs
 
 parseArgs modes (('-':'-':x):xs)
     | Left msg <- flg = err msg : parseArgs modes xs
