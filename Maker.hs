@@ -7,7 +7,7 @@ import System.Console.CmdArgs
 
 data Maker
     = Wipe
-    | Test {threads :: Int, extra :: [String]}
+    | Test {threads :: Int {- , extra :: [String] -} }
     | Build {threads :: Int, profile :: Bool, files :: [FilePath]}
       deriving (Data,Typeable,Show,Eq)
 
@@ -19,7 +19,7 @@ wipe = mode $ Wipe & text "Clean all build objects"
 
 test = mode $ Test
     {threads = threadsMsg def
-    ,extra = def & typ "ANY" & args & unknownFlags
+    -- ,extra = def & typ "ANY" & args & unknownFlags
     } & text "Run the test suite"
 
 build = mode $ Build

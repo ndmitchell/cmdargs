@@ -71,5 +71,6 @@ testMaker = do
     ["build","-j=3"] === build{M.threads=3}
     fails ["build","-jN"]
     ["wipe"] === wipe
-    ["test","foo"] === tst{M.extra=["foo"]}
-    ["test","foo","-test","-j3","--what=1"] === tst{M.extra=["foo","-test","--what=1"],M.threads=3}
+    ["test"] === tst
+    --["test","foo"] === tst{M.extra=["foo"]}
+    --["test","foo","-test","-j3","--what=1"] === tst{M.extra=["foo","-test","--what=1"],M.threads=3}
