@@ -47,26 +47,6 @@ isFlagBool x = case flagType x of FlagBool -> True; _ -> False
 isFlagOpt = isJust . flagOpt
 flagTypDef def x = case flagTyp x of "" -> def; y -> y
 
--- DEPRECATED STUFF
-
-
-
--- Simple stuff
-{-
-isFlagArgs xs = [] /= [() | FldArgs{} <- xs]
-isFlagArgPos xs = [] /= [() | FldArgPos{} <- xs]
-isFlagFlag xs = not $ isFlagArgs xs || isFlagArgPos xs
-flagName xs = head [x | FldName x <- xs]
-isFldFlag Flag{} = True; isFldFlag _ = False
-fldFlags xs = [x | Flag x <- xs]
-isExplicit xs = [] /= [() | Explicit{} <- xs]
-isFlagOpt = isJust . flagOpt
-flagOpt xs = listToMaybe [x | FldEmpty x <- xs]
-flagText xs = unwords [x | Text x <- xs]
-isFlagBool xs = case flagType xs of FlagBool -> True; _ -> False
-hasFlagType = isJust . toFlagType
-flagType = fromJust . toFlagType
--}
 
 -- Flag types
 data FlagType
