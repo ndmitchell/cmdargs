@@ -44,22 +44,45 @@ mode val = unsafePerformIO $ do
         name = map toLower $ showConstr con
     flags <- sequence $ flip gmapQ val $ \i -> do
         info <- collect i
-        let typ = typeOf i
-        if hasFlagType [FldType typ]
-            then return $ FldType typ:FldValue (toDyn i):info
-            else error $ "Can't handle a type of " ++ show typ
-    flags <- return $ zipWith (:) (map FldName $ constrFields con) flags
+        case toFlagType $ typeOf i of
+            Nothing -> error $ "Can't handle a type of " ++ show (typeOf i)
+            Just x -> return $ flagInfo flagDefault{flagVal=toDyn i,flagType=x} info
+    flags <- return $ zipWith (\flag name -> flag{flagName=name}) flags (constrFields con)
     return $ modeInfo modeDefault{modeVal=val,modeName=name,modeFlags=flags} info
 
 
 ---------------------------------------------------------------------
 -- INFO ITEMS
 
+data Info
+    = FldEmpty String
+    | FldArgs
+    | FldArgPos Int
+    | FldTyp String
+    | Text String
+    | FldFlag String
+    | Explicit
+    | HelpSuffix [String]
+      deriving Show
+
+
 modeInfo :: Mode a -> [Info] -> Mode a
 modeInfo = foldl $ \m x -> case x of
     Text x -> m{modeText=x}
     HelpSuffix x -> m{modeHelpSuffix=x}
     x -> error $ "Invalid info at mode level: " ++ show x
+
+
+flagInfo :: Flag -> [Info] -> Flag
+flagInfo = foldl $ \m x -> case x of
+    Text x -> m{flagText=x}
+    Explicit -> m{flagExplicit=True}
+    FldTyp x -> m{flagTyp=x}
+    FldEmpty x -> m{flagOpt=Just x}
+    FldFlag x -> m{flagFlag=x:flagFlag m}
+    FldArgs -> m{flagArgs=Just Nothing}
+    FldArgPos i -> m{flagArgs=Just (Just i)}
+    x -> error $ "Invalid info at argument level: " ++ show x
 
 
 ---------------------------------------------------------------------
@@ -81,7 +104,7 @@ text = Text
 
 -- | Flags which work
 flag :: String -> Info
-flag = Flag
+flag = FldFlag
 
 -- | Where to put the non-flag arguments
 args :: Info

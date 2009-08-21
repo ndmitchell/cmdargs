@@ -10,26 +10,6 @@ import Data.Char
 import Data.Function
 
 
--- FIXME: Info should move in to UI once we have a proper type
-data Info
-    = FldName String -- the record name
-    | FldType TypeRep -- the field type
-    | FldValue Dynamic
-    | FldEmpty String
-    | FldArgs
-    | FldArgPos Int
-    | FldTyp String
-    | ModName String -- the constructor name
-    | Text String
-    | Flag String
-    | Explicit
-    | HelpSuffix [String]
-      deriving Show
-
-
-
-type Flag = [Info]
-
 data Mode a = Mode
     {modeVal :: a
     ,modeName :: String
@@ -41,11 +21,38 @@ data Mode a = Mode
 
 modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False}
 
+data Flag = Flag
+    {flagName :: String
+    -- FIXME: flag = Either (Maybe Int) [String], either --flag or arg based
+    ,flagArgs :: Maybe (Maybe Int) -- Nothing = all arguments, Just i = position i
+    ,flagType :: FlagType
+    ,flagVal :: Dynamic
+    ,flagOpt :: Maybe String
+    ,flagTyp :: String
+    ,flagText :: String
+    ,flagFlag :: [String]
+    ,flagExplicit :: Bool
+    }
+
+flagDefault = Flag{flagArgs=Nothing,flagOpt=Nothing,flagTyp="",flagText="",flagFlag=[],flagExplicit=False}
+
 
 ---------------------------------------------------------------------
 -- STRUCTURED FLAGS
 
+
+isFlagFlag = not . isFlagArgs
+isFlagArgs = isJust . flagArgs
+isFlagBool x = case flagType x of FlagBool -> True; _ -> False
+isFlagOpt = isJust . flagOpt
+flagTypDef def x = case flagTyp x of "" -> def; y -> y
+
+-- DEPRECATED STUFF
+
+
+
 -- Simple stuff
+{-
 isFlagArgs xs = [] /= [() | FldArgs{} <- xs]
 isFlagArgPos xs = [] /= [() | FldArgPos{} <- xs]
 isFlagFlag xs = not $ isFlagArgs xs || isFlagArgPos xs
@@ -59,20 +66,19 @@ flagText xs = unwords [x | Text x <- xs]
 isFlagBool xs = case flagType xs of FlagBool -> True; _ -> False
 hasFlagType = isJust . toFlagType
 flagType = fromJust . toFlagType
-
+-}
 
 -- Flag types
 data FlagType
     = FlagBool
     | FlagItem (String -> Maybe (Dynamic -> Dynamic))
 
-toFlagType :: Flag -> Maybe FlagType
-toFlagType xs
+toFlagType :: TypeRep -> Maybe FlagType
+toFlagType typ
     | typ == typeOf True = Just FlagBool
     | Just r <- toFlagTypeRead False typ = Just $ FlagItem r
     | a == typeRepTyCon (typeOf ""), Just r <- toFlagTypeRead True (head b) = Just $ FlagItem r
-    where typ = head [x | FldType x <- xs]
-          (a,b) = splitTyConApp typ
+    where (a,b) = splitTyConApp typ
 
 toFlagTypeRead :: Bool -> TypeRep -> Maybe (String -> Maybe (Dynamic -> Dynamic))
 toFlagTypeRead list x

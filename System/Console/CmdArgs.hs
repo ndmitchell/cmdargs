@@ -129,9 +129,9 @@ showBlock xs = putStr $ unlines $ map f xs
 showArgs :: [Flag] -> String
 showArgs = concatMap ((' ':) . snd) . sort . concatMap f
     where
-        f xs = case (isFlagArgs xs, [x | FldArgPos x <- xs], head $ [x | FldTyp x <- xs] ++ ["FILE"]) of
-            (True,_,x) -> [(maxBound :: Int,"[" ++ x ++ "]")]
-            (_,[i],x) -> [(i,x)]
+        f xs = case (flagArgs xs, flagTypDef "FILE" xs) of
+            (Just Nothing,x) -> [(maxBound :: Int,"[" ++ x ++ "]")]
+            (Just (Just i),x) -> [(i,x)]
             _ -> []
 
 
@@ -142,21 +142,20 @@ showFlag xs =
      ,flagText xs ++ maybe "" (\x -> " (default=" ++ x ++ ")") (defaultArg xs))
     | isFlagFlag xs]
     where
-        (short,long) = partition ((==) 1 . length) [x | Flag x <- xs]
+        (short,long) = partition ((==) 1 . length) $ flagFlag xs
         val = if isFlagBool xs then ""
-              else ['['|opt] ++ "=" ++ typ ++ [']'|opt]
-        typ = head $ [x | FldTyp x <- xs] ++ ["VALUE"]
+              else ['['|opt] ++ "=" ++ flagTypDef "VALUE" xs ++ [']'|opt]
         opt = isFlagOpt xs
 
 
 defaultArg :: Flag -> Maybe String
-defaultArg xs = listToMaybe $ [x | FldEmpty x <- xs] ++ case head [x | FldValue x <- xs] of
-    x | Just v <- fromDynamic x, v /= "" -> [v]
-    x | Just v <- fromDynamic x, v /= (0::Int) -> [show v]
-    x | Just v <- fromDynamic x, v /= (0::Integer) -> [show v]
-    x | Just v <- fromDynamic x, v /= (0::Float) -> [show v]
-    x | Just v <- fromDynamic x, v /= (0::Double) -> [show v]
-    _ -> []
+defaultArg x = flagOpt x `mplus` case flagVal x of
+    x | Just v <- fromDynamic x, v /= "" -> Just v
+      | Just v <- fromDynamic x, v /= (0::Int) -> Just $ show v
+      | Just v <- fromDynamic x, v /= (0::Integer) -> Just $ show v
+      | Just v <- fromDynamic x, v /= (0::Float) -> Just $ show v
+      | Just v <- fromDynamic x, v /= (0::Double) -> Just $ show v
+    _ -> Nothing
 
 
 ---------------------------------------------------------------------
@@ -174,14 +173,14 @@ parseArgs :: [Mode a] -> [String] -> [Arg]
 parseArgs modes [] = []
 
 parseArgs modes (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseArgs modes (['-',x]:('-':xs):ys)
-    where expand = [x | flag <- modesFlags modes, isFlagBool flag, Flag [x] <- flag]
+    where expand = [x | flag <- modesFlags modes, isFlagBool flag, [x] <- flagFlag flag]
 
 parseArgs modes (('-':x:xs):ys) | x /= '-' = parseArgs modes (x2:ys)
     where x2 = if null xs then '-':'-':x:[] else '-':'-':x:'=':xs
 
 parseArgs modes (('-':'-':x):xs)
     | Left msg <- flg = err msg : parseArgs modes xs
-    | Right flag <- flg = let name = head [x | FldName x <- flag] in
+    | Right flag <- flg = let name = flagName flag in
     case flagType flag of
         FlagBool -> 
             [err "does not take an argument" | b /= ""] ++
@@ -213,8 +212,8 @@ pickFlag flags name = case (match,prefix) of
         ([],[]) -> Left "unknown"
         _ -> Left "ambiguous"
     where
-        match = [flag | flag <- flags, or [x == name | Flag x <- flag]]
-        prefix = [flag | flag <- flags, or [name `isPrefixOf` x | Flag x <- flag]]
+        match = [flag | flag <- flags, any (name ==) (flagFlag flag)]
+        prefix = [flag | flag <- flags, any (name `isPrefixOf`) (flagFlag flag)]
 
 
 hasArg :: [Arg] -> String -> Bool
@@ -225,8 +224,8 @@ hasArg xs name = or [x == name | Field x _ <- xs]
 fileArgs :: Mode a -> [Arg] -> [Arg]
 fileArgs Mode{modeFlags=flags} = f (flgPos ++ flgArg ++ flgErr)
     where
-        flgPos = map snd $ sortBy (compare `on` fst) [(i,\x -> Field (flagName flag) (const $ toDyn x)) | flag <- flags, FldArgPos i <- flag]
-        flgArg = concat [repeat $ \x -> Field (flagName flag) (\v -> toDyn $ fromDyn v [""] ++ [x]) | flag <- flags, isFlagArgs flag]
+        flgPos = map snd $ sortBy (compare `on` fst) [(i,\x -> Field name (const $ toDyn x)) | Flag{flagName=name,flagArgs=Just (Just i)} <- flags]
+        flgArg = concat [repeat $ \x -> Field name (\v -> toDyn $ fromDyn v [""] ++ [x]) | Flag{flagName=name, flagArgs=Just Nothing} <- flags]
         flgErr = repeat $ \x -> Err $ "Can't deal with further file arguments: " ++ show x
 
         f (t:ts) (Arg x:xs) = t x : f ts xs
