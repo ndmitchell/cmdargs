@@ -63,7 +63,7 @@ p.rule {
 </p>
 
 <p>
-    CmdArgs is a library for defining and parsing command lines. This document gives three examples of using CmdArgs, introducing successively more features.
+    CmdArgs is a library for defining and parsing command lines. This document gives three examples of using CmdArgs, each introducing new features. The focus of CmdArgs is allowing the concise definition of fully-featured command line processors, in a mainly declarative manner (i.e. little coding needed).
 </p>
 <ol>
     <li>The <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program</li>
@@ -73,6 +73,9 @@ p.rule {
 
 <h2>HLint</h2>
 
+<p>
+	The <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program is fairly standard in terms of it's argument processing, and previously used the <a href="TODO">System.Console.GetOpt</a> library. Using GetOpt the code required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and each line is much simpler.
+</p>
 
     </body>
 </html>
