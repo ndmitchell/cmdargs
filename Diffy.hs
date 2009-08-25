@@ -9,18 +9,18 @@ data Diffy = Create {src :: FilePath, out :: FilePath}
              deriving (Data,Typeable,Show,Eq)
 
 
-outFlags x = x & text "Output file" & typFile
+outFlags = text "Output file" & typFile
 
 create = mode $ Create
-    {src = "." & text "Source directory" & typDir
-    ,out = outFlags "ls.txt"
-    } & text "Create a fingerprint"
+    {src = "." &= text "Source directory" & typDir
+    ,out = "ls.txt" &= outFlags
+    } &= text "Create a fingerprint"
 
 diff = mode $ Diff
-    {old = def & typ "OLDFILE" & argPos 0
-    ,new = def & typ "NEWFILE" & argPos 1
-    ,out = outFlags "diff.txt"
-    } & text "Perform a diff"
+    {old = def &= typ "OLDFILE" & argPos 0
+    ,new = def &= typ "NEWFILE" & argPos 1
+    ,out = "diff.txt" &= outFlags
+    } &= text "Perform a diff"
 
 modes = [create,diff]
 

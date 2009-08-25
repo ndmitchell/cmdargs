@@ -12,21 +12,21 @@ data Maker
       deriving (Data,Typeable,Show,Eq)
 
 
-threadsMsg x = x & text "Number of threads to use" & flag "j"
+threadsMsg = text "Number of threads to use" & flag "j"
 
 
-wipe = mode $ Wipe & text "Clean all build objects"
+wipe = mode $ Wipe &= text "Clean all build objects"
 
 test = mode $ Test
-    {threads = threadsMsg def
+    {threads = def &= threadsMsg
     -- ,extra = def & typ "ANY" & args & unknownFlags
-    } & text "Run the test suite"
+    } &= text "Run the test suite"
 
 build = mode $ Build
-    {threads = threadsMsg def
-    ,profile = def & text "Run in profiling mode"
-    ,files = def & args
-    } & text "Build stuff" & defMode
+    {threads = def &= threadsMsg
+    ,profile = def &= text "Run in profiling mode"
+    ,files = def &= args
+    } &= text "Build stuff" & defMode
 
 modes = [build,wipe,test]
 

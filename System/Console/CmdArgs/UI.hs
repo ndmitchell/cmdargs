@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module System.Console.CmdArgs.UI(
-    mode, Mode, (&),
+    mode, Mode, (&=), (&),
     text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag,
     unknownFlags, defMode
     ) where
@@ -19,6 +19,9 @@ import Control.Monad.State
 import Data.Function
 
 
+infix 1 &=
+infixl 2 &
+
 ---------------------------------------------------------------------
 -- STATE MANAGEMENT
 
@@ -26,16 +29,19 @@ import Data.Function
 info :: IORef [Info]
 info = unsafePerformIO $ newIORef []
 
-(&) :: forall a . a -> Info -> a
-(&) x i = unsafePerformIO $ do
-    modifyIORef info (i:)
+(&=) :: forall a . a -> [Info] -> a
+(&=) x is = unsafePerformIO $ do
+    writeIORef info is
     return x
+
+(&) :: [Info] -> [Info] -> [Info]
+(&) = (++)
 
 collect :: a -> IO [Info]
 collect x = do
-    writeIORef info []
     evaluate x
     x <- readIORef info
+    writeIORef info [] -- don't leak the info's
     return x
 
 mode :: Data a => a -> Mode a
@@ -94,43 +100,43 @@ flagInfo = foldl $ \m x -> case x of
 -- USER INTERFACE
 
 -- | A default argument if none is specified
-empty :: (Show a, Typeable a) => a -> Info
-empty x = case cast x of
+empty :: (Show a, Typeable a) => a -> [Info]
+empty x = return $ case cast x of
     Just y -> FldEmpty y
     _ -> FldEmpty $ show x
 
 -- | The type of the argument
-typ :: String -> Info
-typ = FldTyp
+typ :: String -> [Info]
+typ = return . FldTyp
 
 -- | Descriptive text for the option
-text :: String -> Info
-text = Text
+text :: String -> [Info]
+text = return . Text
 
 -- | Flags which work
-flag :: String -> Info
-flag = FldFlag
+flag :: String -> [Info]
+flag = return . FldFlag
 
 -- | Where to put the non-flag arguments
-args :: Info
-args = FldArgs
+args :: [Info]
+args = [FldArgs]
 
 -- | 0-based argument position
-argPos :: Int -> Info
-argPos = FldArgPos
+argPos :: Int -> [Info]
+argPos = return . FldArgPos
 
 
-typDir, typFile :: Info
+typDir, typFile :: [Info]
 typFile = typ "FILE"
 typDir = typ "DIR"
 
 
-helpSuffix :: [String] -> Info
-helpSuffix = HelpSuffix
+helpSuffix :: [String] -> [Info]
+helpSuffix = return . HelpSuffix
 
 
-unknownFlags :: Info
-unknownFlags = FldUnknown
+unknownFlags :: [Info]
+unknownFlags = [FldUnknown]
 
-defMode :: Info
-defMode = ModDefault
+defMode :: [Info]
+defMode = [ModDefault]
