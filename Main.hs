@@ -68,8 +68,8 @@ testMaker = do
     [] === build
     ["build","foo","--profile"] === build{M.files=["foo"],M.method=M.Profile}
     ["foo","--profile"] === build{M.files=["foo"],M.method=M.Profile}
-    ["foo","--profile","--release"] === build{M.method=M.Release}
-    ["foo","-d"] === build{M.method=M.Debug}
+    ["foo","--profile","--release"] === build{M.files=["foo"],M.method=M.Release}
+    ["-d"] === build{M.method=M.Debug}
     ["build","-j3"] === build{M.threads=3}
     ["build","-j=3"] === build{M.threads=3}
     fails ["build","-jN"]

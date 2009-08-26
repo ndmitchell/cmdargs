@@ -173,7 +173,7 @@ data Arg = Field String (Dynamic -> Dynamic)
 
 
 modesFlags :: [Mode a] -> [Flag]
-modesFlags xs = nubBy ((==) `on` flagName) $ concatMap modeFlags xs
+modesFlags xs = nubBy ((==) `on` flagKey) $ concatMap modeFlags xs
 
 parseArgs :: [Mode a] -> [String] -> [Arg]
 parseArgs modes [] = []
