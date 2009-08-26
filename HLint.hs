@@ -29,6 +29,7 @@ hlint = mode $ HLint
     ,cpp_include = def &= typDir & text "CPP include path"
     ,files = def &= args & typ "FILE/DIR"
     } &=
+    prog "hlint" &
     text "Suggest improvements to Haskell source code" &
     helpSuffix ["HLint gives hints on how to improve Haskell code.",""
                ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]

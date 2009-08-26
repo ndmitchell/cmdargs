@@ -107,6 +107,7 @@ setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ 
 showHelp :: String -> [Mode a] -> IO ()
 showHelp short xs = do
     prog <- fmap (map toLower . takeBaseName) getProgName
+    prog <- return $ head $ mapMaybe modeProg xs ++ [prog]
     let one = length xs == 1
     let info = [([prog ++ (if one then "" else " " ++ name) ++ " [FLAG]" ++ showArgs flags
                  ,"  " ++ text]

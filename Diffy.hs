@@ -14,7 +14,7 @@ outFlags = text "Output file" & typFile
 create = mode $ Create
     {src = "." &= text "Source directory" & typDir
     ,out = "ls.txt" &= outFlags
-    } &= text "Create a fingerprint"
+    } &= prog "diffy" & text "Create a fingerprint"
 
 diff = mode $ Diff
     {old = def &= typ "OLDFILE" & argPos 0

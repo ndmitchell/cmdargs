@@ -21,7 +21,7 @@ data Maker
 threadsMsg = text "Number of threads to use" & flag "j"
 
 
-wipe = mode $ Wipe &= text "Clean all build objects"
+wipe = mode $ Wipe &= prog "maker" & text "Clean all build objects"
 
 test = mode $ Test
     {threads = def &= threadsMsg

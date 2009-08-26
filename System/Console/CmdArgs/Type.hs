@@ -18,11 +18,12 @@ data Mode a = Mode
     ,modeHelpSuffix :: [String]
     ,modeExplicit :: Bool
     ,modeDef :: Bool
+    ,modeProg :: Maybe String
     ,modeFlags :: [Flag]
     }
     deriving Show -- FIXME: The Show should be the --help
 
-modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False,modeDef=False}
+modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False,modeDef=False,modeProg=Nothing}
 
 data Flag = Flag
     {flagName :: String -- field name

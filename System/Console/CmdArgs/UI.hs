@@ -2,7 +2,7 @@
 
 module System.Console.CmdArgs.UI(
     mode, Mode, (&=), (&),
-    text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag,
+    text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag, prog,
     unknownFlags, defMode, enum
     ) where
 
@@ -76,6 +76,7 @@ data Info
     | FldUnknown
     | FldEnum [Flag]
     | ModDefault
+    | ModProg String
       deriving Show
 
 
@@ -84,6 +85,7 @@ modeInfo = foldl $ \m x -> case x of
     Text x -> m{modeText=x}
     HelpSuffix x -> m{modeHelpSuffix=x}
     ModDefault -> m{modeDef=True}
+    ModProg x -> m{modeProg=Just x}
     x -> error $ "Invalid info at mode level: " ++ show x
 
 
@@ -144,6 +146,9 @@ unknownFlags = [FldUnknown]
 
 defMode :: [Info]
 defMode = [ModDefault]
+
+prog :: String -> [Info]
+prog = return . ModProg
 
 enum :: (Typeable a, Eq a, Show a) => a -> [a] -> a
 enum def xs = unsafePerformIO $ do
