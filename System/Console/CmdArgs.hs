@@ -75,14 +75,14 @@ cmdModes short modes = do
     (args,mode) <- return $ modeArgs modes args
     when (hasArg args "!help") $ do
         case mode of
-            Right mode -> showHelp short [mode]
-            Left err -> showHelp short modes
+            Right (True,mode) -> showHelp short [mode]
+            _ -> showHelp short modes
         exitSuccess
     when (hasArg args "!version") $ do
         putStrLn short
         exitSuccess
     mode <- case mode of
-        Right x -> return x
+        Right (_,x) -> return x
         Left x -> putStrLn x >> exitFailure
     args <- return $ fileArgs mode args
     sequence_ [putStrLn x >> exitFailure | Err x <- args]
@@ -115,7 +115,8 @@ showHelp short xs = do
     let dupes = if one then [] else foldr1 intersect (map snd info)
     showBlock $
         Left short :
-        concat [Left "" : map Left mode ++ Left "" : map Right (args \\ dupes) | (mode,args) <- info] ++
+        concat [ Left "" : map Left mode ++ [Left "" | flags /= []] ++ map Right flags
+               | (mode,args) <- info, let flags = args \\ dupes] ++
         (if null dupes then [] else Left "":Left "Common flags:":map Right dupes) ++
         concat [map Left $ "":suf | suf@(_:_) <- map modeHelpSuffix xs]
 
@@ -187,9 +188,9 @@ parseArgs modes (('-':'-':x):xs)
     | Left msg <- flg = err msg : parseArgs modes xs
     | Right flag <- flg = let name = flagName flag in
     case flagType flag of
-        FlagBool -> 
+        FlagBool r -> 
             [err "does not take an argument" | b /= ""] ++
-            [Field name (const $ toDyn True)] ++ parseArgs modes xs
+            [Field name (const r)] ++ parseArgs modes xs
         FlagItem r ->
             if not (isFlagOpt flag) && null b && (null xs || "-" `isPrefixOf` head xs)
             then err "needs an argument" : parseArgs modes xs
@@ -243,16 +244,17 @@ applyArgs (Field name upd:args) x = applyArgs args (setField x name upd)
 applyArgs [] x = x
 
 
-modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Mode a))
-modeArgs [mode] xs = (xs, Right mode)
+-- True = explicitly given, False = used default
+modeArgs :: [Mode a] -> [Arg] -> ([Arg], Either String (Bool, Mode a))
+modeArgs [mode] xs = (xs, Right (False,mode))
 modeArgs modes o@(Arg x:xs) = case [mode | mode <- modes, x `isPrefixOf` modeName mode] of
     [] -> (,) o $ modeArgsDefault modes "Unknown mode: "
     [mode] -> case [n | Field n _ <- xs, n `notElem` map flagName (modeFlags mode)] of
-        [] -> (,) xs $ Right mode
+        [] -> (,) xs $ Right (True,mode)
         bad:_ -> (,) o $ Left $ "Flag " ++ show bad ++ " not permitted in this mode"
     xs -> (,) o $ Left $ "Ambiguous mode, could be one of: " ++ unwords (map modeName xs)
 modeArgs modes xs = (xs, modeArgsDefault modes "No mode given")
 
 modeArgsDefault modes err = case filter modeDef modes of
     [] -> Left err
-    x:_ -> Right x
+    x:_ -> Right (False,x)

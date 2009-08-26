@@ -66,12 +66,14 @@ testDiffy = do
 testMaker = do
     let ([build,wipe,tst],(===),fails) = test M.modes
     [] === build
-    ["build","foo","--profile"] === build{M.files=["foo"],M.profile=True}
-    ["foo","--profile"] === build{M.files=["foo"],M.profile=True}
+    ["build","foo","--profile"] === build{M.files=["foo"],M.method=M.Profile}
+    ["foo","--profile"] === build{M.files=["foo"],M.method=M.Profile}
+    ["foo","--profile","--release"] === build{M.method=M.Release}
+    ["foo","-d"] === build{M.method=M.Debug}
     ["build","-j3"] === build{M.threads=3}
     ["build","-j=3"] === build{M.threads=3}
     fails ["build","-jN"]
     ["wipe"] === wipe
     ["test"] === tst
-    --["test","foo"] === tst{M.extra=["foo"]}
-    --["test","foo","-test","-j3","--what=1"] === tst{M.extra=["foo","-test","--what=1"],M.threads=3}
+--    ["test","foo"] === tst{M.extra=["foo"]}
+--    ["test","foo","-test","-j3","--what=1"] === tst{M.extra=["foo","-test","--what=1"],M.threads=3}

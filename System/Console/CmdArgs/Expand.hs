@@ -1,5 +1,5 @@
 
-module System.Console.CmdArgs.Expand(expand) where
+module System.Console.CmdArgs.Expand(defaults,expand) where
 
 import System.Console.CmdArgs.Type
 import Data.Dynamic
@@ -21,13 +21,20 @@ autoArgs =
     ,f "!quiet" "q" "quiet" "Lower verbosity"
     ]
     where f name short long text = flagDefault
-            {flagName=name,flagFlag=[short,long],flagText=text,flagType=FlagBool,flagVal=toDyn False,flagExplicit=True}
+            {flagName=name,flagKey=name,flagFlag=[short,long],flagText=text,flagType=FlagBool (toDyn True),flagVal=toDyn False,flagExplicit=True}
+
+---------------------------------------------------------------------
+-- FLAG DEFAULTS
+
+defaults :: a -> Flag -> Flag
+defaults = error "todo" 
 
 
 ---------------------------------------------------------------------
 -- FLAG EXPANSION
+-- Introduce more long/short names
 
--- (fldname,([flags],explicit))
+-- (keyname,([flags],explicit))
 type FlagNames = [(String,([String],Bool))]
 
 -- Error if:
@@ -37,9 +44,9 @@ expand :: [Mode a] -> [Mode a]
 expand xs | not $ checkFlags ys = error "Flag's don't meet their condition"
           | otherwise = xs3
     where
-        xs3 = map (\x -> x{modeFlags=[if isFlagArgs c then c else c{flagFlag=fst $ fromJust $ lookup (flagName c) ys2} | c <- modeFlags x]}) xs2
+        xs3 = map (\x -> x{modeFlags=[if isFlagArgs c then c else c{flagFlag=fst $ fromJust $ lookup (flagKey c) ys2} | c <- modeFlags x]}) xs2
         ys2 = assignShort $ assignLong ys
-        ys = sort $ nub [(flagName x, (flagFlag x, flagExplicit x)) | x <- map modeFlags xs2, x <- x, isFlagFlag x]
+        ys = sort $ nub [(flagKey x, (flagFlag x, flagExplicit x)) | x <- map modeFlags xs2, x <- x, isFlagFlag x]
         xs2 = map (\x -> x{modeFlags = autoArgs ++ modeFlags x}) xs
 
 

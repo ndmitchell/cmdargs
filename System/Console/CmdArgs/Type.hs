@@ -20,24 +20,26 @@ data Mode a = Mode
     ,modeDef :: Bool
     ,modeFlags :: [Flag]
     }
+    deriving Show -- FIXME: The Show should be the --help
 
-modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False}
+modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False,modeDef=False}
 
 data Flag = Flag
-    {flagName :: String
-    -- FIXME: flag = Either (Maybe Int) [String], either --flag or arg based
+    {flagName :: String -- field name
+    ,flagKey :: String -- disambiguator (equal to field name, apart from enums)
     ,flagArgs :: Maybe (Maybe Int) -- Nothing = all arguments, Just i = position i
     ,flagType :: FlagType
-    ,flagVal :: Dynamic
+    ,flagVal :: Dynamic -- FIXME: Remove, only used in default computation
     ,flagOpt :: Maybe String
     ,flagTyp :: String
     ,flagText :: String
     ,flagFlag :: [String]
-    ,flagDump :: Bool
+    ,flagUnknown :: Bool -- place to put unknown args
     ,flagExplicit :: Bool
     }
+    deriving Show
 
-flagDefault = Flag{flagArgs=Nothing,flagOpt=Nothing,flagTyp="",flagText="",flagFlag=[],flagExplicit=False}
+flagDefault = Flag{flagArgs=Nothing,flagOpt=Nothing,flagTyp="",flagText="",flagFlag=[],flagUnknown=False,flagExplicit=False}
 
 
 ---------------------------------------------------------------------
@@ -46,19 +48,23 @@ flagDefault = Flag{flagArgs=Nothing,flagOpt=Nothing,flagTyp="",flagText="",flagF
 
 isFlagFlag = not . isFlagArgs
 isFlagArgs = isJust . flagArgs
-isFlagBool x = case flagType x of FlagBool -> True; _ -> False
+isFlagBool x = case flagType x of FlagBool{} -> True; _ -> False
 isFlagOpt = isJust . flagOpt
 flagTypDef def x = case flagTyp x of "" -> def; y -> y
 
 
 -- Flag types
 data FlagType
-    = FlagBool
+    = FlagBool Dynamic
     | FlagItem (String -> Maybe (Dynamic -> Dynamic))
+
+instance Show FlagType where
+    show (FlagBool x) = "FlagBool " ++ show x
+    show (FlagItem x) = "FlagItem <function>"
 
 toFlagType :: TypeRep -> Maybe FlagType
 toFlagType typ
-    | typ == typeOf True = Just FlagBool
+    | typ == typeOf True = Just $ FlagBool $ toDyn True
     | Just r <- toFlagTypeRead False typ = Just $ FlagItem r
     | a == typeRepTyCon (typeOf ""), Just r <- toFlagTypeRead True (head b) = Just $ FlagItem r
     where (a,b) = splitTyConApp typ

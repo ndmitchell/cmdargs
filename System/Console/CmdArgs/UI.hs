@@ -1,9 +1,9 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
 module System.Console.CmdArgs.UI(
     mode, Mode, (&=), (&),
     text, args, argPos, typ, typFile, typDir, helpSuffix, empty, flag,
-    unknownFlags, defMode
+    unknownFlags, defMode, enum
     ) where
 
 import System.Console.CmdArgs.Type
@@ -49,12 +49,15 @@ mode val = unsafePerformIO $ do
     info <- collect val
     let con = toConstr val
         name = map toLower $ showConstr con
-    flags <- sequence $ flip gmapQ val $ \i -> do
+    ref <- newIORef $ constrFields con
+    flags <- liftM concat $ sequence $ flip gmapQ val $ \i -> do
         info <- collect i
+        n:ns <- readIORef ref
+        writeIORef ref ns
         case toFlagType $ typeOf i of
+            _ | [FldEnum xs] <- info -> return [x{flagName=n} | x <- xs]
             Nothing -> error $ "Can't handle a type of " ++ show (typeOf i)
-            Just x -> return $ flagInfo flagDefault{flagVal=toDyn i,flagType=x} info
-    flags <- return $ zipWith (\flag name -> flag{flagName=name}) flags (constrFields con)
+            Just x -> return [flagInfo flagDefault{flagName=n,flagKey=n,flagVal=toDyn i,flagType=x} info]
     return $ modeInfo modeDefault{modeVal=val,modeName=name,modeFlags=flags} info
 
 
@@ -71,6 +74,7 @@ data Info
     | Explicit
     | HelpSuffix [String]
     | FldUnknown
+    | FldEnum [Flag]
     | ModDefault
       deriving Show
 
@@ -92,7 +96,7 @@ flagInfo = foldl $ \m x -> case x of
     FldFlag x -> m{flagFlag=x:flagFlag m}
     FldArgs -> m{flagArgs=Just Nothing}
     FldArgPos i -> m{flagArgs=Just (Just i)}
-    FldUnknown -> m{flagDump=True}
+    FldUnknown -> m{flagUnknown=True}
     x -> error $ "Invalid info at argument level: " ++ show x
 
 
@@ -140,3 +144,10 @@ unknownFlags = [FldUnknown]
 
 defMode :: [Info]
 defMode = [ModDefault]
+
+enum :: (Typeable a, Eq a, Show a) => a -> [a] -> a
+enum def xs = unsafePerformIO $ do
+    ys <- forM xs $ \x -> do
+        y <- collect x
+        return $ flagInfo flagDefault{flagKey=map toLower (show x), flagType=FlagBool (toDyn x), flagVal = toDyn False} y
+    return $ def &= [FldEnum ys]
