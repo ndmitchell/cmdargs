@@ -114,7 +114,7 @@ showHelp short xs = do
                  ,"  " ++ text]
                 ,concatMap helpFlag flags)
                | Mode{modeName=name,modeFlags=flags,modeText=text} <- xs
-               , let args = map snd $ sort $ concatMap helpFlagArgs flags]
+               , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags]
     let dupes = if one then [] else foldr1 intersect (map snd info)
     showBlock $
         Left short :
