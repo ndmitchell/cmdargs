@@ -28,7 +28,7 @@ modeDefault = Mode{modeText="",modeHelpSuffix=[],modeExplicit=False,modeDef=Fals
 data Flag = Flag
     {flagName :: String -- field name
     ,flagKey :: String -- disambiguator (equal to field name, apart from enums)
-    ,flagArgs :: Maybe (Maybe Int) -- Nothing = all arguments, Just i = position i
+    ,flagArgs :: Maybe (Maybe Int) -- Nothing = all arguments, Just i = position i, 0-based
     ,flagType :: FlagType
     ,flagVal :: Dynamic -- FIXME: Remove, only used in default computation
     ,flagOpt :: Maybe String
