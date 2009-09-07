@@ -28,6 +28,7 @@ import Data.Function
 import System.Console.CmdArgs.Type
 import System.Console.CmdArgs.UI
 import System.Console.CmdArgs.Expand
+import System.Console.CmdArgs.Flag
 
 
 ---------------------------------------------------------------------
@@ -109,10 +110,11 @@ showHelp short xs = do
     prog <- fmap (map toLower . takeBaseName) getProgName
     prog <- return $ head $ mapMaybe modeProg xs ++ [prog]
     let one = length xs == 1
-    let info = [([prog ++ (if one then "" else " " ++ name) ++ " [FLAG]" ++ showArgs flags
+    let info = [([unwords $ prog : [name | not one] ++ "[FLAG]" : args
                  ,"  " ++ text]
-                ,concatMap showFlag flags)
-               | Mode{modeName=name,modeFlags=flags,modeText=text} <- xs]
+                ,concatMap helpFlag flags)
+               | Mode{modeName=name,modeFlags=flags,modeText=text} <- xs
+               , let args = map snd $ sort $ concatMap helpFlagArgs flags]
     let dupes = if one then [] else foldr1 intersect (map snd info)
     showBlock $
         Left short :
@@ -131,38 +133,6 @@ showBlock xs = putStr $ unlines $ map f xs
           an = maximum $ map length as
           bn = maximum $ map length bs
           pad n x = x ++ replicate (n - length x + 1) ' '
-
-
-showArgs :: [Flag] -> String
-showArgs = concatMap ((' ':) . snd) . sort . concatMap f
-    where
-        f xs = case (flagArgs xs, flagTypDef "FILE" xs) of
-            (Just Nothing,x) -> [(maxBound :: Int,"[" ++ x ++ "]")]
-            (Just (Just i),x) -> [(i,x)]
-            _ -> []
-
-
-showFlag :: Flag -> [(String,String,String)]
-showFlag xs =
-    [(unwords (map ("-"++) short)
-     ,unwords (map ("--"++) long) ++ val
-     ,flagText xs ++ maybe "" (\x -> " (default=" ++ x ++ ")") (defaultArg xs))
-    | isFlagFlag xs]
-    where
-        (short,long) = partition ((==) 1 . length) $ flagFlag xs
-        val = if isFlagBool xs then ""
-              else ['['|opt] ++ "=" ++ flagTypDef "VALUE" xs ++ [']'|opt]
-        opt = isFlagOpt xs
-
-
-defaultArg :: Flag -> Maybe String
-defaultArg x = flagOpt x `mplus` case flagVal x of
-    x | Just v <- fromDynamic x, v /= "" -> Just v
-      | Just v <- fromDynamic x, v /= (0::Int) -> Just $ show v
-      | Just v <- fromDynamic x, v /= (0::Integer) -> Just $ show v
-      | Just v <- fromDynamic x, v /= (0::Float) -> Just $ show v
-      | Just v <- fromDynamic x, v /= (0::Double) -> Just $ show v
-    _ -> Nothing
 
 
 ---------------------------------------------------------------------
