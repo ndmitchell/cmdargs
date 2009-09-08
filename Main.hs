@@ -59,8 +59,9 @@ testDiffy = do
     ["create","--src","x","--src","y"] === create{D.src="y"}
     fails ["diff","--src","x"]
     fails ["create","foo"]
-    fails ["diff","foo1","foo2","foo3"]
     ["diff","foo1","foo2"] === diff{D.old="foo1",D.new="foo2"}
+    fails ["diff","foo1"]
+    fails ["diff","foo1","foo2","foo3"]
 
 
 testMaker = do

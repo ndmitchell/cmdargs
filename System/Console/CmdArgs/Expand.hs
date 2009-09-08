@@ -1,5 +1,5 @@
 
-module System.Console.CmdArgs.Expand(defaults,expand) where
+module System.Console.CmdArgs.Expand(defaults,expand,autoFlags) where
 
 import System.Console.CmdArgs.Type
 import Data.Dynamic
@@ -12,9 +12,8 @@ import Data.Function
 ---------------------------------------------------------------------
 -- PRESUPPLIED ARGS
 
--- FIXME: Construct "Flag" terms directly
-autoArgs :: [Flag]
-autoArgs =
+autoFlags :: [Flag]
+autoFlags =
     [f "!help" "?" "help" "Show usage information"
     ,f "!version" "V" "version" "Show version information"
     ,f "!verbose" "v" "verbose" "Higher verrbosity"
@@ -47,7 +46,7 @@ expand xs | not $ checkFlags ys = error "Flag's don't meet their condition"
         xs3 = map (\x -> x{modeFlags=[if isFlagArgs c then c else c{flagFlag=fst $ fromJust $ lookup (flagKey c) ys2} | c <- modeFlags x]}) xs2
         ys2 = assignShort $ assignLong ys
         ys = sort $ nub [(flagKey x, (flagFlag x, flagExplicit x)) | x <- map modeFlags xs2, x <- x, isFlagFlag x]
-        xs2 = map (\x -> x{modeFlags = autoArgs ++ modeFlags x}) xs
+        xs2 = map (\x -> x{modeFlags = autoFlags ++ modeFlags x}) xs
 
 
 checkFlags :: FlagNames -> Bool
