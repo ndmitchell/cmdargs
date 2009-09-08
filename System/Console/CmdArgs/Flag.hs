@@ -52,13 +52,16 @@ helpFlagArgs xs = case (flagArgs xs, flagTypDef "FILE" xs) of
 
 
 defaultFlag :: Flag -> Maybe String
-defaultFlag x = flagOpt x `mplus` case flagVal x of
-    x | Just v <- fromDynamic x, v /= "" -> Just v
-      | Just v <- fromDynamic x, v /= (0::Int) -> Just $ show v
-      | Just v <- fromDynamic x, v /= (0::Integer) -> Just $ show v
-      | Just v <- fromDynamic x, v /= (0::Float) -> Just $ show v
-      | Just v <- fromDynamic x, v /= (0::Double) -> Just $ show v
-    _ -> Nothing
+defaultFlag x = if res `elem` [Just "",Just "0"] then Nothing else res
+    where
+        res = flagOpt x `mplus` val
+        val = case flagVal x of
+                x | Just v <- fromDynamic x -> Just (v :: String)
+                  | Just v <- fromDynamic x -> Just $ show (v :: Int)
+                  | Just v <- fromDynamic x -> Just $ show (v :: Integer)
+                  | Just v <- fromDynamic x -> Just $ show (v :: Float)
+                  | Just v <- fromDynamic x -> Just $ show (v :: Double)
+                _ -> Nothing
 
 
 ---------------------------------------------------------------------

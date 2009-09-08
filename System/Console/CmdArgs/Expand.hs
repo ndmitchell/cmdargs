@@ -14,7 +14,8 @@ import Data.Function
 
 autoFlags :: [Flag]
 autoFlags =
-    [f "!help" "?" "help" "Show usage information"
+    [(f "!help" "?" "help" "Show usage information (optional format)")
+        {flagType=fromJust $ toFlagType (typeOf ""),flagOpt=Just "",flagTyp="FORMAT"}
     ,f "!version" "V" "version" "Show version information"
     ,f "!verbose" "v" "verbose" "Higher verrbosity"
     ,f "!quiet" "q" "quiet" "Lower verbosity"
@@ -25,6 +26,7 @@ autoFlags =
 ---------------------------------------------------------------------
 -- FLAG DEFAULTS
 
+-- FIXME: Add the string (default=foo) in the appropriate places
 defaults :: a -> Flag -> Flag
 defaults = error "todo" 
 
