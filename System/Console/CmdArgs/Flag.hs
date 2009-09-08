@@ -84,6 +84,8 @@ data Priority = PriExactFlag | PriPrefixFlag | PriFilePos | PriFile | PriUnknown
 
 parseFlag :: Flag -> Int -> [String] -> Maybe (Priority, (Action, [String]))
 
+parseFlag flag seen (x:xs) | flagUnknown flag = Just (PriUnknown, (Update (flagName flag) (addMany x), xs))
+
 parseFlag flag seen (('-':x:xs):ys) | xs /= "" && x `elem` expand = parseFlag flag seen (['-',x]:('-':xs):ys)
     where expand = [x | isFlagBool flag, [x] <- flagFlag flag]
 
@@ -113,10 +115,10 @@ parseFlag flag seen (('-':'-':x):xs)
         upd v rest = (Update (flagName flag) v, rest)
 
 parseFlag flag seen (x:xs) = case flagArgs flag of
-    Just Nothing -> upd many PriFile
-    Just (Just i) | i == seen -> upd one PriFilePos
-    _ | flagUnknown flag -> upd many PriUnknown
+    Just Nothing -> upd (addMany x) PriFile
+    Just (Just i) | i == seen -> upd (addOne x) PriFilePos
     _ -> Nothing
     where upd op p = Just (p, (Update (flagName flag) op, xs))
-          many v = toDyn $ fromDyn v [""] ++ [x]
-          one v = toDyn x
+
+addMany x v = toDyn $ fromDyn v [""] ++ [x]
+addOne x v = toDyn x

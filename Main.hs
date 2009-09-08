@@ -74,7 +74,9 @@ testMaker = do
     ["build","-j3"] === build{M.threads=3}
     ["build","-j=3"] === build{M.threads=3}
     fails ["build","-jN"]
+    -- FIXME: should fail, but -t gets intepreted as --t, which matches --threaded
+    -- fails ["build","-t1"]
     ["wipe"] === wipe
     ["test"] === tst
---    ["test","foo"] === tst{M.extra=["foo"]}
---    ["test","foo","-test","-j3","--what=1"] === tst{M.extra=["foo","-test","--what=1"],M.threads=3}
+    ["test","foo"] === tst{M.extra=["foo"]}
+    ["test","foo","-baz","-j3","--what=1"] === tst{M.extra=["foo","-baz","--what=1"],M.threads=3}
