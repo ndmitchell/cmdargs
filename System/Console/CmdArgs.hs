@@ -1,16 +1,17 @@
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, PatternGuards #-}
 {-|
-    Simple command line argument processing. The main function of interest
-    is 'cmdArgs'. A simple example is:
+    This module provides simple command line argument processing.
+    The main function of interest is 'cmdArgs'.
+    A simple example is:
 
     @data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)@
 
-    @sample = 'mode' $ Sample {hello = def '&=' 'text' \"world argument\" '&' 'empty' \"world\"}@
+    @sample = 'mode' $ Sample{hello = def '&=' 'text' \"world argument\" '&' 'empty' \"world\"}@
 
-    @main = print =<< 'cmdArgs' "Sample v1, (C) Neil Mitchell 2009" [sample]@
+    @main = print =<< 'cmdArgs' \"Sample v1, (C) Neil Mitchell 2009\" [sample]@
 
 
-    The supported attributes control a number of behaviours:
+    Attributes are used to control a number of behaviours:
     
     * The help message: 'text', 'typ', 'helpSuffix', 'prog'
     
@@ -90,14 +91,17 @@ isLoud = fmap (>=2) $ readIORef verbosity
 ---------------------------------------------------------------------
 -- MAIN DRIVERS
 
--- | Extract the value from inside a Mode.
+-- | Extract the default value from inside a Mode.
 modeValue :: Mode a -> a
 modeValue = modeVal
 
 
--- | Entry point to CmdArgs for programs.
+-- | The main entry point for programs using CmdArgs.
 --   For an example see "System.Console.CmdArgs".
-cmdArgs :: Data a => String -> [Mode a] -> IO a
+cmdArgs :: Data a
+    => String -- ^ Information about the program, something like: @\"ProgramName v1.0, Copyright PersonName 2000\"@.
+    -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
+    -> IO a
 cmdArgs short modes = do
     modes <- return $ expand modes
     (mode,args) <- parseModes modes `fmap` getArgs

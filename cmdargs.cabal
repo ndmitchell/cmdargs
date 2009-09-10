@@ -10,9 +10,11 @@ maintainer:         Neil Mitchell <ndmitchell@gmail.com>
 copyright:          Neil Mitchell 2009
 synopsis:           Command line argument processing
 description:
-    An easy way to extra structured arguments from a program. It's main
-    features over other packages (getopt) is that it's less verbose to write
-    a command line, and it supports programs with modes (i.e. darcs or cabal)
+    An easy way to define command line parsers. The two key features are:
+    
+    1) It's very concise to use, up to three times shorter than getopt.
+
+    2) It supports programs with multiple modes (e.g. darcs or cabal).
 homepage:           http://community.haskell.org/~ndm/cmdargs/
 stability:          Beta
 extra-source-files:

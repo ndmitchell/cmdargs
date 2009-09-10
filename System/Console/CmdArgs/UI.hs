@@ -41,7 +41,9 @@ infixl 2 &
 info :: IORef [Info]
 info = unsafePerformIO $ newIORef []
 
--- | Add attributes to a value.
+-- | Add attributes to a value. Always returns the first argument, but
+--   has a non-pure effect on the environment. Take care when performing
+--   program transformations.
 --
 -- > value &= attrib1 & attrib2
 (&=) :: a -> [Info] -> a
@@ -49,7 +51,7 @@ info = unsafePerformIO $ newIORef []
     writeIORef info is
     return x
 
--- | Add two pieces of information together
+-- | Combine two sets of attributes.
 (&) :: [Info] -> [Info] -> [Info]
 (&) = (++)
 
@@ -60,7 +62,7 @@ collect x = do
     writeIORef info [] -- don't leak the info's
     return x
 
--- | Safely encapsulate a value with attributes.
+-- | Construct a 'Mode' from a value annotated with attributes.
 mode :: Data a => a -> Mode a
 mode val = unsafePerformIO $ do
     info <- collect val
