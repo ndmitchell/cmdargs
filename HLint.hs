@@ -31,8 +31,7 @@ hlint = mode $ HLint
     } &=
     prog "hlint" &
     text "Suggest improvements to Haskell source code" &
-    helpSuffix ["HLint gives hints on how to improve Haskell code.",""
-               ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
+    helpSuffix ["To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
 modes = [hlint]
 
