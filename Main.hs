@@ -6,6 +6,7 @@ import System.Console.CmdArgs
 import Control.Monad
 import System.Environment
 import Control.Exception
+import Data.List
 
 import qualified HLint as H
 import qualified Diffy as D
@@ -19,6 +20,7 @@ main = do
         "diffy":xs -> withArgs xs D.main
         "maker":xs -> withArgs xs M.main
         "test":_ -> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
+        "generate":_ -> generateManual
         _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
 
 
@@ -35,6 +37,9 @@ test x = (map modeValue x, (===), fails)
                 Left (e :: SomeException) -> return ()
                 Right _ -> error $ "Expected failure " ++ show args
 
+
+---------------------------------------------------------------------
+-- TESTS
 
 testHLint = do
     let ([v],(===),fails) = test H.modes
@@ -80,3 +85,36 @@ testMaker = do
     ["test"] === tst
     ["test","foo"] === tst{M.extra=["foo"]}
     ["test","foo","-baz","-j3","--what=1"] === tst{M.extra=["foo","-baz","--what=1"],M.threads=3}
+
+
+---------------------------------------------------------------------
+-- GENERATE MANUAL
+
+generateManual :: IO ()
+generateManual = do
+    src <- readFile "cmdargs.htm"
+    () <- length src `seq` return ()
+    res <- fmap unlines $ f $ lines src
+    () <- length res `seq` return ()
+    writeFile "cmdargs.htm" res
+    where
+        f (x:xs) | "<!-- BEGIN " `isPrefixOf` x = do
+            ys <- generateChunk $ init $ drop 2 $ words x
+            zs <- f $ tail $ dropWhile (not . isPrefixOf "<!-- END") xs
+            return $ x : ys ++ ["<!-- END -->"] ++ zs
+        f [] = return []
+        f (x:xs) = fmap (x:) $ f xs
+
+generateChunk :: [String] -> IO [String]
+generateChunk ["help",x] = do
+    src <- readFile $ x ++ ".hs"
+    let str = head [takeWhile (/= '\"') $ drop 1 $ dropWhile (/= '\"') x | x <- lines src, "main" `isPrefixOf` x]
+    () <- length src `seq` return ()
+    fmap lines $ case x of
+        "hlint" -> cmdModesHelp str H.modes HTML
+        "diffy" -> cmdModesHelp str D.modes HTML
+        "maker" -> cmdModesHelp str M.modes HTML
+
+generateChunk ["code",x] = do
+    src <- readFile $ x ++ ".hs"
+    return $ ["<pre>"] ++ lines src ++ ["</pre>"]
