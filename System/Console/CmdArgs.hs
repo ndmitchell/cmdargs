@@ -7,6 +7,7 @@ module System.Console.CmdArgs(
     Data, Typeable,
     Default(..),
     cmdArgs, cmdModes,
+    HelpFormat(..), cmdArgsHelp, cmdModesHelp,
     isQuiet, isNormal, isLoud,
     modeValue,
     module System.Console.CmdArgs.UI
@@ -79,7 +80,7 @@ cmdModes short modes = do
             Right (True,mode) -> helpInfo short modes [mode]
             _ -> helpInfo short modes modes
         let Update _ op = fromJust $ getAction args "!help"
-        showHelp hlp (fromDyn (op undefined) "")
+        putStr $ showHelp hlp (fromDyn (op undefined) "")
         exitSuccess
     when (hasAction args "!version") $ do
         putStrLn short
@@ -96,22 +97,33 @@ cmdModes short modes = do
 ---------------------------------------------------------------------
 -- HELP INFORMATION
 
-helpInfo :: String -> [Mode a] -> [Mode a] -> IO Help
+data HelpFormat = Text | HTML deriving (Eq,Ord,Show,Read,Enum,Bounded)
+
+cmdArgsHelp :: String -> Mode a -> HelpFormat -> IO String
+cmdArgsHelp short x = cmdModesHelp short [x]
+
+cmdModesHelp :: String -> [Mode a] -> HelpFormat -> IO String
+cmdModesHelp short xs format = fmap (`showHelp` (show format)) $ helpInfo short modes modes
+    where modes = expand xs
+
+
+helpInfo :: String -> [Mode a] -> [Mode a] -> IO [Help]
 helpInfo short tot now = do
     prog <- fmap (map toLower . takeBaseName) getProgName
     prog <- return $ head $ mapMaybe modeProg tot ++ [prog]
-    let info = [([unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ "[FLAG]" : args
-                 ,"  " ++ text]
+    let info = [([Code $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ "[FLAG]" : args] ++
+                 [Indent $ text | text /= ""]
                 ,concatMap helpFlag flags)
                | Mode{modeName=name,modeFlags=flags,modeText=text,modeDef=def} <- now
                , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags]
     let dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
     return $
-        Left short :
-        concat [ Left "" : map Left mode ++ [Left "" | flags /= []] ++ map Right flags
+        Norm short :
+        concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ map Trip flags
                | (mode,args) <- info, let flags = args \\ dupes] ++
-        (if null dupes then [] else Left "":Left "Common flags:":map Right dupes) ++
-        concat [map Left $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
+        (if null dupes then [] else Norm "":Norm "Common flags:":map Trip dupes) ++
+        concat [ Norm "" : [if "  " `isPrefixOf` s then Indent $ drop 2 s else Norm s | s <- suf]
+               | suf@(_:_) <- map modeHelpSuffix tot]
 
 
 ---------------------------------------------------------------------
