@@ -54,6 +54,9 @@ p.rule {
 }
 
 
+.cmdargs {
+	display: block;
+}
 .cmdargs td {
 	padding: 0px;
 	margin: 0px;
@@ -78,17 +81,17 @@ p.rule {
 </p>
 
 <p>
-    <a href="http://community.haskell.org/~ndm/cmdargs/">CmdArgs</a> is a library for defining and parsing command lines. The focus of CmdArgs is allowing the concise definition of fully-featured command line argument processors, in a mainly declarative manner (i.e. little coding needed).
+    <a href="http://community.haskell.org/~ndm/cmdargs/">CmdArgs</a> is a library for defining and parsing command lines. The focus of CmdArgs is allowing the concise definition of fully-featured command line argument processors, in a mainly declarative manner (i.e. little coding needed). CmdArgs also supports multiple mode programs, for example as used in <a href="http://darcs.net/">darcs</a>.
 </p><p>
-	This document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. The library includes three samples, and a command line program <tt>cmdargs</tt> which can be used to access them. The three examples are:
+	This document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. Finally this document contains three samples, along with the program <tt>cmdargs</tt> provided by the library which can run them. The three examples are:
 </p>
 <ol>
     <li><tt>hlint</tt> - the <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program.</li>
-    <li><tt>diffy</tt> - a program to take diff's on a directory.</li>
+    <li><tt>diffy</tt> - a program to compare the differences between directories.</li>
     <li><tt>maker</tt> - a make style program.</li>
 </ol>
 <p>
-	For each example you are encouraged to look at it's source (see the <a href="http://community.haskell.org/~ndm/darcs/hlint">darcs repo</a>) and run it on the command line (try <tt>cmdargs hlint --help</tt>). The HLint program is fairly standard in terms of it's argument processing, and previously used the <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">System.Console.GetOpt</a> library. Using GetOpt the code required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and each line is much simpler.
+	For each example you are encouraged to look at it's source (see the <a href="http://community.haskell.org/~ndm/darcs/hlint">darcs repo</a>, or the bottom of this document) and run it (try <tt>cmdargs hlint --help</tt>). The HLint program is fairly standard in terms of it's argument processing, and previously used the <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">System.Console.GetOpt</a> library. Using GetOpt required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and each line is much simpler.
 </p>
 
 
@@ -104,7 +107,7 @@ import System.Console.CmdArgs
 data Sample = Sample {hello :: String}
               deriving (Show, Data, Typeable)
 
-sample = mode Sample{hello = def}
+sample = mode $ Sample{hello = def}
 
 main = print =<< cmdArgs "Sample v1, (C) Neil Mitchell 2009" [sample]
 </pre>
@@ -112,12 +115,12 @@ main = print =<< cmdArgs "Sample v1, (C) Neil Mitchell 2009" [sample]
 	To use the CmdArgs library there are three steps:
 </p>
 <ol>
-	<li>Define a record data type (<tt>Sample</tt>), that contains a field for each argument. This type needs to have instances for <tt>Show</tt>, <tt>Data</tt> and <tt>Typeable</tt>.</li>
-	<li>Define a value of that type (<tt>sample</tt>), with default values (<tt>def</tt> is the default value of any type). This value must be turned into a command line mode by calling the function <tt>mode</tt>.</li>
-	<li>Call <tt>cmdArgs</tt> passing your mode, along with some descriptive text containing the name, version and copyright of your program.</li>
+	<li>Define a record data type (<tt>Sample</tt>) that contains a field for each argument. This type needs to have instances for <tt>Show</tt>, <tt>Data</tt> and <tt>Typeable</tt>.</li>
+	<li>Define a value of that type (<tt>sample</tt>) with default values (<tt>def</tt> is the default value of any type). This value must be turned into a command line mode by calling the function <tt>mode</tt>.</li>
+	<li>Call <tt>cmdArgs</tt> passing the mode, along with some text about the program.</li>
 </ol>
 <p>
-	After this we now have a reasonably functional command line argument processor. Some sample interactions are:
+	Now we have a reasonably functional command line argument processor. Some sample interactions are:
 </p>
 <pre>
 $ runhaskell Sample.hs --hello=world
@@ -135,42 +138,41 @@ sample [FLAG]
   -h --hello=VALUE
 </pre>
 <p>
-	We automatically inherit support for help, version and verbosity.
-</p><p>
-	<b>Help:</b> If the user specifies <tt>--help</tt> then a help message is displayed. In addition, if <tt>--help=HTML</tt> is specified, then the help message is formatted in HTML, suitable for pasting into a web page.
-</p><p>
-	<b>Version:</b> If the user specifies <tt>--version</tt> then the first argument passed to <tt>cmdArgs</tt> is written to the screen.
-</p><p>
-	<b>Verbosity:</b> If the user specifies <tt>--verbose</tt> or <tt>--quiet</tt> then the verbosity is set appropriately. The current verbosity can be queried with the functions <tt>isQuiet, isNormal, isLoud :: IO Bool</tt>.
+	The CmdArgs library automatically provides support for:
 </p>
+<ul>
+	<li>Help - if the user specifies <tt>--help</tt> then a help message is displayed. In addition, if <tt>--help=HTML</tt> is specified, then the help message is formatted in HTML, suitable for pasting into a web page (see the bottom of this document).</li>
+	<li>Version - if the user specifies <tt>--version</tt> then the first argument passed to <tt>cmdArgs</tt> is written to the screen.</li>
+	<li>Verbosity - if the user specifies <tt>--verbose</tt> or <tt>--quiet</tt> then the verbosity is set appropriately. The current verbosity can be queried with the functions <tt>isQuiet, isNormal, isLoud :: IO Bool</tt>.</li>
+</ul>
 
 <h2>Specifying Attributes</h2>
 <p>
-	In order to control the behaviour further we can add attributes. For example to add an attribute specifying the help text for the <tt>--hello</tt> argument we can write:
+	In order to control the behaviour we can add attributes. For example to add an attribute specifying the help text for the <tt>--hello</tt> argument we can write:
 </p>
 <pre>
-sample = mode Sample{hello = def &= text "who to say hello to"}
+sample = mode $ Sample{hello = def &= text "who to say hello to"}
 </pre>
 <p>
-	We can add additional operators, for example to specify the type of the value expected by hello:
+	We can add additional attributes, for example to specify the type of the value expected by hello:
 </p>
 <pre>
-sample = mode Sample {hello = def &= text "who to say hello to" & typ "WORLD"}
+sample = mode $ Sample {hello = def &= text "who to say hello to" & typ "WORLD"}
 </pre>
 <p>
-	Now running <tt>--help</tt> again changes the last line to:
+	Now running <tt>--help</tt> produces the final line:
 </p>
 <pre>
   -h --hello=WORLD    who to say hello to
 </pre>
 <p>
-	By adding additional attributes we can control further aspects. For details of all the supported attributes see the <a href="http://hackage.haskell.org/packages/archive/cmdargs/latest/doc/html/System-Console-CmdArgs.html#2">Haddock documentation</a>.
+	There are many more attributes, detailed in the <a href="http://hackage.haskell.org/packages/archive/cmdargs/latest/doc/html/System-Console-CmdArgs.html#2">Haddock documentation</a>.
 </p>
 
 
 <h2>Multiple Modes</h2>
 <p>
-	To specify a multiple-mode program, similar to <a href="http://darcs.net/">darcs</a>, you need to supply a data type with multiple constructors, for example:
+	To specify a program with multiple modes, similar to <a href="http://darcs.net/">darcs</a>, we supply a data type with multiple constructors, for example:
 </p>
 <pre>
 data Sample = Hello {whom :: String}
@@ -183,16 +185,15 @@ goodbye = mode Goodbye
 main = print =<< cmdArgs "Sample v2, (C) Neil Mitchell 2009" [hello,goodbye]
 </pre>
 <p>
-	There are a few small changes from before:
-</p>
-<ol>
-	<li>Define a data type with multiple constructors, each of which is a record (or the record containing no fields, as in the case of <tt>Goodbye</tt>).</li>
-	<li>Pass each mode to <tt>cmdArgs</tt>, with sample values.</li>
-</ol>
-<p>
-	Now we can interact with this command line:
+	Compared to the first example, we now have multiple constructors, and a sample value for each constructor is passed to <tt>cmdArgs</tt>. Some sample interactions with this command line are:
 </p>
 <pre>
+$ runhaskell Sample.hs hello --whom=world
+Hello {whom = "world"}
+
+$ runhaskell Sample.hs goodbye
+Goodbye
+
 $ runhaskell Sample.hs --help
 Sample v2, (C) Neil Mitchell 2009
 
@@ -207,28 +208,232 @@ Common flags:
   -V --version        Show version information
   -v --verbose        Higher verrbosity
   -q --quiet          Lower verbosity
-
-$ runhaskell Sample.hs hello --whom=world
-Hello {whom = "world"}
-
-$ runhaskell Sample.hs goodbye
-Goodbye
 </pre>
 <p>
-	All the same attributes work with multiple modes.
+	As before, the behaviour can be customised using attributes.
 </p>
 
-<h2>HLint Processing</h2>
+<h2>Larger Examples</h2>
 
 <p>
-	The following code defines the HLint command line argument processor, and is useful as a larger practical example:
+	For each of the following examples we first explain the purpose of the program, then give the source code, and finally the output of <tt>--help=HTML</tt>. The programs are intended to show sample uses of CmdArgs, and are all available to experiment with through <tt>cmdargs <i>progname</i></tt>.
 </p>
+
+<h3>HLint</h3>
+
+<p>
+	The <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program analyses a list of files, using various options to control the analysis. The command line processing is simple, but a few interesting points are:
+</p>
+<ul>
+	<li>The <tt>--report</tt> flag can be used to output a report in a standard location, but giving the flag a value changes where the file is output.</li>
+	<li>The <tt>color</tt> field is assigned two flag aliases, <tt>--colour</tt> and <tt>-c</tt>. Assigning the <tt>-c</tt> short flag explicitly stops either of the CPP fields using it.</li>
+	<li>The <tt>show_</tt> field would clash with <tt>show</tt> if given the expected name, but CmdArgs automatically strips the trailing underscore.</li>
+	<li>The <tt>cpp_define</tt> field has an underscore in it's name, which is transformed into a hyphen for the flag name.</li>
+</ul>
+
 <!-- BEGIN code hlint -->
+<pre>
+{-# LANGUAGE DeriveDataTypeable #-}
+module HLint where
+import System.Console.CmdArgs
+
+data HLint = HLint
+    {report :: [FilePath]
+    ,hint :: [FilePath]
+    ,color :: Bool
+    ,ignore :: [String]
+    ,show_ :: Bool
+    ,test :: Bool
+    ,cpp_define :: [String]
+    ,cpp_include :: [String]
+    ,files :: [String]
+    }
+    deriving (Data,Typeable,Show,Eq)
+
+hlint = mode $ HLint
+    {report = def &= empty "report.html" & typFile & text "Generate a report in HTML"
+    ,hint = def &= typFile & text "Hint/ignore file to use"
+    ,color = def &= flag "c" & flag "colour" & text "Color the output (requires ANSI terminal)"
+    ,ignore = def &= typ "MESSAGE" & text "Ignore a particular hint"
+    ,show_ = def &= text "Show all ignored ideas"
+    ,test = def &= text "Run in test mode"
+    ,cpp_define = def &= typ "NAME[=VALUE]" & text "CPP #define"
+    ,cpp_include = def &= typDir & text "CPP include path"
+    ,files = def &= args & typ "FILE/DIR"
+    } &=
+    prog "hlint" &
+    text "Suggest improvements to Haskell source code" &
+    helpSuffix ["To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
+
+modes = [hlint]
+
+main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
+</pre>
 <!-- END -->
-<p>
-	And the output of <tt>hlint --help=HTML</tt> gives:
-</p>
 <!-- BEGIN help hlint -->
+<table class='cmdargs'>
+<tr><td colspan='3'>HLint v1.6.5, (C) Neil Mitchell 2006-2009</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'><tt>hlint [FLAG] [FILE/DIR]</tt></td></tr>
+<tr><td class='indent' colspan='3'>Suggest improvements to Haskell source code</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td class='indent'><tt>-?</tt></td><td><tt>--help[=FORMAT]</tt></td><td>Show usage information (optional format)</td></tr>
+<tr><td class='indent'><tt>-V</tt></td><td><tt>--version</tt></td><td>Show version information</td></tr>
+<tr><td class='indent'><tt>-v</tt></td><td><tt>--verbose</tt></td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'><tt>-q</tt></td><td><tt>--quiet</tt></td><td>Lower verbosity</td></tr>
+<tr><td class='indent'><tt>-r</tt></td><td><tt>--report[=FILE]</tt></td><td>Generate a report in HTML (default=report.html)</td></tr>
+<tr><td class='indent'><tt>-h</tt></td><td><tt>--hint=FILE</tt></td><td>Hint/ignore file to use</td></tr>
+<tr><td class='indent'><tt>-c</tt></td><td><tt>--color --colour</tt></td><td>Color the output (requires ANSI terminal)</td></tr>
+<tr><td class='indent'><tt>-i</tt></td><td><tt>--ignore=MESSAGE</tt></td><td>Ignore a particular hint</td></tr>
+<tr><td class='indent'><tt>-s</tt></td><td><tt>--show</tt></td><td>Show all ignored ideas</td></tr>
+<tr><td class='indent'><tt>-t</tt></td><td><tt>--test</tt></td><td>Run in test mode</td></tr>
+<tr><td class='indent'><tt></tt></td><td><tt>--cpp-define=NAME[=VALUE]</tt></td><td>CPP #define</td></tr>
+<tr><td class='indent'><tt></tt></td><td><tt>--cpp-include=DIR</tt></td><td>CPP include path</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'>To check all Haskell files in 'src' and generate a report type:</td></tr>
+<tr><td class='indent' colspan='3'>hlint src --report</td></tr>
+</table>
+<!-- END -->
+
+<h3>Diffy</h3>
+
+<p>
+	The Diffy sample is a based on the idea of creating directory listings and comparing them. The tool can operate in two separate modes, <tt>create</tt> or <tt>diff</tt>. This sample is fictional, but the ideas are drawn from a real program. A few notable features:
+</p>
+<ul>
+	<li>There are multiple modes of execution, creating and diffing.</li>
+	<li>The diff mode takes exactly two arguments, the old file and the new file.</li>
+	<li>Default values are given for the <tt>out</tt> field, which are different in both modes.</li>
+</ul>
+
+<!-- BEGIN code diffy -->
+<pre>
+{-# LANGUAGE DeriveDataTypeable #-}
+module Diffy where
+import System.Console.CmdArgs
+
+data Diffy = Create {src :: FilePath, out :: FilePath}
+           | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
+             deriving (Data,Typeable,Show,Eq)
+
+outFlags = text "Output file" & typFile
+
+create = mode $ Create
+    {src = "." &= text "Source directory" & typDir
+    ,out = "ls.txt" &= outFlags
+    } &= prog "diffy" & text "Create a fingerprint"
+
+diff = mode $ Diff
+    {old = def &= typ "OLDFILE" & argPos 0
+    ,new = def &= typ "NEWFILE" & argPos 1
+    ,out = "diff.txt" &= outFlags
+    } &= text "Perform a diff"
+
+modes = [create,diff]
+
+main = print =<< cmdArgs "Diffy v1.0" modes
+</pre>
+<!-- END -->
+<!-- BEGIN help diffy -->
+<table class='cmdargs'>
+<tr><td colspan='3'>Diffy v1.0</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'><tt>diffy create [FLAG]</tt></td></tr>
+<tr><td class='indent' colspan='3'>Create a fingerprint</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td class='indent'><tt>-s</tt></td><td><tt>--src=DIR</tt></td><td>Source directory (default=.)</td></tr>
+<tr><td class='indent'><tt>-o</tt></td><td><tt>--out=FILE</tt></td><td>Output file (default=ls.txt)</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'><tt>diffy diff [FLAG] OLDFILE NEWFILE</tt></td></tr>
+<tr><td class='indent' colspan='3'>Perform a diff</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td class='indent'><tt>-o</tt></td><td><tt>--out=FILE</tt></td><td>Output file (default=diff.txt)</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'>Common flags:</td></tr>
+<tr><td class='indent'><tt>-?</tt></td><td><tt>--help[=FORMAT]</tt></td><td>Show usage information (optional format)</td></tr>
+<tr><td class='indent'><tt>-V</tt></td><td><tt>--version</tt></td><td>Show version information</td></tr>
+<tr><td class='indent'><tt>-v</tt></td><td><tt>--verbose</tt></td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'><tt>-q</tt></td><td><tt>--quiet</tt></td><td>Lower verbosity</td></tr>
+</table>
+<!-- END -->
+
+<h3>Maker</h3>
+
+<p>
+	The Maker sample is based around a build system, where we can either build a project, clean the temporary files, or run a test. The test mode is designed to run another program, passing any unknown arguments onwards. Some interesting features are:
+</p>
+<ul>
+	<li>The build mode is the default, so <tt>maker</tt> on it's own will be interpretted as a build command.</li>
+	<li>The build method is an enumeration.</li>
+	<li>The test mode collects unknown flags in the field <tt>extra</tt>.</li>
+	<li>The <tt>threads</tt> field is in two of the constructors, but not all three. It is given the short flag <tt>-j</tt>, rather than the default <tt>-t</tt>.</li>
+</ul>
+
+
+<!-- BEGIN code maker -->
+<pre>
+{-# LANGUAGE DeriveDataTypeable #-}
+module Maker where
+import System.Console.CmdArgs
+
+data Method = Debug | Release | Profile
+              deriving (Data,Typeable,Show,Eq)
+
+data Maker
+    = Wipe
+    | Test {threads :: Int, extra :: [String]}
+    | Build {threads :: Int, method :: Method, files :: [FilePath]}
+      deriving (Data,Typeable,Show,Eq)
+
+threadsMsg = text "Number of threads to use" & flag "j" & typ "NUM"
+
+wipe = mode $ Wipe &= prog "maker" & text "Clean all build objects"
+
+test = mode $ Test
+    {threads = def &= threadsMsg
+    ,extra = def &= typ "ANY" & args & unknownFlags
+    } &= text "Run the test suite"
+
+build = mode $ Build
+    {threads = def &= threadsMsg
+    ,method = enum Release
+        [Debug &= text "Debug build"
+        ,Release &= text "Release build"
+        ,Profile &= text "Profile build"]
+    ,files = def &= args
+    } &= text "Build stuff" & defMode
+
+modes = [build,wipe,test]
+
+main = print =<< cmdArgs "Maker v1.0" modes
+</pre>
+<!-- END -->
+<!-- BEGIN help maker -->
+<table class='cmdargs'>
+<tr><td colspan='3'>Maker v1.0</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'><tt>maker [build] [FLAG] [FILE]</tt></td></tr>
+<tr><td class='indent' colspan='3'>Build stuff</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td class='indent'><tt>-j</tt></td><td><tt>--threads=NUM</tt></td><td>Number of threads to use</td></tr>
+<tr><td class='indent'><tt>-d</tt></td><td><tt>--debug</tt></td><td>Debug build</td></tr>
+<tr><td class='indent'><tt>-r</tt></td><td><tt>--release</tt></td><td>Release build</td></tr>
+<tr><td class='indent'><tt>-p</tt></td><td><tt>--profile</tt></td><td>Profile build</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'><tt>maker wipe [FLAG]</tt></td></tr>
+<tr><td class='indent' colspan='3'>Clean all build objects</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'><tt>maker test [FLAG] [ANY]</tt></td></tr>
+<tr><td class='indent' colspan='3'>Run the test suite</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td class='indent'><tt>-j</tt></td><td><tt>--threads=NUM</tt></td><td>Number of threads to use</td></tr>
+<tr><td colspan='3'>&nbsp;</td></tr>
+<tr><td colspan='3'>Common flags:</td></tr>
+<tr><td class='indent'><tt>-?</tt></td><td><tt>--help[=FORMAT]</tt></td><td>Show usage information (optional format)</td></tr>
+<tr><td class='indent'><tt>-V</tt></td><td><tt>--version</tt></td><td>Show version information</td></tr>
+<tr><td class='indent'><tt>-v</tt></td><td><tt>--verbose</tt></td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'><tt>-q</tt></td><td><tt>--quiet</tt></td><td>Lower verbosity</td></tr>
+</table>
 <!-- END -->
 
     </body>

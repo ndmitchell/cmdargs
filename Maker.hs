@@ -1,15 +1,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-
 module Maker where
-
 import System.Console.CmdArgs
 
-
-data Method = Debug
-            | Release
-            | Profile
+data Method = Debug | Release | Profile
               deriving (Data,Typeable,Show,Eq)
-
 
 data Maker
     = Wipe
@@ -17,9 +11,7 @@ data Maker
     | Build {threads :: Int, method :: Method, files :: [FilePath]}
       deriving (Data,Typeable,Show,Eq)
 
-
-threadsMsg = text "Number of threads to use" & flag "j"
-
+threadsMsg = text "Number of threads to use" & flag "j" & typ "NUM"
 
 wipe = mode $ Wipe &= prog "maker" & text "Clean all build objects"
 

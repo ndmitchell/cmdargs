@@ -1,13 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-
 module Diffy where
-
 import System.Console.CmdArgs
 
 data Diffy = Create {src :: FilePath, out :: FilePath}
            | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
              deriving (Data,Typeable,Show,Eq)
-
 
 outFlags = text "Output file" & typFile
 

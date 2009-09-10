@@ -1,9 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-
 module HLint where
-
 import System.Console.CmdArgs
-
 
 data HLint = HLint
     {report :: [FilePath]
