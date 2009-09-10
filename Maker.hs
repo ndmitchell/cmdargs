@@ -27,7 +27,7 @@ build = mode $ Build
         ,Release &= text "Release build"
         ,Profile &= text "Profile build"]
     ,files = def &= args
-    } &= text "Build stuff" & defMode
+    } &= text "Build the project" & defMode
 
 modes = [build,wipe,test]
 

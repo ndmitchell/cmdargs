@@ -56,21 +56,17 @@ p.rule {
 
 .cmdargs {
 	display: block;
+	font-family: monospace;
 }
 .cmdargs td {
 	padding: 0px;
 	margin: 0px;
 	padding-right: 1em;
-	font-size: smaller;
 }
 .cmdargs td.indent {
 	padding-left: 1em;
 }
-.cmdargs tt {
-	white-space: nowrap;
-	font-size: larger;
-}
-        </style>
+s        </style>
     </head>
     <body>
 
@@ -274,24 +270,24 @@ main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
 <table class='cmdargs'>
 <tr><td colspan='3'>HLint v1.6.5, (C) Neil Mitchell 2006-2009</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'><tt>hlint [FLAG] [FILE/DIR]</tt></td></tr>
-<tr><td class='indent' colspan='3'>Suggest improvements to Haskell source code</td></tr>
+<tr><td colspan='3'>hlint [FLAG] [FILE/DIR]</td></tr>
+<tr><td colspan='3' class='indent'>Suggest improvements to Haskell source code</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'><tt>-?</tt></td><td><tt>--help[=FORMAT]</tt></td><td>Show usage information (optional format)</td></tr>
-<tr><td class='indent'><tt>-V</tt></td><td><tt>--version</tt></td><td>Show version information</td></tr>
-<tr><td class='indent'><tt>-v</tt></td><td><tt>--verbose</tt></td><td>Higher verrbosity</td></tr>
-<tr><td class='indent'><tt>-q</tt></td><td><tt>--quiet</tt></td><td>Lower verbosity</td></tr>
-<tr><td class='indent'><tt>-r</tt></td><td><tt>--report[=FILE]</tt></td><td>Generate a report in HTML (default=report.html)</td></tr>
-<tr><td class='indent'><tt>-h</tt></td><td><tt>--hint=FILE</tt></td><td>Hint/ignore file to use</td></tr>
-<tr><td class='indent'><tt>-c</tt></td><td><tt>--color --colour</tt></td><td>Color the output (requires ANSI terminal)</td></tr>
-<tr><td class='indent'><tt>-i</tt></td><td><tt>--ignore=MESSAGE</tt></td><td>Ignore a particular hint</td></tr>
-<tr><td class='indent'><tt>-s</tt></td><td><tt>--show</tt></td><td>Show all ignored ideas</td></tr>
-<tr><td class='indent'><tt>-t</tt></td><td><tt>--test</tt></td><td>Run in test mode</td></tr>
-<tr><td class='indent'><tt></tt></td><td><tt>--cpp-define=NAME[=VALUE]</tt></td><td>CPP #define</td></tr>
-<tr><td class='indent'><tt></tt></td><td><tt>--cpp-include=DIR</tt></td><td>CPP include path</td></tr>
+<tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
+<tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
+<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
+<tr><td class='indent'>-r</td><td>--report[=FILE]</td><td>Generate a report in HTML (default=report.html)</td></tr>
+<tr><td class='indent'>-h</td><td>--hint=FILE</td><td>Hint/ignore file to use</td></tr>
+<tr><td class='indent'>-c</td><td>--color --colour</td><td>Color the output (requires ANSI terminal)</td></tr>
+<tr><td class='indent'>-i</td><td>--ignore=MESSAGE</td><td>Ignore a particular hint</td></tr>
+<tr><td class='indent'>-s</td><td>--show</td><td>Show all ignored ideas</td></tr>
+<tr><td class='indent'>-t</td><td>--test</td><td>Run in test mode</td></tr>
+<tr><td class='indent'></td><td>--cpp-define=NAME[=VALUE]</td><td>CPP #define</td></tr>
+<tr><td class='indent'></td><td>--cpp-include=DIR</td><td>CPP include path</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
 <tr><td colspan='3'>To check all Haskell files in 'src' and generate a report type:</td></tr>
-<tr><td class='indent' colspan='3'>hlint src --report</td></tr>
+<tr><td colspan='3' class='indent'>hlint src --report</td></tr>
 </table>
 <!-- END -->
 
@@ -338,22 +334,22 @@ main = print =<< cmdArgs "Diffy v1.0" modes
 <table class='cmdargs'>
 <tr><td colspan='3'>Diffy v1.0</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'><tt>diffy create [FLAG]</tt></td></tr>
-<tr><td class='indent' colspan='3'>Create a fingerprint</td></tr>
+<tr><td colspan='3'>diffy create [FLAG]</td></tr>
+<tr><td colspan='3' class='indent'>Create a fingerprint</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'><tt>-s</tt></td><td><tt>--src=DIR</tt></td><td>Source directory (default=.)</td></tr>
-<tr><td class='indent'><tt>-o</tt></td><td><tt>--out=FILE</tt></td><td>Output file (default=ls.txt)</td></tr>
+<tr><td class='indent'>-s</td><td>--src=DIR</td><td>Source directory (default=.)</td></tr>
+<tr><td class='indent'>-o</td><td>--out=FILE</td><td>Output file (default=ls.txt)</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'><tt>diffy diff [FLAG] OLDFILE NEWFILE</tt></td></tr>
-<tr><td class='indent' colspan='3'>Perform a diff</td></tr>
+<tr><td colspan='3'>diffy diff [FLAG] OLDFILE NEWFILE</td></tr>
+<tr><td colspan='3' class='indent'>Perform a diff</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'><tt>-o</tt></td><td><tt>--out=FILE</tt></td><td>Output file (default=diff.txt)</td></tr>
+<tr><td class='indent'>-o</td><td>--out=FILE</td><td>Output file (default=diff.txt)</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
 <tr><td colspan='3'>Common flags:</td></tr>
-<tr><td class='indent'><tt>-?</tt></td><td><tt>--help[=FORMAT]</tt></td><td>Show usage information (optional format)</td></tr>
-<tr><td class='indent'><tt>-V</tt></td><td><tt>--version</tt></td><td>Show version information</td></tr>
-<tr><td class='indent'><tt>-v</tt></td><td><tt>--verbose</tt></td><td>Higher verrbosity</td></tr>
-<tr><td class='indent'><tt>-q</tt></td><td><tt>--quiet</tt></td><td>Lower verbosity</td></tr>
+<tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
+<tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
+<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
 </table>
 <!-- END -->
 
@@ -401,7 +397,7 @@ build = mode $ Build
         ,Release &= text "Release build"
         ,Profile &= text "Profile build"]
     ,files = def &= args
-    } &= text "Build stuff" & defMode
+    } &= text "Build the project" & defMode
 
 modes = [build,wipe,test]
 
@@ -412,27 +408,27 @@ main = print =<< cmdArgs "Maker v1.0" modes
 <table class='cmdargs'>
 <tr><td colspan='3'>Maker v1.0</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'><tt>maker [build] [FLAG] [FILE]</tt></td></tr>
-<tr><td class='indent' colspan='3'>Build stuff</td></tr>
+<tr><td colspan='3'>maker [build] [FLAG] [FILE]</td></tr>
+<tr><td colspan='3' class='indent'>Build the project</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'><tt>-j</tt></td><td><tt>--threads=NUM</tt></td><td>Number of threads to use</td></tr>
-<tr><td class='indent'><tt>-d</tt></td><td><tt>--debug</tt></td><td>Debug build</td></tr>
-<tr><td class='indent'><tt>-r</tt></td><td><tt>--release</tt></td><td>Release build</td></tr>
-<tr><td class='indent'><tt>-p</tt></td><td><tt>--profile</tt></td><td>Profile build</td></tr>
+<tr><td class='indent'>-j</td><td>--threads=NUM</td><td>Number of threads to use</td></tr>
+<tr><td class='indent'>-d</td><td>--debug</td><td>Debug build</td></tr>
+<tr><td class='indent'>-r</td><td>--release</td><td>Release build</td></tr>
+<tr><td class='indent'>-p</td><td>--profile</td><td>Profile build</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'><tt>maker wipe [FLAG]</tt></td></tr>
-<tr><td class='indent' colspan='3'>Clean all build objects</td></tr>
+<tr><td colspan='3'>maker wipe [FLAG]</td></tr>
+<tr><td colspan='3' class='indent'>Clean all build objects</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'><tt>maker test [FLAG] [ANY]</tt></td></tr>
-<tr><td class='indent' colspan='3'>Run the test suite</td></tr>
+<tr><td colspan='3'>maker test [FLAG] [ANY]</td></tr>
+<tr><td colspan='3' class='indent'>Run the test suite</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'><tt>-j</tt></td><td><tt>--threads=NUM</tt></td><td>Number of threads to use</td></tr>
+<tr><td class='indent'>-j</td><td>--threads=NUM</td><td>Number of threads to use</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
 <tr><td colspan='3'>Common flags:</td></tr>
-<tr><td class='indent'><tt>-?</tt></td><td><tt>--help[=FORMAT]</tt></td><td>Show usage information (optional format)</td></tr>
-<tr><td class='indent'><tt>-V</tt></td><td><tt>--version</tt></td><td>Show version information</td></tr>
-<tr><td class='indent'><tt>-v</tt></td><td><tt>--verbose</tt></td><td>Higher verrbosity</td></tr>
-<tr><td class='indent'><tt>-q</tt></td><td><tt>--quiet</tt></td><td>Lower verbosity</td></tr>
+<tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
+<tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
+<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
 </table>
 <!-- END -->
 
