@@ -27,12 +27,12 @@ main = do
 test x = (map modeValue x, (===), fails)
     where
         (===) args v = do
-            res <- withArgs args $ cmdModes "" x
+            res <- withArgs args $ cmdArgs "" x
             when (res /= v) $
                 error $ "Mismatch on flags " ++ show args
 
         fails args = do
-            res <- try $ withArgs args $ cmdModes "" x
+            res <- try $ withArgs args $ cmdArgs "" x
             case res of
                 Left (e :: SomeException) -> return ()
                 Right _ -> error $ "Expected failure " ++ show args
@@ -111,9 +111,9 @@ generateChunk ["help",x] = do
     let str = head [takeWhile (/= '\"') $ drop 1 $ dropWhile (/= '\"') x | x <- lines src, "main" `isPrefixOf` x]
     () <- length src `seq` return ()
     fmap lines $ case x of
-        "hlint" -> cmdModesHelp str H.modes HTML
-        "diffy" -> cmdModesHelp str D.modes HTML
-        "maker" -> cmdModesHelp str M.modes HTML
+        "hlint" -> cmdArgsHelp str H.modes HTML
+        "diffy" -> cmdArgsHelp str D.modes HTML
+        "maker" -> cmdArgsHelp str M.modes HTML
 
 generateChunk ["code",x] = do
     src <- readFile $ x ++ ".hs"

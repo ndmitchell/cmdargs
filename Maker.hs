@@ -39,4 +39,4 @@ build = mode $ Build
 
 modes = [build,wipe,test]
 
-main = print =<< cmdModes "Maker v1.0" modes
+main = print =<< cmdArgs "Maker v1.0" modes

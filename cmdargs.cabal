@@ -1,6 +1,6 @@
 cabal-version:      >= 1.6
 build-type:         Simple
-name:               hlint
+name:               cmdargs
 version:            0.1
 license:            BSD3
 license-file:       LICENSE
@@ -25,6 +25,8 @@ library
         System.Console.CmdArgs
     other-modules:
         System.Console.CmdArgs.UI
+        System.Console.CmdArgs.Help
+        System.Console.CmdArgs.Flag
         System.Console.CmdArgs.Type
         System.Console.CmdArgs.Expand
 

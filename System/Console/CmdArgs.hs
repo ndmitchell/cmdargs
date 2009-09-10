@@ -1,16 +1,39 @@
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, PatternGuards #-}
 {-|
-    Simple command line argument handling
+    Simple command line argument processing. The main function of interest
+    is 'cmdArgs'. A simple example is:
+
+    @data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)@
+
+    @sample = 'mode' $ Sample {hello = def '&=' 'text' \"world argument\" '&' 'empty' \"world\"}@
+
+    @main = print =<< 'cmdArgs' "Sample v1, (C) Neil Mitchell 2009" [sample]@
+
+
+    The supported attributes control a number of behaviours:
+    
+    * The help message: 'text', 'typ', 'helpSuffix', 'prog'
+    
+    * Default behaviour: 'empty', 'defMode'
+    
+    * Flag name assignment: 'flag', 'explicit', 'enum'
+    
+    * Controlling non-flag arguments: 'args', 'argPos', 'unknownFlags'
 -}
 
 module System.Console.CmdArgs(
+    -- * Running command lines
+    cmdArgs, modeValue,
+    -- * Attributes
+    module System.Console.CmdArgs.UI,
+    -- * Display help information
+    HelpFormat(..), cmdArgsHelp,
+    -- * Convenience reexports
     Data, Typeable,
+    -- * Default values
     Default(..),
-    cmdArgs, cmdModes,
-    HelpFormat(..), cmdArgsHelp, cmdModesHelp,
-    isQuiet, isNormal, isLoud,
-    modeValue,
-    module System.Console.CmdArgs.UI
+    -- * Verbosity control
+    isQuiet, isNormal, isLoud
     ) where
 
 import System.IO.Unsafe
@@ -36,7 +59,9 @@ import System.Console.CmdArgs.Help
 ---------------------------------------------------------------------
 -- DEFAULTS
 
+-- | Class for default values
 class Default a where
+    -- | Provide a default value
     def :: a
 
 instance Default Bool where def = False
@@ -54,6 +79,8 @@ instance Default Double where def = 0
 verbosity :: IORef Int -- 0 = quiet, 1 = normal, 2 = verbose
 verbosity = unsafePerformIO $ newIORef 1
 
+-- | Retrieve the verbosity.
+--   Must be called after 'cmdArgs'
 isQuiet, isNormal, isLoud :: IO Bool
 isQuiet = return True
 isNormal = fmap (>=1) $ readIORef verbosity
@@ -63,16 +90,15 @@ isLoud = fmap (>=2) $ readIORef verbosity
 ---------------------------------------------------------------------
 -- MAIN DRIVERS
 
+-- | Extract the value from inside a Mode.
 modeValue :: Mode a -> a
 modeValue = modeVal
 
 
-cmdArgs :: Data a => String -> Mode a -> IO a
-cmdArgs short mode = cmdModes short [mode]
-
-
-cmdModes :: Data a => String -> [Mode a] -> IO a
-cmdModes short modes = do
+-- | Entry point to CmdArgs for programs.
+--   For an example see "System.Console.CmdArgs".
+cmdArgs :: Data a => String -> [Mode a] -> IO a
+cmdArgs short modes = do
     modes <- return $ expand modes
     (mode,args) <- parseModes modes `fmap` getArgs
     when (hasAction args "!help") $ do
@@ -97,13 +123,12 @@ cmdModes short modes = do
 ---------------------------------------------------------------------
 -- HELP INFORMATION
 
+-- | Format to display help in.
 data HelpFormat = Text | HTML deriving (Eq,Ord,Show,Read,Enum,Bounded)
 
-cmdArgsHelp :: String -> Mode a -> HelpFormat -> IO String
-cmdArgsHelp short x = cmdModesHelp short [x]
-
-cmdModesHelp :: String -> [Mode a] -> HelpFormat -> IO String
-cmdModesHelp short xs format = fmap (`showHelp` (show format)) $ helpInfo short modes modes
+-- | Display help message for a program.
+cmdArgsHelp :: String -> [Mode a] -> HelpFormat -> IO String
+cmdArgsHelp short xs format = fmap (`showHelp` (show format)) $ helpInfo short modes modes
     where modes = expand xs
 
 

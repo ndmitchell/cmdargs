@@ -24,4 +24,4 @@ diff = mode $ Diff
 
 modes = [create,diff]
 
-main = print =<< cmdModes "Diffy v1.0" modes
+main = print =<< cmdArgs "Diffy v1.0" modes

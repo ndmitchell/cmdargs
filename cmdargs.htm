@@ -5,7 +5,7 @@
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
         <title>CmdArgs: Easy Command Line Processing</title>
         <style type="text/css">
-pre {
+pre, .cmdargs {
     border: 2px solid gray;
     padding: 1px;
     padding-left: 5px;
@@ -52,6 +52,21 @@ p.rule {
     margin-left: 50px;
     margin-right: 50px;
 }
+
+
+.cmdargs td {
+	padding: 0px;
+	margin: 0px;
+	padding-right: 1em;
+	font-size: smaller;
+}
+.cmdargs td.indent {
+	padding-left: 1em;
+}
+.cmdargs tt {
+	white-space: nowrap;
+	font-size: larger;
+}
         </style>
     </head>
     <body>
@@ -63,29 +78,158 @@ p.rule {
 </p>
 
 <p>
-    CmdArgs is a library for defining and parsing command lines. This document gives three examples of using CmdArgs, each introducing new features. The focus of CmdArgs is allowing the concise definition of fully-featured command line processors, in a mainly declarative manner (i.e. little coding needed).
+    <a href="http://community.haskell.org/~ndm/cmdargs/">CmdArgs</a> is a library for defining and parsing command lines. The focus of CmdArgs is allowing the concise definition of fully-featured command line argument processors, in a mainly declarative manner (i.e. little coding needed).
+</p><p>
+	This document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. The library includes three samples, and a command line program <tt>cmdargs</tt> which can be used to access them. The three examples are:
 </p>
 <ol>
-    <li>The <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program</li>
-    <li>A program to take diff's on a directory</li>
-    <li>A make style program</li>
+    <li><tt>hlint</tt> - the <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program.</li>
+    <li><tt>diffy</tt> - a program to take diff's on a directory.</li>
+    <li><tt>maker</tt> - a make style program.</li>
 </ol>
-
-<h2>HLint</h2>
-
 <p>
-	The <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program is fairly standard in terms of it's argument processing, and previously used the <a href="TODO">System.Console.GetOpt</a> library. Using GetOpt the code required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and each line is much simpler.
+	For each example you are encouraged to look at it's source (see the <a href="http://community.haskell.org/~ndm/darcs/hlint">darcs repo</a>) and run it on the command line (try <tt>cmdargs hlint --help</tt>). The HLint program is fairly standard in terms of it's argument processing, and previously used the <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">System.Console.GetOpt</a> library. Using GetOpt the code required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and each line is much simpler.
 </p>
 
-<p>Optional, Short, Explicit, Help/Version/Verbose, Text, Type, Flags</p>
 
-<h2>Diffy</h2>
+<h2>Hello World Example</h2>
+<p>
+	The following code defines a complete command line argument processor:
+</p>
+<pre>
+{-# LANGUAGE DeriveDataTypeable #-}
+module Sample where
+import System.Console.CmdArgs
 
-<p>Modes</p>
+data Sample = Sample {hello :: String}
+              deriving (Show, Data, Typeable)
 
-<h2>Maker</h2>
+sample = mode Sample{hello = def}
 
-<p>Default modes, Unknown argument hovering, enumerations</p>
+main = print =<< cmdArgs "Sample v1, (C) Neil Mitchell 2009" [sample]
+</pre>
+<p>
+	To use the CmdArgs library there are three steps:
+</p>
+<ol>
+	<li>Define a record data type (<tt>Sample</tt>), that contains a field for each argument. This type needs to have instances for <tt>Show</tt>, <tt>Data</tt> and <tt>Typeable</tt>.</li>
+	<li>Define a value of that type (<tt>sample</tt>), with default values (<tt>def</tt> is the default value of any type). This value must be turned into a command line mode by calling the function <tt>mode</tt>.</li>
+	<li>Call <tt>cmdArgs</tt> passing your mode, along with some descriptive text containing the name, version and copyright of your program.</li>
+</ol>
+<p>
+	After this we now have a reasonably functional command line argument processor. Some sample interactions are:
+</p>
+<pre>
+$ runhaskell Sample.hs --hello=world
+Sample {hello = "world"}
+
+$ runhaskell Sample.hs --help
+Sample v1, (C) Neil Mitchell 2009
+
+sample [FLAG]
+
+  -? --help[=FORMAT]  Show usage information (optional format)
+  -V --version        Show version information
+  -v --verbose        Higher verrbosity
+  -q --quiet          Lower verbosity
+  -h --hello=VALUE
+</pre>
+<p>
+	We automatically inherit support for help, version and verbosity.
+</p><p>
+	<b>Help:</b> If the user specifies <tt>--help</tt> then a help message is displayed. In addition, if <tt>--help=HTML</tt> is specified, then the help message is formatted in HTML, suitable for pasting into a web page.
+</p><p>
+	<b>Version:</b> If the user specifies <tt>--version</tt> then the first argument passed to <tt>cmdArgs</tt> is written to the screen.
+</p><p>
+	<b>Verbosity:</b> If the user specifies <tt>--verbose</tt> or <tt>--quiet</tt> then the verbosity is set appropriately. The current verbosity can be queried with the functions <tt>isQuiet, isNormal, isLoud :: IO Bool</tt>.
+</p>
+
+<h2>Specifying Attributes</h2>
+<p>
+	In order to control the behaviour further we can add attributes. For example to add an attribute specifying the help text for the <tt>--hello</tt> argument we can write:
+</p>
+<pre>
+sample = mode Sample{hello = def &= text "who to say hello to"}
+</pre>
+<p>
+	We can add additional operators, for example to specify the type of the value expected by hello:
+</p>
+<pre>
+sample = mode Sample {hello = def &= text "who to say hello to" & typ "WORLD"}
+</pre>
+<p>
+	Now running <tt>--help</tt> again changes the last line to:
+</p>
+<pre>
+  -h --hello=WORLD    who to say hello to
+</pre>
+<p>
+	By adding additional attributes we can control further aspects. For details of all the supported attributes see the <a href="http://hackage.haskell.org/packages/archive/cmdargs/latest/doc/html/System-Console-CmdArgs.html#2">Haddock documentation</a>.
+</p>
+
+
+<h2>Multiple Modes</h2>
+<p>
+	To specify a multiple-mode program, similar to <a href="http://darcs.net/">darcs</a>, you need to supply a data type with multiple constructors, for example:
+</p>
+<pre>
+data Sample = Hello {whom :: String}
+            | Goodbye
+              deriving (Show, Data, Typeable)
+
+hello = mode Hello{whom = def}
+goodbye = mode Goodbye
+
+main = print =<< cmdArgs "Sample v2, (C) Neil Mitchell 2009" [hello,goodbye]
+</pre>
+<p>
+	There are a few small changes from before:
+</p>
+<ol>
+	<li>Define a data type with multiple constructors, each of which is a record (or the record containing no fields, as in the case of <tt>Goodbye</tt>).</li>
+	<li>Pass each mode to <tt>cmdArgs</tt>, with sample values.</li>
+</ol>
+<p>
+	Now we can interact with this command line:
+</p>
+<pre>
+$ runhaskell Sample.hs --help
+Sample v2, (C) Neil Mitchell 2009
+
+sample hello [FLAG]
+
+  -w --whom=VALUE
+
+sample goodbye [FLAG]
+
+Common flags:
+  -? --help[=FORMAT]  Show usage information (optional format)
+  -V --version        Show version information
+  -v --verbose        Higher verrbosity
+  -q --quiet          Lower verbosity
+
+$ runhaskell Sample.hs hello --whom=world
+Hello {whom = "world"}
+
+$ runhaskell Sample.hs goodbye
+Goodbye
+</pre>
+<p>
+	All the same attributes work with multiple modes.
+</p>
+
+<h2>HLint Processing</h2>
+
+<p>
+	The following code defines the HLint command line argument processor, and is useful as a larger practical example:
+</p>
+<!-- BEGIN code hlint -->
+<!-- END -->
+<p>
+	And the output of <tt>hlint --help=HTML</tt> gives:
+</p>
+<!-- BEGIN help hlint -->
+<!-- END -->
 
     </body>
 </html>

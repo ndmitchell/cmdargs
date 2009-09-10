@@ -35,4 +35,4 @@ hlint = mode $ HLint
 
 modes = [hlint]
 
-main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" hlint
+main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
