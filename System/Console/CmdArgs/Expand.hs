@@ -17,7 +17,7 @@ autoFlags =
     [(f "!help" "?" "help" "Show usage information (optional format)")
         {flagType=fromJust $ toFlagType (typeOf ""),flagOpt=Just "",flagTyp="FORMAT"}
     ,f "!version" "V" "version" "Show version information"
-    ,f "!verbose" "v" "verbose" "Higher verrbosity"
+    ,f "!verbose" "v" "verbose" "Higher verbosity"
     ,f "!quiet" "q" "quiet" "Lower verbosity"
     ]
     where f name short long text = flagDefault

@@ -79,7 +79,7 @@ s        </style>
 <p>
     <a href="http://community.haskell.org/~ndm/cmdargs/">CmdArgs</a> is a library for defining and parsing command lines. The focus of CmdArgs is allowing the concise definition of fully-featured command line argument processors, in a mainly declarative manner (i.e. little coding needed). CmdArgs also supports multiple mode programs, for example as used in <a href="http://darcs.net/">darcs</a>.
 </p><p>
-	This document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. Finally this document contains three samples, along with the program <tt>cmdargs</tt> provided by the library which can run them. The three examples are:
+	This document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. Finally this document gives three samples, which the <tt>cmdargs</tt> program can run. The three samples are:
 </p>
 <ol>
     <li><tt>hlint</tt> - the <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program.</li>
@@ -87,7 +87,7 @@ s        </style>
     <li><tt>maker</tt> - a make style program.</li>
 </ol>
 <p>
-	For each example you are encouraged to look at it's source (see the <a href="http://community.haskell.org/~ndm/darcs/hlint">darcs repo</a>, or the bottom of this document) and run it (try <tt>cmdargs hlint --help</tt>). The HLint program is fairly standard in terms of it's argument processing, and previously used the <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">System.Console.GetOpt</a> library. Using GetOpt required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and each line is much simpler.
+	For each example you are encouraged to look at it's source (see the <a href="http://community.haskell.org/~ndm/darcs/hlint">darcs repo</a>, or the bottom of this document) and run it (try <tt>cmdargs hlint --help</tt>). The HLint program is fairly standard in terms of it's argument processing, and previously used the <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">System.Console.GetOpt</a> library. Using GetOpt required 90 lines and a reasonable amount of duplication. Using CmdArgs the code requires 30 lines, and the logic is much simpler.
 </p>
 
 
@@ -112,7 +112,7 @@ main = print =<< cmdArgs "Sample v1, (C) Neil Mitchell 2009" [sample]
 </p>
 <ol>
 	<li>Define a record data type (<tt>Sample</tt>) that contains a field for each argument. This type needs to have instances for <tt>Show</tt>, <tt>Data</tt> and <tt>Typeable</tt>.</li>
-	<li>Define a value of that type (<tt>sample</tt>) with default values (<tt>def</tt> is the default value of any type). This value must be turned into a command line mode by calling the function <tt>mode</tt>.</li>
+	<li>Give a value of that type (<tt>sample</tt>) with default values (<tt>def</tt> is the default value of any type). This value must be turned into a command line mode by calling the function <tt>mode</tt>.</li>
 	<li>Call <tt>cmdArgs</tt> passing the mode, along with some text about the program.</li>
 </ol>
 <p>
@@ -129,7 +129,7 @@ sample [FLAG]
 
   -? --help[=FORMAT]  Show usage information (optional format)
   -V --version        Show version information
-  -v --verbose        Higher verrbosity
+  -v --verbose        Higher verbosity
   -q --quiet          Lower verbosity
   -h --hello=VALUE
 </pre>
@@ -137,9 +137,9 @@ sample [FLAG]
 	The CmdArgs library automatically provides support for:
 </p>
 <ul>
-	<li>Help - if the user specifies <tt>--help</tt> then a help message is displayed. In addition, if <tt>--help=HTML</tt> is specified, then the help message is formatted in HTML, suitable for pasting into a web page (see the bottom of this document).</li>
+	<li>Help - if the user specifies <tt>--help</tt> then a help message is displayed. If <tt>--help=HTML</tt> is specified, then the help message is formatted in HTML, suitable for pasting into a web page (see the bottom of this document).</li>
 	<li>Version - if the user specifies <tt>--version</tt> then the first argument passed to <tt>cmdArgs</tt> is written to the screen.</li>
-	<li>Verbosity - if the user specifies <tt>--verbose</tt> or <tt>--quiet</tt> then the verbosity is set appropriately. The current verbosity can be queried with the functions <tt>isQuiet, isNormal, isLoud :: IO Bool</tt>.</li>
+	<li>Verbosity - if the user specifies <tt>--verbose</tt> or <tt>--quiet</tt> then the verbosity is set appropriately. The current verbosity can be queried with the functions <tt>isQuiet</tt>, <tt>isNormal</tt> and <tt>isLoud</tt>.</li>
 </ul>
 
 <h2>Specifying Attributes</h2>
@@ -168,7 +168,7 @@ sample = mode $ Sample {hello = def &= text "who to say hello to" & typ "WORLD"}
 
 <h2>Multiple Modes</h2>
 <p>
-	To specify a program with multiple modes, similar to <a href="http://darcs.net/">darcs</a>, we supply a data type with multiple constructors, for example:
+	To specify a program with multiple modes, similar to <a href="http://darcs.net/">darcs</a>, we can supply a data type with multiple constructors, for example:
 </p>
 <pre>
 data Sample = Hello {whom :: String}
@@ -202,7 +202,7 @@ sample goodbye [FLAG]
 Common flags:
   -? --help[=FORMAT]  Show usage information (optional format)
   -V --version        Show version information
-  -v --verbose        Higher verrbosity
+  -v --verbose        Higher verbosity
   -q --quiet          Lower verbosity
 </pre>
 <p>
@@ -212,7 +212,7 @@ Common flags:
 <h2>Larger Examples</h2>
 
 <p>
-	For each of the following examples we first explain the purpose of the program, then give the source code, and finally the output of <tt>--help=HTML</tt>. The programs are intended to show sample uses of CmdArgs, and are all available to experiment with through <tt>cmdargs <i>progname</i></tt>.
+	For each of the following examples we first explain the purpose of the program, then give the source code, and finally the output of <tt>--help=HTML</tt>. The programs are intended to show sample uses of CmdArgs, and are available to experiment with through <tt>cmdargs <i>progname</i></tt>.
 </p>
 
 <h3>HLint</h3>
@@ -275,7 +275,7 @@ main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
 <tr><td colspan='3'>&nbsp;</td></tr>
 <tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
 <tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
-<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verbosity</td></tr>
 <tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
 <tr><td class='indent'>-r</td><td>--report[=FILE]</td><td>Generate a report in HTML (default=report.html)</td></tr>
 <tr><td class='indent'>-h</td><td>--hint=FILE</td><td>Hint/ignore file to use</td></tr>
@@ -348,7 +348,7 @@ main = print =<< cmdArgs "Diffy v1.0" modes
 <tr><td colspan='3'>Common flags:</td></tr>
 <tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
 <tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
-<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verbosity</td></tr>
 <tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
 </table>
 <!-- END -->
@@ -427,7 +427,7 @@ main = print =<< cmdArgs "Maker v1.0" modes
 <tr><td colspan='3'>Common flags:</td></tr>
 <tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
 <tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
-<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verrbosity</td></tr>
+<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verbosity</td></tr>
 <tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
 </table>
 <!-- END -->

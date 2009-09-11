@@ -27,14 +27,14 @@ module System.Console.CmdArgs(
     cmdArgs, modeValue,
     -- * Attributes
     module System.Console.CmdArgs.UI,
+    -- * Verbosity control
+    isQuiet, isNormal, isLoud,
     -- * Display help information
     HelpFormat(..), cmdArgsHelp,
-    -- * Convenience reexports
-    Data, Typeable,
     -- * Default values
     Default(..),
-    -- * Verbosity control
-    isQuiet, isNormal, isLoud
+    -- * Re-exported for convenience
+    Data, Typeable
     ) where
 
 import System.IO.Unsafe
@@ -80,11 +80,22 @@ instance Default Double where def = 0
 verbosity :: IORef Int -- 0 = quiet, 1 = normal, 2 = verbose
 verbosity = unsafePerformIO $ newIORef 1
 
--- | Retrieve the verbosity.
---   Must be called after 'cmdArgs'
-isQuiet, isNormal, isLoud :: IO Bool
+-- | Used to test if essential messages should be output to the user.
+--   Always true (since even @--quiet@ wants essential messages output).
+--   Must be called after 'cmdArgs'.
+isQuiet :: IO Bool
 isQuiet = return True
+
+-- | Used to test if normal messages should be output to the user.
+--   True unless @--quiet@ is specified.
+--   Must be called after 'cmdArgs'.
+isNormal :: IO Bool
 isNormal = fmap (>=1) $ readIORef verbosity
+
+-- | Used to test if helpful debug messages should be output to the user.
+--   False unless @--verbose@ is specified.
+--   Must be called after 'cmdArgs'.
+isLoud :: IO Bool
 isLoud = fmap (>=2) $ readIORef verbosity
 
 
@@ -128,9 +139,13 @@ cmdArgs short modes = do
 -- HELP INFORMATION
 
 -- | Format to display help in.
-data HelpFormat = Text | HTML deriving (Eq,Ord,Show,Read,Enum,Bounded)
+data HelpFormat
+    = Text -- ^ As output on the console.
+    | HTML -- ^ Suitable for inclusion in web pages (uses a table rather than explicit wrapping).
+    deriving (Eq,Ord,Show,Read,Enum,Bounded)
 
--- | Display help message for a program.
+-- | Display the help message, as it would appear with @--help@.
+--   The first argument should match the first argument to 'cmdArgs'.
 cmdArgsHelp :: String -> [Mode a] -> HelpFormat -> IO String
 cmdArgsHelp short xs format = fmap (`showHelp` (show format)) $ helpInfo short modes modes
     where modes = expand xs

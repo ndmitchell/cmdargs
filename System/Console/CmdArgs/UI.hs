@@ -11,9 +11,9 @@
 
 module System.Console.CmdArgs.UI(
     -- ** Attribute mechanism
-    mode, Mode, (&=), (&), Info,
+    mode, Mode, (&=), (&), Attrib,
     -- ** Flag attributes
-    text, args, argPos, typ, typFile, typDir, empty, flag, unknownFlags, enum, explicit,
+    text, typ, typFile, typDir, empty, flag, explicit, enum, args, argPos, unknownFlags,
     -- ** Mode attributes
     prog, helpSuffix, defMode
     ) where
@@ -51,7 +51,7 @@ info = unsafePerformIO $ newIORef $ Attrib []
     writeIORef info is
     return x
 
--- | Combine two sets of attributes.
+-- | Combine two attributes.
 (&) :: Attrib -> Attrib -> Attrib
 (&) (Attrib x) (Attrib y) = Attrib $ x ++ y
 
@@ -167,18 +167,18 @@ args :: Attrib
 args = Attrib [FldArgs]
 
 -- | Flag: This field should be used to store a particular argument position
---   (0-based).
+--   (0-based). Can only be applied to fields of type @String@.
 --
 -- > {str = def &= argPos 0}
 argPos :: Int -> Attrib
 argPos = Attrib . return . FldArgPos
 
 
--- | Flag: Alias for @typ \"FILE\"@.
+-- | Flag: Alias for @'typ' \"FILE\"@.
 typFile :: Attrib
 typFile = typ "FILE"
 
--- | Flag: Alias for @typ \"DIR\"@.
+-- | Flag: Alias for @'typ' \"DIR\"@.
 typDir :: Attrib
 typDir = typ "DIR"
 
@@ -189,20 +189,19 @@ helpSuffix = Attrib . return . HelpSuffix
 
 -- | Flag: This field should be used to store all unknown flag arguments.
 --   If no @unknownFlags@ field is set, unknown flags raise errors.
---   Can only be applied to fields of tyep @[String]@.
+--   Can only be applied to fields of type @[String]@.
 --
 -- > {strs = def &= unknownFlags}
 unknownFlags :: Attrib
 unknownFlags = Attrib [FldUnknown]
 
--- | Mode: This mode is the default mode, if no mode is specified then
---   this mode is active. If there is no default mode and no mode is given
---   then an error is raised.
+-- | Mode: This mode is the default. If no mode is specified and a mode has this
+--   attribute then that mode is selected, otherwise an error is raised.
 defMode :: Attrib
 defMode = Attrib [ModDefault]
 
 -- | Mode: This is the name of the program running, used to override the result
---   from @getProgName@.
+--   from @getProgName@. Only used in the help message.
 prog :: String -> Attrib
 prog = Attrib . return . ModProg
 
@@ -213,7 +212,7 @@ prog = Attrib . return . ModProg
 -- > {choice = Yes & enum [Yes &= "say yes", No &= "say no"]}
 --
 -- >   -y --yes    say yes (default)
--- >   -n --no     say nos
+-- >   -n --no     say no
 enum :: (Typeable a, Eq a, Show a) => a -> [a] -> a
 enum def xs = unsafePerformIO $ do
     ys <- forM xs $ \x -> do
@@ -222,6 +221,9 @@ enum def xs = unsafePerformIO $ do
     return $ def &= Attrib [FldEnum ys]
 
 -- | Flag: A field should not have any flag names guessed for it.
---   All flags must be specified by 'flag'.
+--   All flag names must be specified by 'flag'.
+--
+-- > {str = def &= explicit & flag "foo"}
+-- >   --foo=VALUE
 explicit :: Attrib
 explicit = Attrib [FldExplicit]
