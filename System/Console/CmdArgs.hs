@@ -6,7 +6,7 @@
 
     @data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)@
 
-    @sample = 'mode' $ Sample{hello = def '&=' 'text' \"world argument\" '&' 'empty' \"world\"}@
+    @sample = 'mode' $ Sample{hello = def '&=' 'text' \"World argument\" '&' 'empty' \"world\"}@
 
     @main = print =<< 'cmdArgs' \"Sample v1, (C) Neil Mitchell 2009\" [sample]@
 
