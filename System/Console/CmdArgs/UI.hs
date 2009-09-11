@@ -38,28 +38,28 @@ infixl 2 &
 -- STATE MANAGEMENT
 
 {-# NOINLINE info #-}
-info :: IORef [Info]
-info = unsafePerformIO $ newIORef []
+info :: IORef Attrib
+info = unsafePerformIO $ newIORef $ Attrib []
 
 -- | Add attributes to a value. Always returns the first argument, but
 --   has a non-pure effect on the environment. Take care when performing
 --   program transformations.
 --
 -- > value &= attrib1 & attrib2
-(&=) :: a -> [Info] -> a
+(&=) :: a -> Attrib -> a
 (&=) x is = unsafePerformIO $ do
     writeIORef info is
     return x
 
 -- | Combine two sets of attributes.
-(&) :: [Info] -> [Info] -> [Info]
-(&) = (++)
+(&) :: Attrib -> Attrib -> Attrib
+(&) (Attrib x) (Attrib y) = Attrib $ x ++ y
 
 collect :: a -> IO [Info]
 collect x = do
     evaluate x
-    x <- readIORef info
-    writeIORef info [] -- don't leak the info's
+    Attrib x <- readIORef info
+    writeIORef info $ Attrib [] -- don't leak the info's
     return x
 
 -- | Construct a 'Mode' from a value annotated with attributes.
@@ -83,6 +83,9 @@ mode val = unsafePerformIO $ do
 ---------------------------------------------------------------------
 -- INFO ITEMS
 
+-- | Attributes to modify the behaviour.
+newtype Attrib = Attrib [Info]
+
 data Info
     = FldEmpty String
     | FldArgs
@@ -105,7 +108,7 @@ modeInfo = foldl $ \m x -> case x of
     HelpSuffix x -> m{modeHelpSuffix=x}
     ModDefault -> m{modeDef=True}
     ModProg x -> m{modeProg=Just x}
-    x -> error $ "Invalid info at mode level: " ++ show x
+    x -> error $ "Invalid attribute at mode level: " ++ show x
 
 
 flagInfo :: Flag -> [Info] -> Flag
@@ -118,7 +121,7 @@ flagInfo = foldl $ \m x -> case x of
     FldArgs -> m{flagArgs=Just Nothing}
     FldArgPos i -> m{flagArgs=Just (Just i)}
     FldUnknown -> m{flagUnknown=True}
-    x -> error $ "Invalid info at argument level: " ++ show x
+    x -> error $ "Invalid attribute at argument level: " ++ show x
 
 
 ---------------------------------------------------------------------
@@ -129,8 +132,8 @@ flagInfo = foldl $ \m x -> case x of
 --
 -- > {str = def &= empty "foo"}
 -- >   -s --str[=VALUE]    (default=foo)
-empty :: (Show a, Typeable a) => a -> [Info]
-empty x = return $ case cast x of
+empty :: (Show a, Typeable a) => a -> Attrib
+empty x = Attrib $ return $ case cast x of
     Just y -> FldEmpty y
     _ -> FldEmpty $ show x
 
@@ -139,69 +142,69 @@ empty x = return $ case cast x of
 --
 -- > {str = def &= typ "FOO"}
 -- >   -s --str=FOO
-typ :: String -> [Info]
-typ = return . FldTyp
+typ :: String -> Attrib
+typ = Attrib . return . FldTyp
 
 -- | Flag/Mode: Descriptive text used in the help output.
 --
 -- > {str = def &= text "Help message"}
 -- >   -s --str=VALUE      Help message
-text :: String -> [Info]
-text = return . Text
+text :: String -> Attrib
+text = Attrib . return . Text
 
 -- | Flag: Add flags which trigger this option.
 --
 -- > {str = def &= flag "foo"}
 -- >   -s --str --foo=VALUE
-flag :: String -> [Info]
-flag = return . FldFlag
+flag :: String -> Attrib
+flag = Attrib . return . FldFlag
 
 -- | Flag: This field should be used to store the non-flag arguments. Can
 --   only be applied to fields of type @[String]@.
 --
 -- > {strs = def &= args}
-args :: [Info]
-args = [FldArgs]
+args :: Attrib
+args = Attrib [FldArgs]
 
 -- | Flag: This field should be used to store a particular argument position
 --   (0-based).
 --
 -- > {str = def &= argPos 0}
-argPos :: Int -> [Info]
-argPos = return . FldArgPos
+argPos :: Int -> Attrib
+argPos = Attrib . return . FldArgPos
 
 
 -- | Flag: Alias for @typ \"FILE\"@.
-typFile :: [Info]
+typFile :: Attrib
 typFile = typ "FILE"
 
 -- | Flag: Alias for @typ \"DIR\"@.
-typDir :: [Info]
+typDir :: Attrib
 typDir = typ "DIR"
 
 
 -- | Mode: Suffix to be added to the help message.
-helpSuffix :: [String] -> [Info]
-helpSuffix = return . HelpSuffix
+helpSuffix :: [String] -> Attrib
+helpSuffix = Attrib . return . HelpSuffix
 
 -- | Flag: This field should be used to store all unknown flag arguments.
 --   If no @unknownFlags@ field is set, unknown flags raise errors.
 --   Can only be applied to fields of tyep @[String]@.
 --
 -- > {strs = def &= unknownFlags}
-unknownFlags :: [Info]
-unknownFlags = [FldUnknown]
+unknownFlags :: Attrib
+unknownFlags = Attrib [FldUnknown]
 
 -- | Mode: This mode is the default mode, if no mode is specified then
 --   this mode is active. If there is no default mode and no mode is given
 --   then an error is raised.
-defMode :: [Info]
-defMode = [ModDefault]
+defMode :: Attrib
+defMode = Attrib [ModDefault]
 
 -- | Mode: This is the name of the program running, used to override the result
 --   from @getProgName@.
-prog :: String -> [Info]
-prog = return . ModProg
+prog :: String -> Attrib
+prog = Attrib . return . ModProg
 
 -- | Flag: A field is an enumeration of possible values.
 --
@@ -216,9 +219,9 @@ enum def xs = unsafePerformIO $ do
     ys <- forM xs $ \x -> do
         y <- collect x
         return $ flagInfo flagDefault{flagKey=map toLower (show x), flagType=FlagBool (toDyn x), flagVal = toDyn False} y
-    return $ def &= [FldEnum ys]
+    return $ def &= Attrib [FldEnum ys]
 
 -- | Flag: A field should not have any flag names guessed for it.
 --   All flags must be specified by 'flag'.
-explicit :: [Info]
-explicit = [FldExplicit]
+explicit :: Attrib
+explicit = Attrib [FldExplicit]
