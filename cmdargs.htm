@@ -147,19 +147,19 @@ sample [FLAG]
 	In order to control the behaviour we can add attributes. For example to add an attribute specifying the help text for the <tt>--hello</tt> argument we can write:
 </p>
 <pre>
-sample = mode $ Sample{hello = def &= text "who to say hello to"}
+sample = mode $ Sample{hello = def &= text "Who to say hello to"}
 </pre>
 <p>
 	We can add additional attributes, for example to specify the type of the value expected by hello:
 </p>
 <pre>
-sample = mode $ Sample {hello = def &= text "who to say hello to" & typ "WORLD"}
+sample = mode $ Sample {hello = def &= text "Who to say hello to" & typ "WORLD"}
 </pre>
 <p>
-	Now running <tt>--help</tt> produces the final line:
+	Now when running <tt>--help</tt> the final line is:
 </p>
 <pre>
-  -h --hello=WORLD    who to say hello to
+  -h --hello=WORLD    Who to say hello to
 </pre>
 <p>
 	There are many more attributes, detailed in the <a href="http://hackage.haskell.org/packages/archive/cmdargs/latest/doc/html/System-Console-CmdArgs.html#2">Haddock documentation</a>.
@@ -175,8 +175,8 @@ data Sample = Hello {whom :: String}
             | Goodbye
               deriving (Show, Data, Typeable)
 
-hello = mode Hello{whom = def}
-goodbye = mode Goodbye
+hello = mode $ Hello{whom = def}
+goodbye = mode $ Goodbye
 
 main = print =<< cmdArgs "Sample v2, (C) Neil Mitchell 2009" [hello,goodbye]
 </pre>
