@@ -4,6 +4,7 @@ module Main where
 
 import System.Console.CmdArgs
 import Control.Monad
+import System.IO
 import System.Environment
 import Control.Exception
 import Data.List
@@ -96,7 +97,9 @@ generateManual = do
     () <- length src `seq` return ()
     res <- fmap unlines $ f $ lines src
     () <- length res `seq` return ()
-    writeFile "cmdargs.htm" res
+    h <- openBinaryFile "cmdargs.htm" WriteMode
+    hPutStr h res
+    hClose h
     where
         f (x:xs) | "<!-- BEGIN " `isPrefixOf` x = do
             ys <- generateChunk $ init $ drop 2 $ words x
