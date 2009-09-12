@@ -4,7 +4,7 @@ name:               cmdargs
 version:            0.1
 license:            BSD3
 license-file:       LICENSE
-category:           Development
+category:           Console
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
 copyright:          Neil Mitchell 2009
