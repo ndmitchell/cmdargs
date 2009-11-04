@@ -20,6 +20,10 @@ stability:          Beta
 extra-source-files:
     cmdargs.htm
 
+flag BuildCommand
+    description: Build the test executable
+    default: True
+
 library
     build-depends: base == 4.*, mtl, filepath
 
@@ -38,3 +42,7 @@ executable cmdargs
         HLint
         Diffy
         Maker
+    if flag(BuildCommand)
+        buildable: True
+    else
+        buildable: False
