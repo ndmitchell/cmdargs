@@ -2,6 +2,7 @@
 module System.Console.CmdArgs.Help(Help(..), showHelp) where
 
 import Data.Char
+import Data.Maybe
 
 
 data Help = Norm String
@@ -11,9 +12,10 @@ data Help = Norm String
 showHelp :: [Help] -> String -> String
 showHelp help format = case map toLower format of
     "html" -> showHTML help
+    "simple" -> showSimple help
     x | x `elem` ["text",""] -> showText help
-    _ -> "Unknown help mode " ++ show format ++ ", expected one of: text html\n\n" ++
-         showText help
+    _ -> "Unknown help mode " ++ show format ++
+        ", expected one of: text html simple\n\n" ++ showText help
 
 
 showText :: [Help] -> String
@@ -41,10 +43,19 @@ showHTML xs = unlines $
                            "<td>" ++ escape b ++ "</td>" ++
                            "<td>" ++ escape c ++ "</td></tr>"
 
+        escape :: String -> String
+        escape = concatMap f
+            where f '&' = "&amp;"
+                  f '>' = "&gt;"
+                  f '<' = "&lt;"
+                  f x = [x]
 
-escape :: String -> String
-escape = concatMap f
-    where f '&' = "&amp;"
-          f '>' = "&gt;"
-          f '<' = "&lt;"
-          f x = [x]
+showSimple :: [Help] -> String
+showSimple xs = unlines $ catMaybes $ map f $ tail xs
+    where
+        f (Norm x)
+            | null x = Nothing
+            | head x == ' ' = Nothing
+            | head x == 'C' = Nothing
+            | otherwise = Just $ "C:" ++ x
+        f (Trip (a, b, c)) = Just $ "O:" ++ a ++ ":" ++ b ++ ":" ++ c
