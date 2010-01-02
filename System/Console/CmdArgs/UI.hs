@@ -209,7 +209,7 @@ prog = Attrib . return . ModProg
 --
 -- > data Choice = Yes | No deriving (Data,Typeable,Show,Eq)
 -- > data Sample = Sample {choice :: Choice}
--- > {choice = Yes & enum [Yes &= "say yes", No &= "say no"]}
+-- > {choice = enum Yes [Yes &= "say yes", No &= "say no"]}
 --
 -- >   -y --yes    say yes (default)
 -- >   -n --no     say no
