@@ -68,6 +68,7 @@ toFlagType typ
     | typ == typeOf True = Just $ FlagBool $ toDyn True
     | Just r <- toFlagTypeRead False typ = Just $ FlagItem r
     | a == typeRepTyCon (typeOf ""), Just r <- toFlagTypeRead True (head b) = Just $ FlagItem r
+    | otherwise = Nothing
     where (a,b) = splitTyConApp typ
 
 toFlagTypeRead :: Bool -> TypeRep -> Maybe (String -> Maybe (Dynamic -> Dynamic))
