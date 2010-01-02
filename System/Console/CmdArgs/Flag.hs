@@ -6,6 +6,7 @@ import Data.Dynamic
 import Data.List
 import Data.Maybe
 import Data.Char
+import Data.Ord
 import Control.Monad
 import Data.Function
 
@@ -70,9 +71,11 @@ defaultFlag x = if res `elem` [Just "",Just "0"] then Nothing else res
 parseFlags :: [Flag] -> [String] -> [Action]
 parseFlags flags = f 0
     where
-        f seen [] = case reverse $ sort [i | Flag{flagArgs=Just (Just i),flagOpt=Nothing} <- flags, i >= seen] of
+        f seen [] = case sortBy (comparing fst) [(i,n) | Flag{flagTyp=n, flagArgs=Just (Just i),flagOpt=Nothing} <- flags, i >= seen] of
             [] -> []
-            x:_ -> [Error $ "Not enough non-flag arguments, expected " ++ show (x+1) ++ ", but got " ++ show seen]
+            x -> [Error $ "Not enough non-flag arguments, expected " ++ show ((length x)+seen) ++
+                          ", but got " ++ show seen ++
+                          "; missing: " ++ (intercalate " " $ map snd x)]
 
         f seen (x:xs) = act : f (seen + if "-" `isPrefixOf` x then 0 else 1) ys
             where (act,ys) = case sortBy (compare `on` fst) $ mapMaybe (\flag -> parseFlag flag seen (x:xs)) flags of
