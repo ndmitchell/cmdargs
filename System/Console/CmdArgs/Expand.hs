@@ -52,11 +52,19 @@ expand xs | not $ checkFlags ys = error "Flag's don't meet their condition"
 
 
 checkFlags :: FlagNames -> Bool
-checkFlags xs | any ((/=) 1 . length) $ groupBy ((==) `on` fst) xs = error "Two record names have different flags"
-              | nub names /= names = error "One flag has been assigned twice"
+checkFlags xs | any ((/=) 1 . length) grouped = error group_err
+              | nub names /= names = error dupflg_err
               | otherwise = True
     where names = concatMap (fst . snd) xs
-
+          grouped = groupBy ((==) `on` fst) xs
+          dups = filter ((/=) 1 . length) grouped
+          group_err = intercalate "\n" $ flip map dups
+                      (\d -> "Record name " ++ (fst $ head d) ++ " has different flags:" ++ (
+                             intercalate " v.s. " $ map (show . fst . snd) d))
+          dupnames = filter ((/=) 1 . length) $ group $ sort names
+          dupflg_err = intercalate "\n" $ flip map dupnames
+                       (\d -> "Flag " ++ (head d) ++ " has been assigned to " ++
+                              (show $ length d) ++ " different arguments")
 
 assignLong :: FlagNames -> FlagNames
 assignLong xs = map f xs
