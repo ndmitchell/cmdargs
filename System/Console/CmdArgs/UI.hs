@@ -108,6 +108,7 @@ modeInfo = foldl $ \m x -> case x of
     HelpSuffix x -> m{modeHelpSuffix=x}
     ModDefault -> m{modeDef=True}
     ModProg x -> m{modeProg=Just x}
+    FldExplicit -> m{modeExplicit=True}
     x -> error $ "Invalid attribute at mode level: " ++ show x
 
 
@@ -225,5 +226,12 @@ enum def xs = unsafePerformIO $ do
 --
 -- > {str = def &= explicit & flag "foo"}
 -- >   --foo=VALUE
+--
+--   If set as a mode-level attribute this suppresses the automatic
+--   generation of flags:
+--      -V  --version
+--      -v  --verbose
+--      -q  --quiet
+--      -?  --help
 explicit :: Attrib
 explicit = Attrib [FldExplicit]
