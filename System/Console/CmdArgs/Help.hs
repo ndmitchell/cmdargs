@@ -6,6 +6,7 @@ import Data.Maybe
 
 
 data Help = Norm String
+          | Deuce (String,String)
           | Trip (String,String,String)
 
 
@@ -22,7 +23,12 @@ showText :: [Help] -> String
 showText xs = unlines $ map f xs
     where
         f (Norm x) = x
+        f (Deuce (a,b)) = "  " ++ a ++ sep aw a ++ b
         f (Trip (a,b,c)) = "  " ++ pad an a ++ pad bn b ++ " " ++ c
+
+        (ae,_) = unzip [x | Deuce x <- xs]
+        aw = maximum $ map length ae
+        sep n s = replicate (n - length s + 1) ' '
 
         (as,bs,_) = unzip3 [x | Trip x <- xs]
         an = maximum $ map length as
@@ -39,6 +45,8 @@ showHTML xs = unlines $
         f (Norm x) = "<tr><td colspan='3'" ++ (if null a then "" else " class='indent'") ++ ">" ++
                      (if null b then "&nbsp;" else escape b) ++ "</td></tr>"
             where (a,b) = span isSpace x
+        f (Deuce (a,b)) = "<tr><td class='indent'>" ++ escape a ++ "</td><td colspan='2'>" ++
+                          (if null b then "&nbsp;" else escape b) ++ "</td></tr>"
         f (Trip (a,b,c)) = "<tr><td class='indent'>" ++ escape a ++ "</td>" ++
                            "<td>" ++ escape b ++ "</td>" ++
                            "<td>" ++ escape c ++ "</td></tr>"
@@ -59,3 +67,4 @@ showSimple xs = unlines $ catMaybes $ map f $ tail xs
             | head x == 'C' = Nothing
             | otherwise = Just $ "C:" ++ x
         f (Trip (a, b, c)) = Just $ "O:" ++ a ++ ":" ++ b ++ ":" ++ c
+        f (Deuce (a, b)) = Just $ "L:" ++ a ++ ":" ++ b

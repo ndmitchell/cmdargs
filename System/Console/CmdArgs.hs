@@ -155,16 +155,22 @@ helpInfo :: String -> [Mode a] -> [Mode a] -> IO [Help]
 helpInfo short tot now = do
     prog <- fmap (map toLower . takeBaseName) getProgName
     prog <- return $ head $ mapMaybe modeProg tot ++ [prog]
-    let info = [([Norm $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ "[FLAG]" : args] ++
-                 [Norm $ "  " ++ text | text /= ""]
+    let justlist = length now /= 1 && length tot > 3
+    let info = [(if justlist
+                   then [Deuce (name, head ["-- " ++ (head hl)  | length hl > 0, length (head hl) > 0])]
+                   else [Norm $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ trail] ++
+                            [Norm $ "  " ++ text | text /= ""]
                 ,concatMap helpFlag flags)
                | Mode{modeName=name,modeFlags=flags,modeText=text,modeDef=def} <- now
-               , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags]
+               , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags
+                     trail =  "[FLAG]" : args
+                     hl = lines text
+               ]
     let dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
     return $
         Norm short :
         concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ map Trip flags
-               | (mode,args) <- info, let flags = args \\ dupes] ++
+               | (mode,args) <- info, let flags = if justlist then [] else args \\ dupes] ++
         (if null dupes then [] else Norm "":Norm "Common flags:":map Trip dupes) ++
         concat [ map Norm $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
 
