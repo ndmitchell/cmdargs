@@ -3,6 +3,7 @@ module System.Console.CmdArgs.Expand(defaults,expand,autoFlags) where
 
 import System.Console.CmdArgs.Type
 import Data.Dynamic
+import Data.Ord
 import Data.List
 import Data.Maybe
 import Data.Char
@@ -12,16 +13,28 @@ import Data.Function
 ---------------------------------------------------------------------
 -- PRESUPPLIED ARGS
 
-autoFlags :: [Flag]
-autoFlags =
-    [(f "!help" "?" "help" "Show usage information (optional format)")
-        {flagType=fromJust $ toFlagType (typeOf ""),flagOpt=Just "",flagTyp="FORMAT"}
-    ,f "!version" "V" "version" "Show version information"
-    ,f "!verbose" "v" "verbose" "Higher verbosity"
-    ,f "!quiet" "q" "quiet" "Lower verbosity"
-    ]
-    where f name short long text = flagDefault
+autoFlags_def :: String -> String -> String -> String -> Flag
+autoFlags_def name short long text = flagDefault
             {flagName=name,flagKey=name,flagFlag=[short,long],flagText=text,flagType=FlagBool (toDyn True),flagVal=toDyn False,flagExplicit=True}
+
+autoFlagsVerbosity :: [Flag]
+autoFlagsVerbosity =
+    [ f "!verbose" "v" "verbose" "Higher verbosity"
+    , f "!quiet" "q" "quiet" "Lower verbosity"
+    ]
+    where f = autoFlags_def
+
+autoFlagsHelp :: [Flag]
+autoFlagsHelp = [ (autoFlags_def "!help" "?" "help" "Show usage information (optional format)")
+        {flagType=fromJust $ toFlagType (typeOf ""),flagOpt=Just "",flagTyp="FORMAT"}
+                ]
+
+autoFlagsVersion :: [Flag]
+autoFlagsVersion =
+    [autoFlags_def "!version" "V" "version" "Show version information"]
+
+autoFlags :: [Flag]
+autoFlags = autoFlagsHelp ++ autoFlagsVersion ++ autoFlagsVerbosity
 
 ---------------------------------------------------------------------
 -- FLAG DEFAULTS
@@ -42,20 +55,34 @@ type FlagNames = [(String,([String],Bool))]
 --   Two things with the same FldName have different FldFlag or Explicit
 --   Two fields without the same FldName have different FldFlag
 expand :: [Mode a] -> [Mode a]
-expand xs | not $ checkFlags ys = error "Flag's don't meet their condition"
+expand xs | isNothing (firstgood $ z yss) = error "Flags don't meet their condition: " ++ (firsterr $ z yss)
           | otherwise = xs3
     where
-        xs3 = map (\x -> x{modeFlags=[if isFlagArgs c then c else c{flagFlag=fst $ fromJust $ lookup (flagKey c) ys2} | c <- modeFlags x]}) xs2
-        ys2 = assignShort $ assignLong ys
-        ys = sort $ nub [(flagKey x, (flagFlag x, flagExplicit x)) | x <- map modeFlags xs2, x <- x, isFlagFlag x]
-        xs2 = map (\x -> x{modeFlags = autflg x ++ modeFlags x}) xs
-        autflg x = if modeExplicit x then [] else autoFlags
+        xs3 = map (\x -> x{modeFlags=[if isFlagArgs c then c else c{flagFlag=fst $ fromJust $ lookup (flagKey c) (ys2 goodflags)} | c <- modeFlags x]}) goodflags
+        ys2 e = assignShort $ assignLong $ ys e
+        ys e = sort $ nub [(flagKey x, (flagFlag x, flagExplicit x)) | x <- map modeFlags e, x <- x, isFlagFlag x]
+
+        goodflags = fromJust $ firstgood $ z yss
+        firstgood zs = let g = filter (either (const False) (const True)) zs
+                           Right g' = head g
+                       in if null g then Nothing else Just g'
+        firsterr zs = let Right e = head zs in e -- only called if no firstgood
+        z es = map (\e -> maybe (Right e) Left $ checkFlags $ ys e) es
+        yss = map (xs2 . concat) afseqs
+        afseqs = reverse $ sortBy (comparing length) $ subsequences [ autoFlagsHelp
+                                                                    , autoFlagsVersion
+                                                                    , autoFlagsVerbosity
+                                                                    ]
+
+        xs2 af = map (\x -> x{modeFlags = autflg x af ++ modeFlags x}) xs
+        autflg m f = if modeExplicit m then [] else f
 
 
-checkFlags :: FlagNames -> Bool
-checkFlags xs | any ((/=) 1 . length) grouped = error group_err
-              | nub names /= names = error dupflg_err
-              | otherwise = True
+-- Check validity of flags, Nothing if OK, Just errstring on error
+checkFlags :: FlagNames -> Maybe String
+checkFlags xs | any ((/=) 1 . length) grouped = Just group_err
+              | nub names /= names = Just dupflg_err
+              | otherwise = Nothing
     where names = concatMap (fst . snd) xs
           grouped = groupBy ((==) `on` fst) xs
           dups = filter ((/=) 1 . length) grouped
