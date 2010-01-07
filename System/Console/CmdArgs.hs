@@ -169,10 +169,17 @@ helpInfo short tot now = do
     let dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
     return $
         Norm short :
-        concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ map Trip flags
+        concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ flggroupinfo flags
                | (mode,args) <- info, let flags = if justlist then [] else args \\ dupes] ++
-        (if null dupes then [] else Norm "":Norm "Common flags:":map Trip dupes) ++
+        (if null dupes then [] else Norm "":Norm "Common flags:":flggroupinfo dupes) ++
         concat [ map Norm $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
+    where
+      flggroupinfo fs = let fgs = groupBy ((==) `on` snd) $ sortBy (compare `on` snd) fs
+                            gid g = if null g then Nothing else snd $ head g
+                            ginfo g | isNothing (gid g) = map (Trip . fst) g
+                                    | otherwise = Norm ("  ____" ++ (fromJust $ gid g) ++ " Flags____") : 
+                                                  map (Trip . fst) g
+                        in concatMap ginfo fgs
 
 
 ---------------------------------------------------------------------

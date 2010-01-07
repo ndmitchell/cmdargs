@@ -13,7 +13,7 @@ module System.Console.CmdArgs.UI(
     -- ** Attribute mechanism
     mode, Mode, (&=), (&), Attrib,
     -- ** Flag attributes
-    text, typ, typFile, typDir, empty, flag, explicit, enum, args, argPos, unknownFlags,
+    text, typ, typFile, typDir, empty, flag, explicit, enum, args, argPos, unknownFlags, group,
     -- ** Mode attributes
     prog, helpSuffix, defMode
     ) where
@@ -22,7 +22,7 @@ import System.Console.CmdArgs.Type
 import System.IO.Unsafe
 import Data.Dynamic
 import Data.Data
-import Data.List
+import Data.List hiding (group)
 import Data.Maybe
 import Data.IORef
 import Control.Exception
@@ -92,6 +92,7 @@ data Info
     | FldArgPos Int
     | FldTyp String
     | Text String
+    | FldGroup String
     | FldFlag String
     | FldExplicit
     | HelpSuffix [String]
@@ -122,6 +123,7 @@ flagInfo = foldl $ \m x -> case x of
     FldArgs -> m{flagArgs=Just Nothing}
     FldArgPos i -> m{flagArgs=Just (Just i)}
     FldUnknown -> m{flagUnknown=True}
+    FldGroup g -> m{flagGroup=Just g}
     x -> error $ "Invalid attribute at argument level: " ++ show x
 
 
@@ -152,6 +154,14 @@ typ = Attrib . return . FldTyp
 -- >   -s --str=VALUE      Help message
 text :: String -> Attrib
 text = Attrib . return . Text
+
+-- | Flag: Specify group membership for this flag
+--
+-- > {str = def &= group "Repository Management"
+-- >   ---- Repository Management ----
+-- >   -s --str=VALUE
+group :: String -> Attrib
+group = Attrib . return . FldGroup
 
 -- | Flag: Add flags which trigger this option.
 --

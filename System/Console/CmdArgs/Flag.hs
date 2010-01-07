@@ -30,11 +30,12 @@ hasAction as = isJust . getAction as
 ---------------------------------------------------------------------
 -- HELP INFORMATION FOR A FLAG
 
-helpFlag :: Flag -> [(String,String,String)]
+helpFlag :: Flag -> [((String,String,String), Maybe String)]
 helpFlag xs =
-    [(unwords (map ("-"++) short)
-     ,unwords (map ("--"++) long) ++ val
-     ,flagText xs ++ maybe "" (\x -> " (default=" ++ x ++ ")") (defaultFlag xs))
+    [((unwords (map ("-"++) short)
+      ,unwords (map ("--"++) long) ++ val
+      ,flagText xs ++ maybe "" (\x -> " (default=" ++ x ++ ")") (defaultFlag xs))
+     ,flagGroup xs)
     | isFlagFlag xs]
     where
         (short,long) = partition ((==) 1 . length) $ flagFlag xs

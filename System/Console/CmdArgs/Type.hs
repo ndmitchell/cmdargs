@@ -37,10 +37,11 @@ data Flag = Flag
     ,flagFlag :: [String]
     ,flagUnknown :: Bool -- place to put unknown args
     ,flagExplicit :: Bool
+    ,flagGroup :: Maybe String
     }
     deriving Show
 
-flagDefault = Flag{flagArgs=Nothing,flagOpt=Nothing,flagTyp="",flagText="",flagFlag=[],flagUnknown=False,flagExplicit=False}
+flagDefault = Flag{flagArgs=Nothing,flagOpt=Nothing,flagTyp="",flagText="",flagFlag=[],flagUnknown=False,flagExplicit=False,flagGroup=Nothing}
 
 
 ---------------------------------------------------------------------
