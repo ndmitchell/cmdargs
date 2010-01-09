@@ -1,0 +1,6 @@
+:set -w -fwarn-unused-binds -fwarn-unused-imports
+:load Main
+
+let cmdTest _ = return ":main test"
+:def test cmdTest
+
