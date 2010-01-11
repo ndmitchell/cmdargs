@@ -24,13 +24,13 @@
 
 module System.Console.CmdArgs(
     -- * Running command lines
-    cmdArgs, modeValue,
+    cmdArgs, cmdArgsParse, modeValue,
     -- * Attributes
     module System.Console.CmdArgs.UI,
     -- * Verbosity control
     isQuiet, isNormal, isLoud,
     -- * Display help information
-    HelpFormat(..), cmdArgsHelp,
+    HelpFormat(..), cmdArgsHelp, getCmdArgsHelp,
     -- * Default values
     Default(..),
     -- * Re-exported for convenience
@@ -42,6 +42,7 @@ import Data.Dynamic
 import Data.Data
 import Data.List
 import Data.Maybe
+import Data.Either
 import Data.IORef
 import System.Environment
 import System.Exit
@@ -107,32 +108,63 @@ modeValue :: Mode a -> a
 modeValue = modeVal
 
 
--- | The main entry point for programs using CmdArgs.
+-- | Pure function for parsing arguments.  Given explicit command-line
+--   words and the operation modes this will return either an error
+--   (or version) string generator or else it will return the selected
+--   mode's structure.
+--
+--   Alternatively: use 'cmdArgs' for a version that will
+--   automatically read the current command line and throw IO
+--   exceptions on failures.
+cmdArgsParse :: Data a
+    => String -- ^ Information about the program, something like: @\"ProgramName v1.0, Copyright PersonName 2000\"@.
+    -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
+    -> [String] -- ^ The command-line arguments to be parsed
+    -> Either (Bool,String -> String) a  -- ^ Left is (is success?, string_func), where
+                                         -- string_func is called with the program name and will
+                                         -- return the error or version string to be
+                                         -- displayed.  Right is the selected mode structure.
+cmdArgsParse short modes inputargs =
+    let emodes = expand modes
+        (mode,args) = parseModes emodes inputargs
+        wanthelp = hasAction args "!help"
+        wantver = hasAction args "!version"
+        argerrors = [x | Error x <- args]
+        argerror = listToMaybe argerrors
+        parsed = Right . applyActions args . modeValue
+        failmsg m = Left (False, const m)
+        helpmode = case mode of
+                     Right (True,mode) -> Just mode
+                     _ -> Nothing
+        helpfmt = fromDyn (op undefined) ""
+        Update _ op = fromJust $ getAction args "!help"
+    in case (wanthelp, wantver) of
+         (True,_) -> Left (True, getCmdArgsHelp short modes helpmode helpfmt)
+         (False,True) -> Left (True, const short)
+         _ -> flip (either failmsg) mode $ 
+              \msv -> maybe (parsed $ snd msv) failmsg argerror
+
+
+-- | The main entry point for programs using CmdArgs.  This is the IO
+--   version that will automatically read the current command-line
+--   arguments and will generate program exit calls if appropriate
+--   (e.g. on invalid arg input).
+--
+--   Approximately:
+--
+--   @cmdArgs s ms = cmdArgsParse s ms `fmap` getArgs
+--
 --   For an example see "System.Console.CmdArgs".
 cmdArgs :: Data a
     => String -- ^ Information about the program, something like: @\"ProgramName v1.0, Copyright PersonName 2000\"@.
     -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
     -> IO a
 cmdArgs short modes = do
-    modes <- return $ expand modes
-    (mode,args) <- parseModes modes `fmap` getArgs
-    when (hasAction args "!help") $ do
-        hlp <- case mode of
-            Right (True,mode) -> helpInfo short modes [mode]
-            _ -> helpInfo short modes modes
-        let Update _ op = fromJust $ getAction args "!help"
-        putStr $ showHelp hlp (fromDyn (op undefined) "")
-        exitSuccess
-    when (hasAction args "!version") $ do
-        putStrLn short
-        exitSuccess
-    mode <- case mode of
-        Right (_,x) -> return x
-        Left x -> putStrLn x >> exitFailure
-    sequence_ [putStrLn x >> exitFailure | Error x <- args]
-    when (hasAction args "!verbose") $ writeIORef verbosity 2
-    when (hasAction args "!quiet") $ writeIORef verbosity 0
-    return $ applyActions args $ modeValue mode
+    parsed <- cmdArgsParse short modes `fmap` getArgs
+    case parsed of
+      Left (s,e) -> getProgName >>= putStrLn . e
+                    >> if s then exitSuccess else exitFailure
+      Right p -> return p
 
 
 ---------------------------------------------------------------------
@@ -144,19 +176,34 @@ data HelpFormat
     | HTML -- ^ Suitable for inclusion in web pages (uses a table rather than explicit wrapping).
     deriving (Eq,Ord,Show,Read,Enum,Bounded)
 
+-- | Fetch the help message as multi-line String specifying help
+--   output as it would appear with @--help@.  The first argument
+--   should match the first argument to 'cmdArgs'.
+--
+--   Alternatively, use 'cmdArgsHelp' to display the help message to stdout.
+getCmdArgsHelp :: String -- ^ Information about the program (see 'cmdArgs' above)
+               -> [Mode a] -- ^ All specified modes
+               -> Maybe (Mode a) -- ^ Help is returned for all modes or just the mode specified here
+               -> String -- ^ Format to return help in (e.g. "text" or "html")
+               -> String -- ^ Raw program name
+               -> String -- ^ Returns formatted help information
+getCmdArgsHelp i ms cm hf rpn = showHelp (helpInfo rpn i ms (maybe ms (flip (:) []) cm)) hf
+
+
 -- | Display the help message, as it would appear with @--help@.
 --   The first argument should match the first argument to 'cmdArgs'.
 cmdArgsHelp :: String -> [Mode a] -> HelpFormat -> IO String
-cmdArgsHelp short xs format = fmap (`showHelp` (show format)) $ helpInfo short modes modes
+cmdArgsHelp short xs format = do
+    rpn <- getProgName
+    return $ showHelp (helpInfo rpn short modes modes) (show format)
     where modes = expand xs
 
 
-helpInfo :: String -> [Mode a] -> [Mode a] -> IO [Help]
-helpInfo short tot now = do
-    prog <- fmap (map toLower . takeBaseName) getProgName
-    prog <- return $ head $ mapMaybe modeProg tot ++ [prog]
-    let justlist = length now /= 1 && length tot > 3
-    let info = [(if justlist
+helpInfo :: String -> String -> [Mode a] -> [Mode a] -> [Help]
+helpInfo rpn short tot now =
+    let prog = head $ mapMaybe modeProg tot ++ [map toLower $ takeBaseName rpn]
+        justlist = length now /= 1 && length tot > 2
+        info = [(if justlist
                    then [Deuce (name, head ["-- " ++ (head hl)  | length hl > 0, length (head hl) > 0])]
                    else [Norm $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ trail] ++
                             [Norm $ "  " ++ text | text /= ""]
@@ -166,20 +213,19 @@ helpInfo short tot now = do
                      trail =  "[FLAG]" : args
                      hl = lines text
                ]
-    let dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
-    return $
+        dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
+        flggroupinfo fs = let fgs = groupBy ((==) `on` snd) $ sortBy (compare `on` snd) fs
+                              gid g = if null g then Nothing else snd $ head g
+                              ginfo g | isNothing (gid g) = map (Trip . fst) g
+                                      | otherwise = Norm ("  ____" ++ (fromJust $ gid g) ++ " Flags____") : 
+                                                    map (Trip . fst) g
+                          in concatMap ginfo fgs
+    in
         Norm short :
         concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ flggroupinfo flags
                | (mode,args) <- info, let flags = if justlist then [] else args \\ dupes] ++
         (if null dupes then [] else Norm "":Norm "Common flags:":flggroupinfo dupes) ++
         concat [ map Norm $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
-    where
-      flggroupinfo fs = let fgs = groupBy ((==) `on` snd) $ sortBy (compare `on` snd) fs
-                            gid g = if null g then Nothing else snd $ head g
-                            ginfo g | isNothing (gid g) = map (Trip . fst) g
-                                    | otherwise = Norm ("  ____" ++ (fromJust $ gid g) ++ " Flags____") : 
-                                                  map (Trip . fst) g
-                        in concatMap ginfo fgs
 
 
 ---------------------------------------------------------------------
