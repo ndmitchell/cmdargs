@@ -52,11 +52,11 @@ showHTML xs = unlines $
                            "<td>" ++ escape c ++ "</td></tr>"
 
         escape :: String -> String
-        escape = concatMap f
-            where f '&' = "&amp;"
-                  f '>' = "&gt;"
-                  f '<' = "&lt;"
-                  f x = [x]
+        escape = concatMap f'
+            where f' '&' = "&amp;"
+                  f' '>' = "&gt;"
+                  f' '<' = "&lt;"
+                  f' x = [x]
 
 showSimple :: [Help] -> String
 showSimple xs = unlines $ catMaybes $ map f $ tail xs
