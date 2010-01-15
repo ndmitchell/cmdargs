@@ -260,5 +260,5 @@ setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ 
 
 applyActions :: Data a => [Action] -> a -> a
 applyActions (Update name op:as) x | not $ "!" `isPrefixOf` name = applyActions as $ setField x name op
-applyActions (a:as) x = applyActions as x
+applyActions (_:as) x = applyActions as x
 applyActions [] x = x
