@@ -204,9 +204,9 @@ helpInfo rpn short tot now =
     let prog = head $ mapMaybe modeProg tot ++ [map toLower $ takeBaseName rpn]
         justlist = length now /= 1 && length tot > 2
         info = [(if justlist
-                   then [Deuce (name, head ["-- " ++ (head hl)  | length hl > 0, length (head hl) > 0])]
+                   then [Deuce (name ++ " --", head [head hl | length hl > 0, length (head hl) > 0])]
                    else [Norm $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ trail] ++
-                            [Norm $ "  " ++ text | text /= ""]
+                            [Para ["  ", text] | text /= ""]
                 ,concatMap helpFlag flags)
                | Mode{modeName=name,modeFlags=flags,modeText=text,modeDef=def} <- now
                , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags

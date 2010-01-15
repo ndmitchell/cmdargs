@@ -3,11 +3,14 @@ module System.Console.CmdArgs.Help(Help(..), showHelp) where
 
 import Data.Char
 import Data.Maybe
+import Data.List
+import Text.Format.Para
 
 
 data Help = Norm String
           | Deuce (String,String)
           | Trip (String,String,String)
+          | Para [String]
 
 
 showHelp :: [Help] -> String -> String
@@ -24,12 +27,15 @@ showText :: Int -> [Help] -> String
 showText width xs = unlines $ map f xs
     where
         f (Norm x) = x
-        f (Deuce (a,b)) = "  " ++ a ++ sep aw a ++ b
-        f (Trip (a,b,c)) = "  " ++ pad an a ++ pad bn b ++ " " ++ c
+        f (Deuce (a,b)) = cfmt width ("  " ++ a ++ sep aw a) b
+        f (Trip (a,b,c)) = cfmt width ("  " ++ pad an a ++ pad bn b) c
+        f (Para x) = intercalate "\n" $ formatParas width Nothing x
+
+        cfmt w i s = intercalate "\n" $ formatParas w (Just i) [s]
 
         (ae,_) = unzip [x | Deuce x <- xs]
         aw = maximum $ map length ae
-        sep n s = replicate (n - length s + 1) ' '
+        sep n s = replicate (n - length s) ' '
 
         (as,bs,_) = unzip3 [x | Trip x <- xs]
         an = maximum $ map length as
