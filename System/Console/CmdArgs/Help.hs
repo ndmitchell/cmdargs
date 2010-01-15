@@ -14,13 +14,14 @@ showHelp :: [Help] -> String -> String
 showHelp help format = case map toLower format of
     "html" -> showHTML help
     "simple" -> showSimple help
-    x | x `elem` ["text",""] -> showText help
+    x | take 5 x == "text:" -> showText (read $ drop 5 x) help
+    x | x `elem` ["text",""] -> showText 80 help
     _ -> "Unknown help mode " ++ show format ++
-        ", expected one of: text html simple\n\n" ++ showText help
+        ", expected one of: text text:N html simple\n\n" ++ showText 80 help
 
 
-showText :: [Help] -> String
-showText xs = unlines $ map f xs
+showText :: Int -> [Help] -> String
+showText width xs = unlines $ map f xs
     where
         f (Norm x) = x
         f (Deuce (a,b)) = "  " ++ a ++ sep aw a ++ b
