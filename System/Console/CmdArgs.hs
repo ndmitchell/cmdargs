@@ -139,7 +139,7 @@ cmdArgsParse short modes inputargs =
         helpfmt = fromDyn (op undefined) ""
         Update _ op = fromJust $ getAction args "!help"
     in case (wanthelp, wantver) of
-         (True,_) -> Left (True, getCmdArgsHelp short modes helpmode helpfmt)
+         (True,_) -> Left (True, getCmdArgsHelp short emodes helpmode helpfmt)
          (False,True) -> Left (True, const short)
          _ -> flip (either failmsg) mode $ 
               \msv -> maybe (parsed $ snd msv) failmsg argerror
