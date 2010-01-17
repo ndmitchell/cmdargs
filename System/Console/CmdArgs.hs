@@ -221,7 +221,7 @@ helpInfo rpn short tot now =
                                                     map (Trip . fst) g
                           in concatMap ginfo fgs
     in
-        Norm short :
+        Para [short] :
         concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ flggroupinfo flags
                | (mode,args) <- info, let flags = if justlist then [] else args \\ dupes] ++
         (if null dupes then [] else Norm "":Norm "Common flags:":flggroupinfo dupes) ++
