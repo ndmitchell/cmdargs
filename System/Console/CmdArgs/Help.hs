@@ -13,12 +13,12 @@ data Help = Norm String
           | Para [String]
 
 
-showHelp :: [Help] -> String -> String
-showHelp help format = case map toLower format of
+showHelp :: [Help] -> String -> Int -> String
+showHelp help format defwidth = case map toLower format of
     "html" -> showHTML help
     "simple" -> showSimple help
     x | take 5 x == "text:" -> showText (read $ drop 5 x) help
-    x | x `elem` ["text",""] -> showText 80 help
+    x | x `elem` ["text",""] -> showText defwidth help
     _ -> "Unknown help mode " ++ show format ++
         ", expected one of: text text:N html simple\n\n" ++ showText 80 help
 

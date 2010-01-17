@@ -119,12 +119,14 @@ modeValue = modeVal
 cmdArgsParse :: Data a
     => String -- ^ Information about the program, something like: @\"ProgramName v1.0, Copyright PersonName 2000\"@.
     -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
+    -> Maybe Int -- ^ The terminal width for displaying any help text
+                 -- (if known); Nothing = use default of 80 chars.
     -> [String] -- ^ The command-line arguments to be parsed
     -> Either (Bool,String -> String) a  -- ^ Left is (is success?, string_func), where
                                          -- string_func is called with the program name and will
                                          -- return the error or version string to be
                                          -- displayed.  Right is the selected mode structure.
-cmdArgsParse short modes inputargs =
+cmdArgsParse short modes width inputargs =
     let emodes = expand modes
         (mode,args) = parseModes emodes inputargs
         wanthelp = hasAction args "!help"
@@ -139,7 +141,7 @@ cmdArgsParse short modes inputargs =
         helpfmt = fromDyn (op undefined) ""
         Update _ op = fromJust $ getAction args "!help"
     in case (wanthelp, wantver) of
-         (True,_) -> Left (True, getCmdArgsHelp short emodes helpmode helpfmt)
+         (True,_) -> Left (True, getCmdArgsHelp short emodes helpmode helpfmt width)
          (False,True) -> Left (True, const short)
          _ -> flip (either failmsg) mode $ 
               \msv -> maybe (parsed $ snd msv) failmsg argerror
@@ -160,7 +162,8 @@ cmdArgs :: Data a
     -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
     -> IO a
 cmdArgs short modes = do
-    parsed <- cmdArgsParse short modes `fmap` getArgs
+    termwidth <- catch (fmap (Just . read) $ getEnv "COLUMNS") $ return . (const Nothing)
+    parsed <- cmdArgsParse short modes termwidth `fmap` getArgs
     case parsed of
       Left (s,e) -> getProgName >>= putStrLn . e
                     >> if s then exitSuccess else exitFailure
@@ -185,9 +188,11 @@ getCmdArgsHelp :: String -- ^ Information about the program (see 'cmdArgs' above
                -> [Mode a] -- ^ All specified modes
                -> Maybe (Mode a) -- ^ Help is returned for all modes or just the mode specified here
                -> String -- ^ Format to return help in (e.g. "text" or "html")
+               -> Maybe Int -- ^ Width of the terminal for formatting the help text (if known).
                -> String -- ^ Raw program name
                -> String -- ^ Returns formatted help information
-getCmdArgsHelp i ms cm hf rpn = showHelp (helpInfo rpn i ms (maybe ms (flip (:) []) cm)) hf
+getCmdArgsHelp i ms cm hf tw rpn = let hi = (helpInfo rpn i ms (maybe ms (flip (:) []) cm))
+                                   in showHelp hi hf $ maybe 80 id tw
 
 
 -- | Display the help message, as it would appear with @--help@.
@@ -195,7 +200,8 @@ getCmdArgsHelp i ms cm hf rpn = showHelp (helpInfo rpn i ms (maybe ms (flip (:) 
 cmdArgsHelp :: String -> [Mode a] -> HelpFormat -> IO String
 cmdArgsHelp short xs format = do
     rpn <- getProgName
-    return $ showHelp (helpInfo rpn short modes modes) (show format)
+    termwidth <- catch (fmap read $ getEnv "COLUMNS") $ return . const 80
+    return $ showHelp (helpInfo rpn short modes modes) (show format) termwidth
     where modes = expand xs
 
 
