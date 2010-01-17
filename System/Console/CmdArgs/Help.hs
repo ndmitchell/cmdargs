@@ -57,6 +57,11 @@ showHTML xs = unlines $
         f (Trip (a,b,c)) = "<tr><td class='indent'>" ++ escape a ++ "</td>" ++
                            "<td>" ++ escape b ++ "</td>" ++
                            "<td>" ++ escape c ++ "</td></tr>"
+        f (Para xs) = "<tr>" ++
+                      "<td colspan='3'>" ++
+                      "<p>" ++ concatMap htmlpara xs ++ "</p>" ++
+                      "</td></tr>"
+            where htmlpara = id
 
         escape :: String -> String
         escape = concatMap f'
@@ -75,3 +80,6 @@ showSimple xs = unlines $ catMaybes $ map f $ tail xs
             | otherwise = Just $ "C:" ++ x
         f (Trip (a, b, c)) = Just $ "O:" ++ a ++ ":" ++ b ++ ":" ++ c
         f (Deuce (a, b)) = Just $ "L:" ++ a ++ ":" ++ b
+        f (Para []) = Nothing
+        f (Para xs) = Just $ "P:" ++ (intercalate "\nP:" $ lines $ concat xs)
+
