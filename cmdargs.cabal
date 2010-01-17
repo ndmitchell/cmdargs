@@ -25,7 +25,7 @@ flag BuildCommand
     default: True
 
 library
-    build-depends: base == 4.*, mtl, filepath
+    build-depends: base == 4.*, mtl, filepath, para
 
     exposed-modules:
         System.Console.CmdArgs
