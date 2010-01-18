@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards #-}
 
 module System.Console.CmdArgs.Help(Help(..), showHelp) where
 
@@ -19,6 +20,7 @@ showHelp help format defwidth = case map toLower format of
     "simple" -> showSimple help
     x | take 5 x == "text:" -> showText (read $ drop 5 x) help
     x | x `elem` ["text",""] -> showText defwidth help
+    x | (y,"") <- span isDigit x -> showText (read y) help
     _ -> "Unknown help mode " ++ show format ++
         ", expected one of: text text:N html simple\n\n" ++ showText 80 help
 
