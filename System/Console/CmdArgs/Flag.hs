@@ -103,9 +103,10 @@ parseFlag flag seen (('-':'-':x):xs)
     | not $ any (a `isPrefixOf`) (flagFlag flag) = Nothing
     | otherwise = Just $ (,) (if a `elem` flagFlag flag then PriExactFlag else PriPrefixFlag) $
     case flagType flag of
-        FlagBool r ->
-            if b /= "" then err "does not take an argument" xs
-                       else upd (const r) xs
+        FlagBool r
+            | drop 1 b `elem` ["","true","yes","on","enabled","1"] -> upd (const r) xs
+            | drop 1 b `elem` ["false","no","off","disabled","0"] -> upd (const (toDyn False)) xs
+            | otherwise -> err "couldn't parse argument" xs
         FlagItem r ->
             if not (isFlagOpt flag) && null b && (null xs || "-" `isPrefixOf` head xs)
             then err "needs an argument" xs
