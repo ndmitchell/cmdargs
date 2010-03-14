@@ -200,7 +200,9 @@ getCmdArgsHelp i ms cm hf tw rpn = let hi = (helpInfo rpn i ms (maybe ms (flip (
 cmdArgsHelp :: String -> [Mode a] -> HelpFormat -> IO String
 cmdArgsHelp short xs format = do
     rpn <- getProgName
-    termwidth <- catch (fmap read $ getEnv "COLUMNS") $ return . const 80
+    termwidth <- do
+        env <- getEnvironment
+        return $ maybe 80 fst $ listToMaybe . reads =<< lookup "COLUMNS" env
     return $ showHelp (helpInfo rpn short modes modes) (show format) termwidth
     where modes = expand xs
 
