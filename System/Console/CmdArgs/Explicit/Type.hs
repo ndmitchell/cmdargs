@@ -17,16 +17,6 @@ type Help = String
 type FlagHelp = String
 
 
-
-data HelpInfo = HelpInfo
-    {helpProgram :: Maybe String -- ^ The program name to use
-    ,helpWidth :: Maybe Int -- ^ The help width to use
-    ,helpSuffix :: [String] -- ^ The help message to print at the end
-    }
-
-helpInfo = HelpInfo Nothing Nothing []
-
-
 -- | If a default mode is given, and no other modes, then that one is always used.
 data Mode a
     = Modes
