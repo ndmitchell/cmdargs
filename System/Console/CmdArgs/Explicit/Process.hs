@@ -12,16 +12,18 @@ process = processMode
 
 
 processMode :: Mode a -> [String] -> Either String a
-processMode m@Modes{modesDefault=x} (a:args) =
-    case lookupName (modesAll m) a of
+processMode m@Modes{} (a:args) =
+    case lookupName (modesList m) a of
         Ambiguous xs -> Left $ ambiguous "mode" a xs
         Found x -> processMode x args
-        NotFound -> case x of
-            Nothing -> Left $ unexpected "mode" a $ concatMap fst $ modesAll m
-            Just y -> processMode (snd y) (a:args)
-processMode m@Modes{modesDefault=x} [] = case x of
-    Nothing -> Left $ missing "mode" $ concatMap fst $ modesAll m
-    Just y -> Right $ modeValue $ snd y
+        NotFound 
+            | Just def <- modesDefault m
+            , Found y <- lookupName (modesList m) def
+                -> processMode y (a:args)
+            | otherwise -> Left $ unexpected "mode" a $ concatMap fst $ modesList m
+processMode m@Modes{} [] = case modesDefault m of
+    Nothing -> Left $ missing "mode" $ concatMap fst $ modesList m
+    Just y -> processMode m [y]
 
 processMode m@Mode{} args = processFlags (modeFlags m) (modeValue m) args
 

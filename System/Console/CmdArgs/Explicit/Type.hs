@@ -17,24 +17,29 @@ type Help = String
 type FlagHelp = String
 
 
+type Group a = [(Help,[a])]
+
+fromGroup :: Group a -> [a]
+fromGroup = concatMap snd
+
+toGroup :: [a] -> Group a
+toGroup x = [("",x)]
+
+
 -- | If a default mode is given, and no other modes, then that one is always used.
 data Mode a
     = Modes
-        {modesDefault :: Maybe ([Name], Mode a) -- ^ A default mode
-        ,modesRest :: [([Name], Mode a)] -- ^ The available modes (do not include 'modeDefault')
+        {modesDefault :: Maybe Name -- ^ A default mode
+        ,modesGroupList :: Group ([Name], Mode a) -- ^ The available modes
         }
     | Mode
         {modeValue :: a -- ^ Value to start with
         ,modeHelp :: Help -- ^ Help text
-        ,modeGroups :: [(String,[Flag a])] -- ^ Groups of flags, [("",xs)] for all in same group
+        ,modeGroupFlags :: Group (Flag a) -- ^ Groups of flags, [("",xs)] for all in same group
         }
 
-modesAll :: Mode a -> [([Name],Mode a)]
-modesAll x = maybeToList (modesDefault x) ++ modesRest x
-
-modeFlags :: Mode a -> [Flag a]
-modeFlags = concatMap snd . modeGroups
-
+modesList = fromGroup . modesGroupList
+modeFlags = fromGroup . modeGroupFlags
 
 {-|
 The 'FlagArg' type has the following meaning:
@@ -107,7 +112,7 @@ mode :: a -> Help -> [Flag a] -> Mode a
 mode value help flags = Mode value help [("",flags)]
 
 modes :: [(Name,Mode a)] -> Mode a
-modes xs = Modes Nothing (map (first return) xs)
+modes xs = Modes Nothing $ toGroup (map (first return) xs)
 
 
 ---------------------------------------------------------------------
@@ -117,9 +122,10 @@ modes xs = Modes Nothing (map (first return) xs)
 --   The names/positions/arbitrary are distinct within one mode
 checkMode :: Mode a -> Maybe String
 checkMode x@Modes{} =
-    (noDupes "modes" $ concatMap fst $ modesAll x) `mplus`
-    (check "No other modes given" $ not $ null $ modesRest x) `mplus`
-    msum (map (checkMode . snd) $ modesAll x)
+    (noDupes "modes" $ concatMap fst $ modesList x) `mplus`
+    (check "Only one mode given" $ length (modesList x) > 1) `mplus`
+    (check "Default mode not found" $ maybe True (`elem` concatMap fst (modesList x)) (modesDefault x)) `mplus`
+    msum (map (checkMode . snd) $ modesList x)
 
 checkMode x@Mode{} =
     (noDupes "flag names" [y | FlagNamed _ y <- xs]) `mplus`
