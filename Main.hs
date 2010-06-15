@@ -3,6 +3,7 @@
 module Main where
 
 import System.Console.CmdArgs
+import qualified System.Console.CmdArgs.Test.All as Test
 import Control.Monad
 import System.IO
 import System.Environment
@@ -20,7 +21,7 @@ main = do
         "hlint":xs -> withArgs xs H.main
         "diffy":xs -> withArgs xs D.main
         "maker":xs -> withArgs xs M.main
-        "test":_ -> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
+        "test":_ -> Test.test >> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
         "generate":_ -> generateManual
         _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
 
