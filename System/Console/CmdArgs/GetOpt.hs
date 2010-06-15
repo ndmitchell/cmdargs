@@ -67,10 +67,10 @@ getOpt' x y z = (a,b,[],c)
 convert :: String -> [OptDescr a] -> Mode ([a],[String])
 convert help flags = mode ([],[]) help (other:map f flags)
     where
-        other = flagUnnamed (\x (a,b) -> Right (a,b++[x])) ""
+        other = flagArg (\x (a,b) -> Right (a,b++[x])) ""
 
         f (Option short long x help) = case x of
             NoArg x -> flagNone names (\(a,b) -> (a++[x],b)) help
-            ReqArg op x -> flagRequired names (\x (a,b) -> Right (a++[op x],b)) x help
-            OptArg op x -> flagOptional "" names (\x (a,b) -> Right (a++[op $ if null x then Nothing else Just x],b)) x help
+            ReqArg op x -> flagReq names (\x (a,b) -> Right (a++[op x],b)) x help
+            OptArg op x -> flagOpt "" names (\x (a,b) -> Right (a++[op $ if null x then Nothing else Just x],b)) x help
             where names = map return short ++ long

@@ -1,10 +1,11 @@
 
 module System.Console.CmdArgs.Explicit.Type where
 
+import Control.Arrow
+import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
-import Control.Monad
 
 
 boolTrue = ["true","yes","on","enabled","1"]
@@ -88,21 +89,21 @@ flagNone :: [Name] -> (a -> a) -> Help -> Flag a
 flagNone names f help = Flag (FlagNamed ArgNone names) upd "" help
     where upd _ x = Right $ f x
 
-flagOptional :: String -> [Name] -> Update a -> FlagHelp -> Help -> Flag a
-flagOptional def names upd typ help = Flag (FlagNamed (ArgOpt def) names) upd typ help
+flagOpt :: String -> [Name] -> Update a -> FlagHelp -> Help -> Flag a
+flagOpt def names upd typ help = Flag (FlagNamed (ArgOpt def) names) upd typ help
 
-flagRequired :: [Name] -> Update a -> FlagHelp -> Help -> Flag a
-flagRequired names upd typ help = Flag (FlagNamed ArgReq names) upd typ help
+flagReq :: [Name] -> Update a -> FlagHelp -> Help -> Flag a
+flagReq names upd typ help = Flag (FlagNamed ArgReq names) upd typ help
 
-flagUnnamed :: Update a -> FlagHelp -> Flag a
-flagUnnamed upd typ = Flag FlagUnnamed upd typ ""
+flagArg :: Update a -> FlagHelp -> Flag a
+flagArg upd typ = Flag FlagUnnamed upd typ ""
 
-flagPosition :: Int -> Update a -> FlagHelp -> Flag a
-flagPosition pos upd typ = Flag (FlagPosition pos) upd typ ""
+flagPos :: Int -> Update a -> FlagHelp -> Flag a
+flagPos pos upd typ = Flag (FlagPosition pos) upd typ ""
 
 
-flagBool :: (Bool -> a -> a) -> [Name] -> Help -> Flag a
-flagBool f names help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
+flagBool :: [Name] -> (Bool -> a -> a) -> Help -> Flag a
+flagBool names f help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
     where upd s x = if s == "" || ls `elem` boolTrue then Right $ f True x
                     else if ls `elem` boolFalse then Right $ f False x
                     else Left "expected boolean value (true/false)"
@@ -115,8 +116,8 @@ flagBool f names help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
 mode :: a -> Help -> [Flag a] -> Mode a
 mode value help flags = Mode value help [("",flags)]
 
-modes :: [([Name],Mode a)] -> Mode a
-modes xs = Modes Nothing xs
+modes :: [(Name,Mode a)] -> Mode a
+modes xs = Modes Nothing (map (first return) xs)
 
 
 ---------------------------------------------------------------------
