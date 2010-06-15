@@ -2,9 +2,11 @@
 module System.Console.CmdArgs.Explicit.Help where
 
 import System.Console.CmdArgs.Explicit.Type
+import System.Console.CmdArgs.Explicit.Text
 
 instance Show (Mode a) where
-    show a = "Mode"
+    show = show . helpText
 
-instance Show (Flag a) where
-    show a = "Flag"
+
+helpText :: Mode a -> [Text]
+helpText _ = [Line "Help output"]
