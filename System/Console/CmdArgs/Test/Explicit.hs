@@ -63,7 +63,7 @@ upb pre s x = (pre ++ show s):x
 checkFail :: Mode [String] -> [String] -> IO ()
 checkFail m xs = case process m xs of
     Right a -> failure "Succeeded when should have failed" [("Args",show xs),("Result",show a)]
-    _ -> success
+    Left a -> length (show a) `hpc` success
 
 checkGood :: Mode [String] -> [String] -> [String] -> IO ()
 checkGood m xs ys = case process m xs of
