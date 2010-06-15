@@ -1,6 +1,16 @@
 :set -w -fwarn-unused-binds -fwarn-unused-imports
 :load Main
 
-let cmdTest _ = return ":main test"
-:def test cmdTest
+:def test const $ return ":main test"
+
+:{
+:def hpc const $ return $ unlines
+    [":!(if not exist .hpc mkdir .hpc) && ghc --make Main -w -odir .hpc -hidir .hpc -o .hpc/cmdargs -fhpc"
+    ,":!del cmdargs.tix"
+    ,":!.hpc\\cmdargs test"
+    ,":!hpc.exe markup cmdargs.tix --destdir=.hpc"
+    ,":!hpc.exe report cmdargs.tix"
+    ,":!del cmdargs.tix"
+    ,":!start .hpc\\hpc_index_fun.html"]
+:}
 
