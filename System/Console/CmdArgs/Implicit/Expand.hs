@@ -6,7 +6,6 @@ import Data.Dynamic
 import Data.Ord
 import Data.List
 import Data.Maybe
-import Data.Char
 import Data.Function
 
 

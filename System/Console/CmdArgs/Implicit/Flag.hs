@@ -5,7 +5,6 @@ module System.Console.CmdArgs.Implicit.Flag where
 import Data.Dynamic
 import Data.List
 import Data.Maybe
-import Data.Char
 import Data.Ord
 import Control.Monad
 import Data.Function

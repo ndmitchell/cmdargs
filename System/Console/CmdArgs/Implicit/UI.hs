@@ -22,13 +22,10 @@ import System.Console.CmdArgs.Implicit.Type
 import System.IO.Unsafe
 import Data.Dynamic
 import Data.Data
-import Data.List hiding (group)
-import Data.Maybe
 import Data.IORef
 import Control.Exception
 import Data.Char
 import Control.Monad.State
-import Data.Function
 
 
 infix 1 &=

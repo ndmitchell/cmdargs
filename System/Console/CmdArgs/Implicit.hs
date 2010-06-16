@@ -42,7 +42,6 @@ import Data.Dynamic
 import Data.Data
 import Data.List
 import Data.Maybe
-import Data.Either
 import Data.IORef
 import System.Environment
 import System.Exit

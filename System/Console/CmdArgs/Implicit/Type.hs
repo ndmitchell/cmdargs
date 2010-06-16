@@ -4,11 +4,7 @@
 module System.Console.CmdArgs.Implicit.Type where
 
 import Data.Dynamic
-import Data.Data
-import Data.List
 import Data.Maybe
-import Data.Char
-import Data.Function
 
 
 data Mode a = Mode
