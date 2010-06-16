@@ -17,12 +17,11 @@ data Help = Norm String
 showHelp :: [Help] -> String -> Int -> String
 showHelp help format defwidth = case map toLower format of
     "html" -> showHTML help
-    "simple" -> showSimple help
     x | take 5 x == "text:" -> showText (read $ drop 5 x) help
     x | x `elem` ["text",""] -> showText defwidth help
     x | (y,"") <- span isDigit x -> showText (read y) help
     _ -> "Unknown help mode " ++ show format ++
-        ", expected one of: text text:N html simple\n\n" ++ showText 80 help
+        ", expected one of: text text:N html\n\n" ++ showText 80 help
 
 
 showText :: Int -> [Help] -> String
@@ -71,17 +70,3 @@ showHTML xs = unlines $
                   f' '>' = "&gt;"
                   f' '<' = "&lt;"
                   f' x = [x]
-
-showSimple :: [Help] -> String
-showSimple xs = unlines $ catMaybes $ map f $ tail xs
-    where
-        f (Norm x)
-            | null x = Nothing
-            | head x == ' ' = Nothing
-            | head x == 'C' = Nothing
-            | otherwise = Just $ "C:" ++ x
-        f (Trip (a, b, c)) = Just $ "O:" ++ a ++ ":" ++ b ++ ":" ++ c
-        f (Deuce (a, b)) = Just $ "L:" ++ a ++ ":" ++ b
-        f (Para []) = Nothing
-        f (Para ps) = Just $ "P:" ++ (intercalate "\nP:" $ lines $ concat ps)
-
