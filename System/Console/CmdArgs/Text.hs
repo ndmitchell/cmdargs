@@ -11,21 +11,7 @@ import Data.Maybe
 defaultWrapWidth = 70
 
 data TextFormat = HTML
-                | Simple
                 | Wrap (Maybe Int) -- ^ With width
-
-instance Show TextFormat where
-    show HTML = "html"
-    show Simple = "simple"
-    show (Wrap x) = "text" ++ maybe "" (\y -> ":" ++ show y) x
-
-instance Read TextFormat where
-    readsPrec _ "html" = [(HTML,"")]
-    readsPrec _ "simple" = [(Simple,"")]
-    readsPrec _ "text" = [(Wrap Nothing,"")]
-    readsPrec _ x | "text:" `isPrefixOf` x = [(Wrap $ Just x,y) | (x,y) <- reads $ drop 5 x]
-    readsPrec _ _ = []
-
 
 data Text = Line String -- a single line
           | Cols [String] -- a single line with columns (always indented by 2 spaces)
@@ -37,7 +23,6 @@ instance Show Text where
 
 showText :: TextFormat -> [Text] -> String
 showText HTML = showHTML
-showText Simple = showSimple
 showText (Wrap x) = showWrap (fromMaybe defaultWrapWidth x)
 
 
@@ -103,10 +88,3 @@ showHTML xs = unlines $
                   g '>' = "&gt;"
                   g '<' = "&lt;"
                   g x = [x]
-
-
----------------------------------------------------------------------
--- SIMPLE OUTPUT
-
-showSimple :: [Text] -> String
-showSimple xs = "I have no idea what simple format is, but I'm guess it should go direct from Mode..."
