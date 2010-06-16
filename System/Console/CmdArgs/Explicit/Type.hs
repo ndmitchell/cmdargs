@@ -115,16 +115,24 @@ modes value help xs = Mode (toGroup (map (first return) xs)) value help []
 --   The names/positions/arbitrary are distinct within one mode
 checkMode :: Mode a -> Maybe String
 checkMode x =
-    (noDupes "modes" $ concatMap fst $ modeList x) `mplus`
+    (checkNames "modes" $ concatMap fst $ modeList x) `mplus`
     msum (map (checkMode . snd) $ modeList x) `mplus`
-    (noDupes "flag names" [y | FlagNamed _ y <- xs]) `mplus`
+    (checkGroup $ modeGroupList x) `mplus`
+    (checkGroup $ modeGroupFlags x) `mplus`
+    (checkNames "flag names" $ concat [y | FlagNamed _ y <- xs]) `mplus`
     (check "Duplicate unnamed flags" $ unnamed > 1)
     where xs = map flagInfo $ modeFlags x
           unnamed = length [() | FlagUnnamed <- xs]
 
 
-noDupes :: (Eq a, Show a) => String -> [a] -> Maybe String
-noDupes msg xs = do
+checkGroup :: Group a -> Maybe String
+checkGroup x =
+    (check "Empty group name" $ all (\x -> fst x /= "") $ drop 1 x) `mplus`
+    (check "Empty group contents" $ case x of [("",[])] -> True; _ -> all (not . null . snd) x)
+
+
+checkNames :: String -> [Name] -> Maybe String
+checkNames msg xs = check "Empty names" (all (not . null) xs) `mplus` do
     bad <- listToMaybe $ xs \\ nub xs
     let dupe = filter (== bad) xs
     return $ "Sanity check failed, multiple " ++ msg ++ ": " ++ unwords (map show dupe)
