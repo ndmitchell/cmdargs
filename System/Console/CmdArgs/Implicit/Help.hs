@@ -1,72 +1,24 @@
 {-# LANGUAGE PatternGuards #-}
 
-module System.Console.CmdArgs.Implicit.Help(Help(..), showHelp) where
+module System.Console.CmdArgs.Implicit.Help(Text(..), showHelp) where
 
 import Data.Char
-import Data.Maybe
 import Data.List
-import Text.Format.Para
+import System.Console.CmdArgs.Text
 
 
-data Help = Norm String
-          | Deuce (String,String)
-          | Trip (String,String,String)
-          | Para [String]
+showHelp :: [Text] -> String -> Int -> String
+showHelp help format defwidth = case readTextFormat $ map toLower format of
+    Just (Wrap Nothing) -> showText (Wrap $ Just defwidth) help
+    Just y -> showText y help
+    Nothing -> "Unknown help mode " ++ show format ++ ", expected one of: text text:N html\n\n" ++
+               showText (Wrap $ Just defwidth) help
 
 
-showHelp :: [Help] -> String -> Int -> String
-showHelp help format defwidth = case map toLower format of
-    "html" -> showHTML help
-    x | take 5 x == "text:" -> showText (read $ drop 5 x) help
-    x | x `elem` ["text",""] -> showText defwidth help
-    x | (y,"") <- span isDigit x -> showText (read y) help
-    _ -> "Unknown help mode " ++ show format ++
-        ", expected one of: text text:N html\n\n" ++ showText 80 help
-
-
-showText :: Int -> [Help] -> String
-showText width xs = unlines $ map f xs
-    where
-        f (Norm x) = x
-        f (Deuce (a,b)) = cfmt width ("  " ++ a ++ sep aw a) b
-        f (Trip (a,b,c)) = cfmt width ("  " ++ pad an a ++ pad bn b) c
-        f (Para x) = intercalate "\n" $ formatParas width Nothing x
-
-        cfmt w i s = intercalate "\n" $ formatParas w (Just i) [s]
-
-        (ae,_) = unzip [x | Deuce x <- xs]
-        aw = maximum $ map length ae
-        sep n s = replicate (n - length s) ' '
-
-        (as,bs,_) = unzip3 [x | Trip x <- xs]
-        an = maximum $ map length as
-        bn = maximum $ map length bs
-        pad n x = x ++ replicate (n - length x + 1) ' '
-
-
-showHTML :: [Help] -> String
-showHTML xs = unlines $
-    ["<table class='cmdargs'>"] ++
-    map f xs ++
-    ["</table>"]
-    where
-        f (Norm x) = "<tr><td colspan='3'" ++ (if null a then "" else " class='indent'") ++ ">" ++
-                     (if null b then "&nbsp;" else escape b) ++ "</td></tr>"
-            where (a,b) = span isSpace x
-        f (Deuce (a,b)) = "<tr><td class='indent'>" ++ escape a ++ "</td><td colspan='2'>" ++
-                          (if null b then "&nbsp;" else escape b) ++ "</td></tr>"
-        f (Trip (a,b,c)) = "<tr><td class='indent'>" ++ escape a ++ "</td>" ++
-                           "<td>" ++ escape b ++ "</td>" ++
-                           "<td>" ++ escape c ++ "</td></tr>"
-        f (Para ps) = "<tr>" ++
-                      "<td colspan='3'>" ++
-                      "<p>" ++ concatMap htmlpara ps ++ "</p>" ++
-                      "</td></tr>"
-            where htmlpara = id
-
-        escape :: String -> String
-        escape = concatMap f'
-            where f' '&' = "&amp;"
-                  f' '>' = "&gt;"
-                  f' '<' = "&lt;"
-                  f' x = [x]
+readTextFormat :: String -> Maybe TextFormat
+readTextFormat x = case x of
+    "html" -> Just HTML
+    _ | "text:" `isPrefixOf` x -> Just $ Wrap $ Just $ read $ drop 5 x
+      | x `elem` ["text",""] -> Just $ Wrap Nothing
+      | (y,"") <- span isDigit x -> Just $ Wrap $ Just $ read y
+    _ -> Nothing

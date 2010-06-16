@@ -206,33 +206,34 @@ cmdArgsHelp short xs format = do
     where modes = expand xs
 
 
-helpInfo :: String -> String -> [Mode a] -> [Mode a] -> [Help]
+helpInfo :: String -> String -> [Mode a] -> [Mode a] -> [Text]
 helpInfo rpn short tot now =
     let prog = head $ mapMaybe modeProg tot ++ [map toLower $ takeBaseName rpn]
         justlist = length now /= 1 && length tot > 2
         info = [(if justlist
-                   then [Deuce (name ++ " --", head [head hl | length hl > 0, length (head hl) > 0])]
-                   else [Norm $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ trail] ++
-                            [Para ["  ", text] | text /= ""]
+                   then [Cols [name ++ " --", head [head hl | length hl > 0, length (head hl) > 0]]]
+                   else [Line $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ trail] ++
+                            concat [[Line "  ", Line text] | text /= ""]
                 ,concatMap helpFlag flags)
                | Mode{modeName=name,modeFlags=flags,modeText=text,modeDef=def} <- now
                , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags
                      trail =  "[FLAG]" : args
                      hl = lines text
                ]
+        trip (a,b,c) = Cols [a,b,c]
         dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
         flggroupinfo fs = let fgs = groupBy ((==) `on` snd) $ sortBy (compare `on` snd) fs
                               gid g = if null g then Nothing else snd $ head g
-                              ginfo g | isNothing (gid g) = map (Trip . fst) g
-                                      | otherwise = Norm ("  ____" ++ (fromJust $ gid g) ++ " Flags____") : 
-                                                    map (Trip . fst) g
+                              ginfo g | isNothing (gid g) = map (trip . fst) g
+                                      | otherwise = Line ("  ____" ++ (fromJust $ gid g) ++ " Flags____") : 
+                                                    map (trip . fst) g
                           in concatMap ginfo fgs
     in
-        Para [short] :
-        concat [ Norm "" : mode ++ [Norm "" | flags /= []] ++ flggroupinfo flags
+        Line short :
+        concat [ Line "" : mode ++ [Line "" | flags /= []] ++ flggroupinfo flags
                | (mode,args) <- info, let flags = if justlist then [] else args \\ dupes] ++
-        (if null dupes then [] else Norm "":Norm "Common flags:":flggroupinfo dupes) ++
-        concat [ map Norm $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
+        (if null dupes then [] else Line "":Line "Common flags:":flggroupinfo dupes) ++
+        concat [ map Line $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
 
 
 ---------------------------------------------------------------------

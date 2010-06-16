@@ -8,7 +8,7 @@ import Data.List
 import Data.Maybe
 
 
-defaultWrapWidth = 70
+defaultWrapWidth = 80
 
 data TextFormat = HTML
                 | Wrap (Maybe Int) -- ^ With width
@@ -38,13 +38,16 @@ showWrap width xs = unlines $ concatMap f xs
                 [(length x, map length $ init x) | Cols x <- xs]
         pad n x = x ++ replicate (n - length x) ' '
 
-        f (Line x) = map (a++) $ wrap (width - length a) b
+        f (Line x) = map (a++) $ wrap1 (width - length a) b
             where (a,b) = span isSpace x
 
-        f (Cols xs) = (concatMap ("  "++) $ zipWith pad ys xs ++ [z1]) : zs
+        f (Cols xs) = (' ' : concatMap (' ':) (zipWith pad ys xs ++ [z1])) : zs
             where ys = fromJust $ lookup (length xs) cs
-                  z1:zs = if null (last xs) then [""] else wrap (width - sum ys - (2 * length xs)) (last xs)
+                  z1:zs = wrap1 (width - sum ys - 1 - length xs) (last xs)
 
+
+wrap1 width x = ["" | null res] ++ res
+    where res = wrap width x
 
 -- | Split the text into strips of no-more than the given width
 wrap :: Int -> String -> [String]
