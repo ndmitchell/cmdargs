@@ -10,9 +10,9 @@ import System.Environment
 import Control.Exception
 import Data.List
 
-import qualified HLint as H
-import qualified Diffy as D
-import qualified Maker as M
+import qualified System.Console.CmdArgs.Test.Implicit.HLint as H
+import qualified System.Console.CmdArgs.Test.Implicit.Diffy as D
+import qualified System.Console.CmdArgs.Test.Implicit.Maker as M
 
 
 main = do
