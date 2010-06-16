@@ -2,29 +2,28 @@
 
 module System.Console.CmdArgs.Text(TextFormat(..), Text(..), showText) where
 
-import Control.Arrow
 import Data.Char
 import Data.Function
 import Data.List
 import Data.Maybe
 
 
-defaultTextWidth = 70
+defaultWrapWidth = 70
 
 data TextFormat = HTML
                 | Simple
-                | Text (Maybe Int) -- ^ With width
+                | Wrap (Maybe Int) -- ^ With width
 
 instance Show TextFormat where
     show HTML = "html"
     show Simple = "simple"
-    show (Text x) = "text" ++ maybe "" (\y -> ":" ++ show y) x
+    show (Wrap x) = "text" ++ maybe "" (\y -> ":" ++ show y) x
 
 instance Read TextFormat where
     readsPrec _ "html" = [(HTML,"")]
     readsPrec _ "simple" = [(Simple,"")]
-    readsPrec _ "text" = [(Text Nothing,"")]
-    readsPrec _ x | "text:" `isPrefixOf` x = [(Text $ Just x,y) | (x,y) <- reads $ drop 5 x]
+    readsPrec _ "text" = [(Wrap Nothing,"")]
+    readsPrec _ x | "text:" `isPrefixOf` x = [(Wrap $ Just x,y) | (x,y) <- reads $ drop 5 x]
     readsPrec _ _ = []
 
 
@@ -32,21 +31,21 @@ data Text = Line String -- a single line
           | Cols [String] -- a single line with columns (always indented by 2 spaces)
 
 instance Show Text where
-    showList = showString . showText defaultTextWidth
-    show x = showText defaultTextWidth [x]
+    showList = showString . showWrap defaultWrapWidth
+    show x = showWrap defaultWrapWidth [x]
 
 
-showHelp :: TextFormat -> [Text] -> String
-showHelp HTML = showHTML
-showHelp Simple = showSimple
-showHelp (Text x) = showText (fromMaybe defaultTextWidth x)
+showText :: TextFormat -> [Text] -> String
+showText HTML = showHTML
+showText Simple = showSimple
+showText (Wrap x) = showWrap (fromMaybe defaultWrapWidth x)
 
 
 ---------------------------------------------------------------------
 -- TEXT OUTPUT
 
-showText :: Int -> [Text] -> String
-showText width xs = unlines $ concatMap f xs
+showWrap :: Int -> [Text] -> String
+showWrap width xs = unlines $ concatMap f xs
     where
         cs :: [(Int,[Int])]
         cs = map (\x -> (fst $ head x, map maximum $ transpose $ map snd x)) $
