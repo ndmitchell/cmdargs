@@ -1,9 +1,11 @@
 
-module System.Console.CmdArgs.Test.Explicit(test) where
+module System.Console.CmdArgs.Test.Explicit(test, demo) where
 
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Test.Util
 
+
+demo = []
 
 test :: IO ()
 test = do

@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PatternGuards #-}
 
 module Main where
 
@@ -23,6 +23,7 @@ main = do
         "maker":xs -> withArgs xs M.main
         "test":_ -> Test.test >> testHLint >> testDiffy >> testMaker >> putStrLn "Test successful"
         "generate":_ -> generateManual
+        "demo":x:xs | Just y <- lookup x Test.demo -> y xs
         _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
 
 
