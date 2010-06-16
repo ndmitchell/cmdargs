@@ -53,7 +53,7 @@ showWrap width xs = unlines $ concatMap f xs
                 [(length x, map length $ init x) | Cols x <- xs]
         pad n x = x ++ replicate (n - length x) ' '
 
-        f (Line x) = map (a++) $ wrap (width - length a) x
+        f (Line x) = map (a++) $ wrap (width - length a) b
             where (a,b) = span isSpace x
 
         f (Cols xs) = (concatMap ("  "++) $ zipWith pad ys xs ++ [z1]) : zs
