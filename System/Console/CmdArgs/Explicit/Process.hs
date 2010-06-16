@@ -1,7 +1,6 @@
 
 module System.Console.CmdArgs.Explicit.Process(process) where
 
-import Control.Monad
 import Data.List
 import Data.Maybe
 import System.Console.CmdArgs.Explicit.Type
@@ -12,20 +11,19 @@ process = processMode
 
 
 processMode :: Mode a -> [String] -> Either String a
-processMode m@Modes{} (a:args) =
-    case lookupName (modesList m) a of
+processMode m args =
+    case find of
         Ambiguous xs -> Left $ ambiguous "mode" a xs
-        Found x -> processMode x args
-        NotFound 
-            | Just def <- modesDefault m
-            , Found y <- lookupName (modesList m) def
-                -> processMode y (a:args)
-            | otherwise -> Left $ unexpected "mode" a $ concatMap fst $ modesList m
-processMode m@Modes{} [] = case modesDefault m of
-    Nothing -> Left $ missing "mode" $ concatMap fst $ modesList m
-    Just y -> processMode m [y]
-
-processMode m@Mode{} args = processFlags (modeFlags m) (modeValue m) args
+        Found x -> processMode x as
+        NotFound
+            | FlagUnnamed `notElem` map flagInfo (modeFlags m)
+              && not (null $ modeList m) && not ("-" `isPrefixOf` concat args)
+                -> Left $ missing "mode" $ concatMap fst $ modeList m
+            | otherwise -> processFlags (modeFlags m) (modeValue m) args
+    where
+        (find,a,as) = case args of
+            [] -> (NotFound,"",[])
+            x:xs -> (lookupName (modeList m) x, x, xs)
 
 
 data S a = S
@@ -107,7 +105,6 @@ processFlag flags s_ =
 
 ambiguous typ got xs = "Ambiguous " ++ typ ++ " '" ++ got ++ "', could be any of: " ++ unwords xs
 missing typ xs = "Missing " ++ typ ++ ", wanted any of: " ++ unwords xs
-unexpected typ got xs = "Unexpected " ++ typ ++ " '" ++ got ++ "', wanted any of: " ++ unwords xs
 
 
 data LookupName a = NotFound

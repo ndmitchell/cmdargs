@@ -44,8 +44,9 @@ testFlags = do
     checkGood m ["--col","red","-t"] ["colorred","test"]
 
 testModes = do
-    let m = modes [("test", mode ["test"] "" [flagNone ["bob"] ("bob":) ""])
-                  ,("dist", mode ["dist"] "" [flagNone ["bob"] ("bob":) "", flagReq ["bill"] (upd "bill") "" "", flagArg (upd "") ""])]
+    let m = modes [] ""
+                [("test", mode ["test"] "" [flagNone ["bob"] ("bob":) ""])
+                ,("dist", mode ["dist"] "" [flagNone ["bob"] ("bob":) "", flagReq ["bill"] (upd "bill") "" "", flagArg (upd "") ""])]
     checkFail m []
     checkFail m ["tess"]
     checkGood m ["test","--b"] ["test","bob"]

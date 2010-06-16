@@ -26,19 +26,14 @@ toGroup :: [a] -> Group a
 toGroup x = [("",x)]
 
 
--- | If a default mode is given, and no other modes, then that one is always used.
-data Mode a
-    = Modes
-        {modesDefault :: Maybe Name -- ^ A default mode
-        ,modesGroupList :: Group ([Name], Mode a) -- ^ The available modes
-        }
-    | Mode
-        {modeValue :: a -- ^ Value to start with
-        ,modeHelp :: Help -- ^ Help text
-        ,modeGroupFlags :: Group (Flag a) -- ^ Groups of flags, [("",xs)] for all in same group
-        }
+data Mode a = Mode
+    {modeGroupList :: Group ([Name], Mode a) -- ^ The available sub-modes
+    ,modeValue :: a -- ^ Value to start with
+    ,modeHelp :: Help -- ^ Help text
+    ,modeGroupFlags :: Group (Flag a) -- ^ Groups of flags, [("",xs)] for all in same group
+    }
 
-modesList = fromGroup . modesGroupList
+modeList = fromGroup . modeGroupList
 modeFlags = fromGroup . modeGroupFlags
 
 {-|
@@ -56,6 +51,7 @@ data FlagArg
     | ArgOpt String      -- ^ Optional argument
     | ArgOptRare String  -- ^ Optional argument that requires an = before the value
     | ArgNone            -- ^ No argument
+      deriving (Eq,Ord)
 
 fromArgOpt (ArgOpt x) = x
 fromArgOpt (ArgOptRare x) = x
@@ -65,6 +61,8 @@ data FlagInfo
         {flagNamedArg :: FlagArg
         ,flagNamedNames :: [Name]}
     | FlagUnnamed
+      deriving (Eq,Ord)
+
 
 type Update a = String -> a -> Either String a
 
@@ -104,10 +102,10 @@ flagBool names f help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
 -- MODE/MODES CREATORS
 
 mode :: a -> Help -> [Flag a] -> Mode a
-mode value help flags = Mode value help [("",flags)]
+mode value help flags = Mode [] value help $ toGroup flags
 
-modes :: [(Name,Mode a)] -> Mode a
-modes xs = Modes Nothing $ toGroup (map (first return) xs)
+modes :: a -> Help -> [(Name,Mode a)] -> Mode a
+modes value help xs = Mode (toGroup (map (first return) xs)) value help []
 
 
 ---------------------------------------------------------------------
@@ -116,13 +114,9 @@ modes xs = Modes Nothing $ toGroup (map (first return) xs)
 -- | The 'modeNames' values are distinct between different modes.
 --   The names/positions/arbitrary are distinct within one mode
 checkMode :: Mode a -> Maybe String
-checkMode x@Modes{} =
-    (noDupes "modes" $ concatMap fst $ modesList x) `mplus`
-    (check "Only one mode given" $ length (modesList x) > 1) `mplus`
-    (check "Default mode not found" $ maybe True (`elem` concatMap fst (modesList x)) (modesDefault x)) `mplus`
-    msum (map (checkMode . snd) $ modesList x)
-
-checkMode x@Mode{} =
+checkMode x =
+    (noDupes "modes" $ concatMap fst $ modeList x) `mplus`
+    msum (map (checkMode . snd) $ modeList x) `mplus`
     (noDupes "flag names" [y | FlagNamed _ y <- xs]) `mplus`
     (check "Duplicate unnamed flags" $ unnamed > 1)
     where xs = map flagInfo $ modeFlags x
