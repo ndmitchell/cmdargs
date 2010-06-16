@@ -65,7 +65,6 @@ data FlagInfo
         {flagNamedArg :: FlagArg
         ,flagNamedNames :: [Name]}
     | FlagUnnamed
-    | FlagPosition Int -- ^ 0 based
 
 type Update a = String -> a -> Either String a
 
@@ -92,10 +91,6 @@ flagReq names upd typ help = Flag (FlagNamed ArgReq names) upd typ help
 
 flagArg :: Update a -> FlagHelp -> Flag a
 flagArg upd typ = Flag FlagUnnamed upd typ ""
-
-flagPos :: Int -> Update a -> FlagHelp -> Flag a
-flagPos pos upd typ = Flag (FlagPosition pos) upd typ ""
-
 
 flagBool :: [Name] -> (Bool -> a -> a) -> Help -> Flag a
 flagBool names f help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
@@ -129,12 +124,9 @@ checkMode x@Modes{} =
 
 checkMode x@Mode{} =
     (noDupes "flag names" [y | FlagNamed _ y <- xs]) `mplus`
-    (check "Duplicate unnamed flags" $ unnamed > 1) `mplus`
-    (noDupes "flag positions" positions) `mplus`
-    (check "Positions are non-sequential" $ unnamed > 0 || positions `isPrefixOf` [0..])
+    (check "Duplicate unnamed flags" $ unnamed > 1)
     where xs = map flagInfo $ modeFlags x
           unnamed = length [() | FlagUnnamed <- xs]
-          positions = [y | FlagPosition y <- xs]
 
 
 noDupes :: (Eq a, Show a) => String -> [a] -> Maybe String

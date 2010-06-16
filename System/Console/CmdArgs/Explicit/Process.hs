@@ -30,7 +30,6 @@ processMode m@Mode{} args = processFlags (modeFlags m) (modeValue m) args
 
 data S a = S
     {val :: a
-    ,pos :: Int
     ,args :: [String]
     ,errs :: [String]
     }
@@ -45,7 +44,7 @@ upd s f = case f $ val s of
 
 
 processFlags :: [Flag a] -> a -> [String] -> Either String a
-processFlags flags val_ args_ = f $ S val_ 0 args_ []
+processFlags flags val_ args_ = f $ S val_ args_ []
     where
         f s | not $ null $ errs s = Left $ last $ errs s
             | null $ args s = Right $ val s
@@ -92,17 +91,14 @@ processFlag flags s_@S{args=('-':x:xs):ys} | x /= '-' =
 
 
 processFlag flags s_ =
-    case lookup (pos s_) poss `mplus` nopos of
-        Nothing
-            | null poss -> err s $ "Unhandled argument, none expected: " ++ x
-            | otherwise -> err s $ "Unhandled argument, expected at most " ++ show (maximum (map fst poss) + 1) ++ ": " ++ x
+    case nopos of
+        Nothing -> err s $ "Unhandled argument, none expected: " ++ x
         Just flag -> case flagValue flag x (val s) of
             Left e -> err s $ "Unhandled argument, " ++ e ++ ": " ++ x
             Right v -> s{val=v}
     where
         x:ys = if head (args s_) == "--" then tail (args s_) else args s_
-        s = s_{args=ys,pos=pos s + 1}
-        poss = [(i,flag) | flag@Flag{flagInfo=FlagPosition i} <- flags]
+        s = s_{args=ys}
         nopos = listToMaybe [flag | flag@Flag{flagInfo=FlagUnnamed} <- flags]
 
 
