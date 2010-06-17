@@ -26,7 +26,7 @@ demo = cmdArgs "Diffy v1.0" modes
 
 
 test = do
-    let ([create,diff],(===),fails) = tester modes
+    let ((===),fails) = tester modes
     fails []
     ["create"] === create
     fails ["create","file1"]

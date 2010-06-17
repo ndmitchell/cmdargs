@@ -8,7 +8,7 @@ import System.Environment
 import Control.Exception
 
 
-tester x = (map modeValue x, (===), fails)
+tester x = ((===), fails)
     where
         (===) args v = do
             res <- withArgs args $ cmdArgs "" x

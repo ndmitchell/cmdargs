@@ -37,16 +37,16 @@ demo = cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
 
 
 test = do
-    let ([v],(===),fails) = tester modes
-    [] === v
+    let ((===),fails) = tester modes
+    [] === hlint
     fails ["-ch"]
-    ["--colo"] === v{color=True}
-    ["-ct"] === v{color=True,test_=True}
-    ["--colour","--test"] === v{color=True,test_=True}
-    ["-thfoo"] === v{test_=True,hint=["foo"]}
-    ["-cr"] === v{color=True,report=["report.html"]}
-    ["--cpp-define=val","x"] === v{cpp_define=["val"],files=["x"]}
+    ["--colo"] === hlint{color=True}
+    ["-ct"] === hlint{color=True,test_=True}
+    ["--colour","--test"] === hlint{color=True,test_=True}
+    ["-thfoo"] === hlint{test_=True,hint=["foo"]}
+    ["-cr"] === hlint{color=True,report=["report.html"]}
+    ["--cpp-define=val","x"] === hlint{cpp_define=["val"],files=["x"]}
     fails ["--cpp-define"]
-    ["--cpp-define","val","x","y"] === v{cpp_define=["val"],files=["x","y"]}
+    ["--cpp-define","val","x","y"] === hlint{cpp_define=["val"],files=["x","y"]}
 
 

@@ -36,7 +36,7 @@ demo = cmdArgs "Maker v1.0" modes
 
 
 test = do
-    let ([build,wipe,tst],(===),fails) = tester modes
+    let ((===),fails) = tester modes
     [] === build
     ["build","foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile"] === build{files=["foo"],method=Profile}
@@ -48,7 +48,7 @@ test = do
     -- FIXME: should fail, but -t gets intepreted as --t, which matches --threaded
     -- fails ["build","-t1"]
     ["wipe"] === wipe
-    ["test"] === tst
-    ["test","foo"] === tst{extra=["foo"]}
-    ["test","foo","-baz","-j3","--what=1"] === tst{extra=["foo","-baz","--what=1"],threads=3}
+    ["test"] === test_
+    ["test","foo"] === test_{extra=["foo"]}
+    ["test","foo","-baz","-j3","--what=1"] === test_{extra=["foo","-baz","--what=1"],threads=3}
 
