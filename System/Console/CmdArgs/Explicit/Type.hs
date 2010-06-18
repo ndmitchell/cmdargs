@@ -17,6 +17,7 @@ type Help = String
 type FlagHelp = String
 
 
+-- | Any flags in a "_" group are hidden
 type Group a = [(Help,[a])]
 
 fromGroup :: Group a -> [a]

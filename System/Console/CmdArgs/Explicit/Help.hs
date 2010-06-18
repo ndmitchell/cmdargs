@@ -16,7 +16,7 @@ helpText m = helpGroup helpMode (modeGroupList m) ++
 
 
 helpGroup :: (a -> [Text]) -> Group a -> [Text]
-helpGroup f xs = concat [[Line x | x /= ""] ++ concatMap f y | (x,y) <- xs]
+helpGroup f xs = concat [[Line x | x /= ""] ++ concatMap f y | (x,y) <- xs, x /= "_"]
 
 
 helpMode :: ([Name],Mode a) -> [Text]
