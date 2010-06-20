@@ -6,6 +6,7 @@ import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
+import System.Console.CmdArgs.Text
 
 
 boolTrue = ["true","yes","on","enabled","1"]
@@ -34,6 +35,7 @@ data Mode a = Mode
     {modeGroupList :: Group ([Name], Mode a) -- ^ The available sub-modes
     ,modeValue :: a -- ^ Value to start with
     ,modeHelp :: Help -- ^ Help text
+    ,modeHelpSuffix :: [Text]
     ,modeGroupFlags :: Group (Flag a) -- ^ Groups of flags, [("",xs)] for all in same group
     }
 
@@ -106,10 +108,10 @@ flagBool names f help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
 -- MODE/MODES CREATORS
 
 mode :: a -> Help -> [Flag a] -> Mode a
-mode value help flags = Mode (toGroup []) value help $ toGroup flags
+mode value help flags = Mode (toGroup []) value help [] $ toGroup flags
 
 modes :: a -> Help -> [(Name,Mode a)] -> Mode a
-modes value help xs = Mode (toGroup (map (first return) xs)) value help $ toGroup []
+modes value help xs = Mode (toGroup (map (first return) xs)) value help [] $ toGroup []
 
 
 ---------------------------------------------------------------------
