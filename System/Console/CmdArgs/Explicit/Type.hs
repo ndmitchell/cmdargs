@@ -18,14 +18,17 @@ type FlagHelp = String
 
 
 -- | Any flags in a "_" group are hidden
-type Group a = [(Help,[a])]
+data Group a = Group
+    {groupUnnamed :: [a]
+    ,groupHiden :: [a]
+    ,groupNamed :: [(Help, [a])]
+    }
 
 fromGroup :: Group a -> [a]
-fromGroup = concatMap snd
+fromGroup (Group x y z) = x ++ y ++ concatMap snd z
 
 toGroup :: [a] -> Group a
-toGroup x = [("",x)]
-
+toGroup x = Group x [] []
 
 data Mode a = Mode
     {modeGroupList :: Group ([Name], Mode a) -- ^ The available sub-modes
@@ -103,10 +106,10 @@ flagBool names f help = Flag (FlagNamed (ArgOptRare "") names) upd "" help
 -- MODE/MODES CREATORS
 
 mode :: a -> Help -> [Flag a] -> Mode a
-mode value help flags = Mode [] value help $ toGroup flags
+mode value help flags = Mode (toGroup []) value help $ toGroup flags
 
 modes :: a -> Help -> [(Name,Mode a)] -> Mode a
-modes value help xs = Mode (toGroup (map (first return) xs)) value help []
+modes value help xs = Mode (toGroup (map (first return) xs)) value help $ toGroup []
 
 
 ---------------------------------------------------------------------
@@ -128,8 +131,8 @@ checkMode x =
 
 checkGroup :: Group a -> Maybe String
 checkGroup x =
-    (check "Empty group name" $ all (\x -> fst x /= "") $ drop 1 x) `mplus`
-    (check "Empty group contents" $ case x of [("",[])] -> True; _ -> all (not . null . snd) x)
+    (check "Empty group name" $ all (not . null . fst) $ groupNamed x) `mplus`
+    (check "Empty group contents" $ all (not . null . snd) $ groupNamed x)
 
 
 checkNames :: String -> [Name] -> Maybe String
