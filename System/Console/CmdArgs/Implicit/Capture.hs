@@ -1,39 +1,34 @@
-{-# LANGUAGE ExistentialQuantification #-}
 
--- | This module does all the tricky/unsafe bits of CmdArgs
+-- | This module does all the tricky/unsafe bits of CmdArgs.
+--   It captures annotations on the data structure in the most direct way
+--   possible.
 module System.Console.CmdArgs.Implicit.Capture(
-    Capture(..), Any(..), capture, one, (&=)
+    Capture(..), capture, many, (&=)
     ) where
 
 import Data.Data
 import Data.IORef
 import System.IO.Unsafe
 import Control.Exception
+import System.Console.CmdArgs.Implicit.Ann
+import System.Console.CmdArgs.Implicit.Any
 
 
-data Prop = P Int deriving Show
--- FIXME: import Prop from elsewhere
-
--- test = show $ capture $ one [Just ((66::Int) &= P 1 &= P 2), Nothing &= P 8] &= P 3
+-- test = show $ capture $ many [Just ((66::Int) &= P 1 &= P 2), Nothing &= P 8] &= P 3
 
 
 infixl 2 &=
 
-data Any = forall a . Data a => Any a
-
-instance Show Any where
-    show (Any x) = show $ typeOf x
-
 data Capture
-    = One [Capture]
-    | Prop Prop Capture
+    = Many [Capture]
+    | Ann Ann Capture
     | Value Any
-    | Ctor Constr [Capture]
+    | Ctor Any [Capture]
       deriving Show
       
 {-
 The idea is to keep a stack of either continuations, or values
-If you encounter 'one' you become a value
+If you encounter 'many' you become a value
 If you encounter '&=' you increase the continuation
 -}
 
@@ -48,16 +43,19 @@ add f = modify $ \x -> Left $ x . f
 set x = modify $ \f -> Right $ f x
 
 
-one :: Data a => [a] -> a
-one xs = unsafePerformIO $ do
+-- | Collapse multiple values in to one.
+many :: Data a => [a] -> a
+many xs = unsafePerformIO $ do
     ys <- mapM force xs
-    set $ One ys
+    set $ Many ys
     return $ head xs
 
 
-(&=) :: Data a => a -> Prop -> a
+-- | Add an annotation to a value. Note that if the value is evaluated
+--   more than once the annotation will only be available the first time.
+(&=) :: Data a => a -> Ann -> a
 (&=) x y = unsafePerformIO $ do
-    add (Prop y)
+    add (Ann y)
     evaluate x
     return x
 
@@ -75,6 +73,5 @@ force x = do
         Right r -> return r
         Left f | not $ isAlgType $ dataTypeOf x -> return $ f $ Value $ Any x
                | otherwise -> do
-            let c = toConstr x
             cs <- sequence $ gmapQ force x
-            return $ f $ Ctor c cs
+            return $ f $ Ctor (Any x) cs

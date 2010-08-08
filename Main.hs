@@ -2,15 +2,13 @@
 
 module Main where
 
-import System.Console.CmdArgs
 import qualified System.Console.CmdArgs.Test.All as Test
-import System.IO
 import System.Environment
-import Data.List
 
-import qualified System.Console.CmdArgs.Test.Implicit.HLint as H
-import qualified System.Console.CmdArgs.Test.Implicit.Diffy as D
-import qualified System.Console.CmdArgs.Test.Implicit.Maker as M
+--import System.Console.CmdArgs
+--import qualified System.Console.CmdArgs.Test.Implicit.HLint as H
+--import qualified System.Console.CmdArgs.Test.Implicit.Diffy as D
+--import qualified System.Console.CmdArgs.Test.Implicit.Maker as M
 
 
 main = do
@@ -21,12 +19,13 @@ main = do
         x:xs | Just y <- lookup x Test.demo -> y xs
         _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
 
-
 ---------------------------------------------------------------------
 -- GENERATE MANUAL
 
 generateManual :: IO ()
 generateManual = do
+    error "todo"
+{-
     src <- readFile "cmdargs.htm"
     () <- length src `seq` return ()
     res <- fmap unlines $ f $ lines src
@@ -55,3 +54,4 @@ generateChunk ["help",x] = do
 generateChunk ["code",x] = do
     src <- readFile $ x ++ ".hs"
     return $ ["<pre>"] ++ lines src ++ ["</pre>"]
+-}

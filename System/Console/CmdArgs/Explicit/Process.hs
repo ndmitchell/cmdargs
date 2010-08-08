@@ -1,11 +1,14 @@
 
 module System.Console.CmdArgs.Explicit.Process(process) where
 
+import Control.Arrow
 import Data.List
 import Data.Maybe
 import System.Console.CmdArgs.Explicit.Type
 
-
+-- | Process a list of flags (usually obtained from @getArgs@) with a mode. Returns
+--   @Left@ and an error message if the command line fails to parse, or @Right@ and
+--   the associated value.
 process :: Mode a -> [String] -> Either String a
 process = processMode
 
@@ -16,14 +19,14 @@ processMode m args =
         Ambiguous xs -> Left $ ambiguous "mode" a xs
         Found x -> processMode x as
         NotFound
-            | FlagUnnamed `notElem` map flagInfo (modeFlags m)
-              && not (null $ modeList m) && not ("-" `isPrefixOf` concat args)
-                -> Left $ missing "mode" $ concatMap fst $ modeList m
-            | otherwise -> processFlags (modeFlags m) (modeValue m) args
+            | isNothing (modeArgs m) && args /= [] &&
+              not (null $ modeModes m) && not ("-" `isPrefixOf` concat args)
+                -> Left $ missing "mode" $ concatMap modeNames $ modeModes m
+            | otherwise -> either Left (modeCheck m) $ processFlags m (modeValue m) args
     where
         (find,a,as) = case args of
             [] -> (NotFound,"",[])
-            x:xs -> (lookupName (modeList m) x, x, xs)
+            x:xs -> (lookupName (map (modeNames &&& id) $ modeModes m) x, x, xs)
 
 
 data S a = S
@@ -41,63 +44,62 @@ upd s f = case f $ val s of
     Right x -> s{val=x}
 
 
-processFlags :: [Flag a] -> a -> [String] -> Either String a
-processFlags flags val_ args_ = f $ S val_ args_ []
+processFlags :: Mode a -> a -> [String] -> Either String a
+processFlags mode val_ args_ = f $ S val_ args_ []
     where
         f s | not $ null $ errs s = Left $ last $ errs s
             | null $ args s = Right $ val s
-            | otherwise = f (processFlag flags s)
+            | otherwise = f (processFlag mode s)
 
 
-pickFlags long flags = [(filter (\x -> (length x > 1) == long) name,(arg,flag)) | flag@Flag{flagInfo=FlagNamed arg name} <- flags]
+pickFlags long mode = [(filter (\x -> (length x > 1) == long) $ flagNames flag,(flagInfo flag,flag)) | flag <- modeFlags mode]
 
 
-processFlag :: [Flag a] -> S a -> S a
-processFlag flags s_@S{args=('-':'-':xs):ys} | xs /= "" =
-    case lookupName (pickFlags True flags) a of
+processFlag :: Mode a -> S a -> S a
+processFlag mode s_@S{args=('-':'-':xs):ys} | xs /= "" =
+    case lookupName (pickFlags True mode) a of
         Ambiguous poss -> err s $ ambiguous "flag" ("--" ++ a) poss
         NotFound -> err s $ "Unknown flag: --" ++ a
         Found (arg,flag) -> case arg of
-            ArgNone | null b -> upd s $ flagValue flag ""
-                    | otherwise -> err s $ "Unhandled argument to flag, none expected: --" ++ xs
-            ArgReq | null b && null ys -> err s $ "Flag requires argument: --" ++ xs
-                   | null b -> upd s{args=tail ys} $ flagValue flag $ head ys
-                   | otherwise -> upd s $ flagValue flag $ tail b
-            _ | null b -> upd s $ flagValue flag $ fromArgOpt arg
+            FlagNone | null b -> upd s $ flagValue flag ""
+                     | otherwise -> err s $ "Unhandled argument to flag, none expected: --" ++ xs
+            FlagReq | null b && null ys -> err s $ "Flag requires argument: --" ++ xs
+                    | null b -> upd s{args=tail ys} $ flagValue flag $ head ys
+                    | otherwise -> upd s $ flagValue flag $ tail b
+            _ | null b -> upd s $ flagValue flag $ fromFlagOpt arg
               | otherwise -> upd s $ flagValue flag $ tail b
     where
         s = s_{args=ys}
         (a,b) = break (== '=') xs
 
 
-processFlag flags s_@S{args=('-':x:xs):ys} | x /= '-' =
-    case lookupName (pickFlags False flags) [x] of
+processFlag mode s_@S{args=('-':x:xs):ys} | x /= '-' =
+    case lookupName (pickFlags False mode) [x] of
         Ambiguous poss -> err s $ ambiguous "flag" ['-',x] poss
         NotFound -> err s $ "Unknown flag: -" ++ [x]
         Found (arg,flag) -> case arg of
-            ArgNone | "=" `isPrefixOf` xs -> err s $ "Unhandled argument to flag, none expected: -" ++ [x]
-                    | otherwise -> upd s_{args=['-':xs|xs/=""] ++ ys} $ flagValue flag ""
-            ArgReq | null xs && null ys -> err s $ "Flag requires argument: -" ++ [x]
-                   | null xs -> upd s_{args=tail ys} $ flagValue flag $ head ys
-                   | otherwise -> upd s_{args=ys} $ flagValue flag $ if "=" `isPrefixOf` xs then tail xs else xs
-            ArgOpt x | null xs -> upd s_{args=ys} $ flagValue flag x
-                     | otherwise -> upd s_{args=ys} $ flagValue flag $ if "=" `isPrefixOf` xs then tail xs else xs
-            ArgOptRare x | "=" `isPrefixOf` xs -> upd s_{args=ys} $ flagValue flag $ tail xs
-                         | otherwise -> upd s_{args=['-':xs|xs/=""] ++ ys} $ flagValue flag x
+            FlagNone | "=" `isPrefixOf` xs -> err s $ "Unhandled argument to flag, none expected: -" ++ [x]
+                     | otherwise -> upd s_{args=['-':xs|xs/=""] ++ ys} $ flagValue flag ""
+            FlagReq | null xs && null ys -> err s $ "Flag requires argument: -" ++ [x]
+                    | null xs -> upd s_{args=tail ys} $ flagValue flag $ head ys
+                    | otherwise -> upd s_{args=ys} $ flagValue flag $ if "=" `isPrefixOf` xs then tail xs else xs
+            FlagOpt x | null xs -> upd s_{args=ys} $ flagValue flag x
+                      | otherwise -> upd s_{args=ys} $ flagValue flag $ if "=" `isPrefixOf` xs then tail xs else xs
+            FlagOptRare x | "=" `isPrefixOf` xs -> upd s_{args=ys} $ flagValue flag $ tail xs
+                          | otherwise -> upd s_{args=['-':xs|xs/=""] ++ ys} $ flagValue flag x
     where
         s = s_{args=ys}
 
 
-processFlag flags s_ =
-    case nopos of
+processFlag mode s_ =
+    case modeArgs mode of
         Nothing -> err s $ "Unhandled argument, none expected: " ++ x
-        Just flag -> case flagValue flag x (val s) of
+        Just arg -> case argValue arg x (val s) of
             Left e -> err s $ "Unhandled argument, " ++ e ++ ": " ++ x
             Right v -> s{val=v}
     where
         x:ys = if head (args s_) == "--" then tail (args s_) else args s_
         s = s_{args=ys}
-        nopos = listToMaybe [flag | flag@Flag{flagInfo=FlagUnnamed} <- flags]
 
 
 ---------------------------------------------------------------------

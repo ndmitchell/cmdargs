@@ -9,9 +9,8 @@ test :: IO ()
 test = do
     Explicit.test
     GetOpt.test
-    putStrLn "" -- FIXME: Once implicit doesn't write to the console
     Implicit.test
-    putStrLn "Test successful"
+    putStrLn "\nTest completed"
 
 demo :: [(String, [String] -> IO ())]
 demo = GetOpt.demo ++ Explicit.demo ++ Implicit.demo

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, NamedFieldPuns #-}
 module System.Console.CmdArgs.Test.Implicit.Maker where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
@@ -12,31 +12,28 @@ data Maker
     | Build {threads :: Int, method :: Method, files :: [FilePath]}
       deriving (Data,Typeable,Show,Eq)
 
-threadsMsg = text "Number of threads to use" & flag "j" & typ "NUM"
+threadsMsg x = x &= help "Number of threads to use" &= name "j" &= typ "NUM"
 
-wipe = mode $ Wipe &= prog "maker" & text "Clean all build objects"
+wipe = Wipe &= help "Clean all build objects"
 
-test_ = mode $ Test
-    {threads = def &= threadsMsg
-    ,extra = def &= typ "ANY" & args & unknownFlags
-    } &= text "Run the test suite"
+test_ = Test
+    {threads = threadsMsg def
+    ,extra = def &= typ "ANY" &= args
+    } &= help "Run the test suite"
 
-build = mode $ Build
-    {threads = def &= threadsMsg
-    ,method = enum Release
-        [Debug &= text "Debug build"
-        ,Release &= text "Release build"
-        ,Profile &= text "Profile build"]
+build = Build
+    {threads = threadsMsg def
+    ,method = enum
+        [Release &= help "Release build"
+        ,Debug &= help "Debug build"
+        ,Profile &= help "Profile build"]
     ,files = def &= args
-    } &= text "Build the project" & defMode
+    } &= help "Build the project" &= auto
 
-modes = [build,wipe,test_]
-
-demo = cmdArgs "Maker v1.0" modes
-
+mode = cmdArgsMode $ modes [build,wipe,test_] &= program "maker" &= summary "Maker v1.0"
 
 test = do
-    let ((===),fails) = tester modes
+    let Tester{(===),fails} = tester "Maker" mode
     [] === build
     ["build","foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile"] === build{files=["foo"],method=Profile}
@@ -45,10 +42,10 @@ test = do
     ["build","-j3"] === build{threads=3}
     ["build","-j=3"] === build{threads=3}
     fails ["build","-jN"]
-    -- FIXME: should fail, but -t gets intepreted as --t, which matches --threaded
-    -- fails ["build","-t1"]
+    fails ["build","-t1"]
     ["wipe"] === wipe
     ["test"] === test_
     ["test","foo"] === test_{extra=["foo"]}
-    ["test","foo","-baz","-j3","--what=1"] === test_{extra=["foo","-baz","--what=1"],threads=3}
+    ["test","foo","-j3"] === test_{extra=["foo"],threads=3}
+    fails ["test","foo","-baz","-j3","--what=1"]
 

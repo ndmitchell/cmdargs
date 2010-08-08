@@ -1,29 +1,85 @@
 {-# LANGUAGE PatternGuards #-}
 
-module System.Console.CmdArgs.Text(TextFormat(..), Text(..), showText) where
+-- | A module to represent text with very basic formatting. Values are of
+--   type ['Text'] and shown with 'showText'.
+--
+--   As an example of the formatting:
+--
+-- > [Line "Cooking for hungry people."
+-- > ,Line "Welcome to my cookery recipe program, I sure hope you enjoy using it!"
+-- > ,Line ""
+-- > ,Cols ["Omlette","  A tasty eggy treat."]
+-- > ,Cols ["  -m"," --mushrooms","  Some mushrooms, or in fact any other ingredients you have in the cupboards"]
+-- > ,Cols ["  -e"," --eggs", "  But always you need eggs"]
+-- > ,Line ""
+-- > ,Cols ["Spagetti Bolognaise", "  An Italian delight."]
+-- > ,Cols ["  -s"," --spagetti","  The first word in the name"]
+-- > ,Cols ["  -b"," --bolognaise","  The second word in the name"]
+-- > ,Cols ["  -d"," --dolmio","  The magic ingredient!"]
+-- > ,Line ""
+-- > ,Line "    The author of this program explicitly disclaims any liability for poisoning people who get their recipes off the internet."]
+--
+--   With @putStrLn ('showText' ('Wrap' 50) demo)@ gives:
+--
+-- > Cooking for hungry people.
+-- > Welcome to my cookery recipe program, I sure hope
+-- > you enjoy using it!
+-- >
+-- > Omlette              A tasty eggy treat.
+-- >   -m --mushrooms   Some mushrooms, or in fact
+-- >                    any other ingredients you have
+-- >                    in the cupboards
+-- >   -e --eggs        But always you need eggs
+-- >
+-- > Spagetti Bolognaise  An Italian delight.
+-- >   -s --spagetti    The first word in the name
+-- >   -b --bolognaise  The second word in the name
+-- >   -d --dolmio      The magic ingredient!
+-- >
+-- >     The author of this program explicitly
+-- >     disclaims any liability for poisoning people
+-- >     who get their recipes off the internet.
+module System.Console.CmdArgs.Text(TextFormat(..), defaultWrap, Text(..), showText) where
 
 import Data.Char
 import Data.Function
 import Data.List
 import Data.Maybe
+import System.Console.CmdArgs.Default
 
 
-defaultWrapWidth = 80
+-- | Wrap with the default width of 80 characters.
+defaultWrap :: TextFormat
+defaultWrap = Wrap 80
 
-data TextFormat = HTML
-                | Wrap (Maybe Int) -- ^ With width
+-- | How to output the text.
+data TextFormat = HTML -- ^ Display as HTML.
+                | Wrap Int -- ^ Display as text wrapped at a certain width (see 'defaultWrap').
+                  deriving (Read,Show,Eq,Ord)
 
+instance Default TextFormat where def = defaultWrap
+
+-- | The data type representing some text, typically used as @[Text]@. The formatting
+--   is described by:
+--
+--   * 'Line' values represent a paragraph of text, and may be wrapped depending on the 'TextFormat'.
+--     If a 'Line' value is wrapped then all leading space will be treated as an indent.
+--
+--   * 'Cols' values represent columns of text. Within any @[Text]@ all columns of the same length
+--     are grouped in tabs, with the final column being wrapped if necessary. All columns are placed
+--     adjacent with no space between them - for this reason most columns will start with a space.
 data Text = Line String -- a single line
           | Cols [String] -- a single line with columns (always indented by 2 spaces)
 
 instance Show Text where
-    showList = showString . showWrap defaultWrapWidth
-    show x = showWrap defaultWrapWidth [x]
+    showList = showString . showText defaultWrap
+    show x = showText defaultWrap [x]
 
 
+-- | Show some text using the given formatting.
 showText :: TextFormat -> [Text] -> String
 showText HTML = showHTML
-showText (Wrap x) = showWrap (fromMaybe defaultWrapWidth x)
+showText (Wrap x) = showWrap x
 
 
 ---------------------------------------------------------------------
@@ -41,9 +97,10 @@ showWrap width xs = unlines $ concatMap f xs
         f (Line x) = map (a++) $ wrap1 (width - length a) b
             where (a,b) = span isSpace x
 
-        f (Cols xs) = (' ' : concatMap (' ':) (zipWith pad ys xs ++ [z1])) : zs
+        f (Cols xs) = (concat $ zipWith pad ys xs ++ [z1]) : map (replicate n ' '++) zs
             where ys = fromJust $ lookup (length xs) cs
-                  z1:zs = wrap1 (width - sum ys - 1 - length xs) (last xs)
+                  n = sum ys + length (takeWhile isSpace $ last xs)
+                  z1:zs = wrap1 (width - n) (last xs)
 
 
 wrap1 width x = ["" | null res] ++ res

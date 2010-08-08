@@ -1,42 +1,78 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               cmdargs
-version:            0.1.1
+version:            0.2
 license:            BSD3
 license-file:       LICENSE
 category:           Console
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2009
+copyright:          Neil Mitchell 2009-2010
 synopsis:           Command line argument processing
 description:
-    An easy way to define command line parsers. The two key features are:
-    
-    1) It's very concise to use, up to three times shorter than getopt.
-
-    2) It supports programs with multiple modes (e.g. darcs or cabal).
+    This library provides an easy way to define command line parsers. Most users
+    will want to use the "System.Console.CmdArgs.Implicit" module, whose
+    documentation contains an example.
+    .
+    * "System.Console.CmdArgs.Explicit" provides a way to write command line
+      parsers for both single mode programs (most programs) and multiple
+      mode programs (e.g. darcs or cabal). Parsers are defined by constructing
+      a data structure.
+    .
+    * "System.Console.CmdArgs.Implicit" provides a way to concisely define
+      command line parsers, up to three times shorter than getopt. These parsers
+      are translated into the Explicit data type.
+    .
+    * "System.Console.CmdArgs.GetOpt" provides a wrapper allowing compatiblity
+      with existing getopt parsers, mapping to the Explicit data type.
 homepage:           http://community.haskell.org/~ndm/cmdargs/
 stability:          Beta
 extra-source-files:
     cmdargs.htm
 
-flag BuildCommand
-    description: Build the test executable
+flag testprog
     default: True
+    description: Build the test program
 
 library
     build-depends: base == 4.*, mtl, filepath
 
     exposed-modules:
         System.Console.CmdArgs
+        System.Console.CmdArgs.Default
+        System.Console.CmdArgs.Explicit
+        System.Console.CmdArgs.GetOpt
+        System.Console.CmdArgs.Implicit
+        System.Console.CmdArgs.Text
+        System.Console.CmdArgs.Verbosity
+
+    other-modules:
+        System.Console.CmdArgs.Explicit.Help
+        System.Console.CmdArgs.Explicit.Process
+        System.Console.CmdArgs.Explicit.Type
+        System.Console.CmdArgs.Implicit.Ann
+        System.Console.CmdArgs.Implicit.Any
+        System.Console.CmdArgs.Implicit.Capture
+        System.Console.CmdArgs.Implicit.Read
+        System.Console.CmdArgs.Implicit.Step1
+        System.Console.CmdArgs.Implicit.Step2
+        System.Console.CmdArgs.Implicit.Step3
+        System.Console.CmdArgs.Implicit.UI
 
 executable cmdargs
     main-is: Main.hs
-    other-modules:
-        HLint
-        Diffy
-        Maker
-    if flag(BuildCommand)
+    if flag(testprog)
         buildable: True
     else
         buildable: False
+
+    other-modules:
+        System.Console.CmdArgs.Test.All
+        System.Console.CmdArgs.Test.Explicit
+        System.Console.CmdArgs.Test.GetOpt
+        System.Console.CmdArgs.Test.Implicit
+        System.Console.CmdArgs.Test.Implicit.Diffy
+        System.Console.CmdArgs.Test.Implicit.HLint
+        System.Console.CmdArgs.Test.Implicit.Maker
+        System.Console.CmdArgs.Test.Implicit.Util
+        System.Console.CmdArgs.Test.Util

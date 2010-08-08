@@ -1,5 +1,12 @@
 
-module System.Console.CmdArgs.GetOpt where
+-- | This provides a compatiblity wrapper to the @System.Console.GetOpt@ module in @base@.
+--   That module is essentially a Haskell port of the GNU @getopt@ library.
+--
+--   /Changes:/ The changes from @GetOpt@ are listed in the documentation for each function.
+module System.Console.CmdArgs.GetOpt(
+    convert, getOpt, getOpt', usageInfo,
+    ArgOrder(..), OptDescr(..), ArgDescr(..)
+    ) where
 
 import System.Console.CmdArgs.Explicit
 
@@ -12,11 +19,21 @@ data ArgOrder a = Permute
 
 
 -- | Each 'OptDescr' describes a single option/flag.
+--
+--   The arguments to 'Option' are:
+--
+--   * list of short option characters
+--
+--   * list of long option strings (without "--", may not be 1 character long)
+--
+--   * argument descriptor
+--
+--   * explanation of option for userdata
 data OptDescr a = Option
-    [Char]        -- ^ list of short option characters
-    [String]      -- ^ list of long option strings (without "--", may not be 1 character long)
-    (ArgDescr a)  -- ^ argument descriptor
-    String        -- ^ explanation of option for userdata
+    [Char]
+    [String]
+    (ArgDescr a)
+    String
 
 
 -- | Describes whether an option takes an argument or not, and if so
@@ -24,7 +41,7 @@ data OptDescr a = Option
 data ArgDescr a
    = NoArg                   a         -- ^ no argument expected
    | ReqArg (String       -> a) String -- ^ option requires argument
-   | OptArg (Maybe String -> a) String -- ^ optional argumentdata ArgDescr a
+   | OptArg (Maybe String -> a) String -- ^ optional argument
 
 
 -- | Return a string describing the usage of a command, derived from
@@ -63,11 +80,11 @@ getOpt' x y z = (a,b,[],c)
     where (a,b,c) = getOpt x y z
 
 
--- | Given a help text and a list of option descriptions, generate a 'Mode'
+-- | Given a help text and a list of option descriptions, generate a 'Mode'.
 convert :: String -> [OptDescr a] -> Mode ([a],[String])
-convert help flags = mode ([],[]) help (other:map f flags)
+convert help flags = mode "program" ([],[]) help args (map f flags)
     where
-        other = flagArg (\x (a,b) -> Right (a,b++[x])) ""
+        args = flagArg (\x (a,b) -> Right (a,b++[x])) "ARG"
 
         f (Option short long x help) = case x of
             NoArg x -> flagNone names (\(a,b) -> (a++[x],b)) help

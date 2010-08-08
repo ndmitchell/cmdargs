@@ -14,3 +14,18 @@
     ,":!start .hpc\\hpc_index_fun.html"]
 :}
 
+:{
+:def docs \x -> return $ unlines $
+    [":!cabal configure"
+    ,":!cabal haddock"] ++
+    [":!start dist\\doc\\html\\cmdargs\\index.html" | null x]
+:}
+
+:{
+:def extra const $
+    let msg = [":test       - run the test suit"
+              ,":hpc        - run and produce a program coverage report"
+              ,":docs       - generate documentation"]
+    in putStr (unlines msg) >> return []
+:}
+

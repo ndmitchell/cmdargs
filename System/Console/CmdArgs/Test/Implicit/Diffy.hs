@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
 module System.Console.CmdArgs.Test.Implicit.Diffy where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
@@ -7,29 +7,33 @@ data Diffy = Create {src :: FilePath, out :: FilePath}
            | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
              deriving (Data,Typeable,Show,Eq)
 
-outFlags = text "Output file" & typFile
+outFlags x = x &= help "Output file" &= typFile
 
-create = mode $ Create
-    {src = "." &= text "Source directory" & typDir
-    ,out = "ls.txt" &= outFlags
-    } &= prog "diffy" & text "Create a fingerprint"
+create = Create
+    {src = "." &= help "Source directory" &= typDir
+    ,out = outFlags "ls.txt"
+    } &= help "Create a fingerprint"
 
-diff = mode $ Diff
-    {old = def &= typ "OLDFILE" & argPos 0
-    ,new = def &= typ "NEWFILE" & argPos 1
-    ,out = "diff.txt" &= outFlags
-    } &= text "Perform a diff"
+diff = Diff
+    {old = def &= typ "OLDFILE" &= argPos 0
+    ,new = def &= typ "NEWFILE" &= argPos 1
+    ,out = outFlags "diff.txt"
+    } &= help "Perform a diff"
 
-modes = [create,diff]
-
-demo = cmdArgs "Diffy v1.0" modes
-
+mode = cmdArgsMode $ modes [create,diff] &= program "difftastic" &= summary "Diffy v1.0"
 
 test = do
-    let ((===),fails) = tester modes
+    let Tester{..} = tester "Diffy" mode
     fails []
+    isHelp ["--help"]
+    isHelp ["create","--help"]
+    isHelp ["diff","--help"]
+    isVersion ["--version"]
     ["create"] === create
     fails ["create","file1"]
+    fails ["create","--quiet"]
+    fails ["create","--verbose"]
+    isVerbosity ["create"] Normal
     ["create","--src","x"] === create{src="x"}
     ["create","--src","x","--src","y"] === create{src="y"}
     fails ["diff","--src","x"]

@@ -14,7 +14,7 @@ test = do
     testModes
 
 testUnnamedOnly = do
-    let m = mode [] "" [flagArg (upd "") ""]
+    let m = name "UnnamedOnly" $ mode "" [] "" (flagArg (upd "") "") []
     checkFail m ["-f"]
     checkFail m ["--test"]
     checkGood m ["fred","bob"] ["fred","bob"]
@@ -22,11 +22,12 @@ testUnnamedOnly = do
     checkGood m [] []
 
 testFlags = do
-    let m = mode [] "" [flagNone ["test","t"] ("test":) "", flagNone ["more","m"] ("more":) ""
-                       ,flagReq ["color","colour","bobby"] (upd "color") "" ""
-                       ,flagOpt "" ["bob","z"] (upd "bob") "" ""
-                       ,flagBool ["x","xxx"] (upb "xxx") ""
-                       ,flagArg (upd "") ""]
+    let m = name "Flags" $ mode "" [] "" (flagArg (upd "") "")
+                [flagNone ["test","t"] ("test":) ""
+                ,flagNone ["more","m"] ("more":) ""
+                ,flagReq ["color","colour","bobby"] (upd "color") "" ""
+                ,flagOpt "" ["bob","z"] (upd "bob") "" ""
+                ,flagBool ["x","xxx"] (upb "xxx") ""]
     checkFail m ["-q"]
     checkGood m ["--test"] ["test"]
     checkGood m ["-t"] ["test"]
@@ -46,30 +47,34 @@ testFlags = do
     checkGood m ["--col","red","-t"] ["colorred","test"]
 
 testModes = do
-    let m = modes [] ""
-                [("test", mode ["test"] "" [flagNone ["bob"] ("bob":) ""])
-                ,("dist", mode ["dist"] "" [flagNone ["bob"] ("bob":) "", flagReq ["bill"] (upd "bill") "" "", flagArg (upd "") ""])]
-    checkFail m []
+    let m = name "Modes" $ modes [] ""
+                [(mode "test" ["test"] "" undefined [flagNone ["bob"] ("bob":) ""]){modeArgs=Nothing}
+                ,mode "dist" ["dist"] "" (flagArg (upd "") "") [flagNone ["bob"] ("bob":) "", flagReq ["bill"] (upd "bill") "" ""]]
+    checkGood m [] []
+    checkFail m ["--bob"]
     checkFail m ["tess"]
+    checkFail m ["test","arg"]
     checkGood m ["test","--b"] ["test","bob"]
     checkGood m ["t","--bo"] ["test","bob"]
     checkGood m ["dist","--bob"] ["dist","bob"]
     checkFail m ["dist","--bill"]
     checkGood m ["dist","--bill","foo"] ["dist","billfoo"]
 
+
 ---------------------------------------------------------------------
 -- UTILITIES
 
 upd pre s x = Right $ (pre++s):x
 upb pre s x = (pre ++ show s):x
+name x y = ("Explicit " ++ x, y)
 
-checkFail :: Mode [String] -> [String] -> IO ()
-checkFail m xs = case process m xs of
-    Right a -> failure "Succeeded when should have failed" [("Args",show xs),("Result",show a)]
+checkFail :: (String,Mode [String]) -> [String] -> IO ()
+checkFail (n,m) xs = case process m xs of
+    Right a -> failure "Succeeded when should have failed" [("Name",n),("Args",show xs),("Result",show a)]
     Left a -> length (show a) `hpc` success
 
-checkGood :: Mode [String] -> [String] -> [String] -> IO ()
-checkGood m xs ys = case process m xs of
-    Left err -> failure "Failed when should have succeeded" [("Args",show xs),("Error",err)]
-    Right a | reverse a /= ys -> failure "Wrong parse" [("Args",show xs),("Wanted",show ys),("Got",show $ reverse a)]
+checkGood :: (String,Mode [String]) -> [String] -> [String] -> IO ()
+checkGood (n,m) xs ys = case process m xs of
+    Left err -> failure "Failed when should have succeeded" [("Name",n),("Args",show xs),("Error",err)]
+    Right a | reverse a /= ys -> failure "Wrong parse" [("Name",n),("Args",show xs),("Wanted",show ys),("Got",show $ reverse a)]
     _ -> success

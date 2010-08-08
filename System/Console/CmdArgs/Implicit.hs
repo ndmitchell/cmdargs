@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, PatternGuards #-}
+{-# LANGUAGE RecordWildCards, PatternGuards #-}
 {-|
     This module provides simple command line argument processing.
     The main function of interest is 'cmdArgs'.
@@ -6,267 +6,127 @@
 
     @data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)@
 
-    @sample = 'mode' $ Sample{hello = def '&=' 'text' \"World argument\" '&' 'empty' \"world\"}@
+    @sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\"}@
+    @         '&=' summary \"Sample v1\"@
 
-    @main = print =<< 'cmdArgs' \"Sample v1, (C) Neil Mitchell 2009\" [sample]@
+    @main = print =<< 'cmdArgs' sample@
 
 
     Attributes are used to control a number of behaviours:
     
-    * The help message: 'text', 'typ', 'helpSuffix', 'prog'
+    * The help message: 'help', 'typ', 'details', 'summary', 'program'
     
-    * Default behaviour: 'empty', 'defMode'
+    * Flag behaviour: 'opt', 'enum', 'verbosity'
     
-    * Flag name assignment: 'flag', 'explicit', 'enum'
+    * Flag name assignment: 'name', 'explicit'
     
-    * Controlling non-flag arguments: 'args', 'argPos', 'unknownFlags'
+    * Controlling non-flag arguments: 'args', 'argPos'
+
+    * multi-mode programs: 'modes', 'auto'
+
+    Each field in the record must be one of the supported atomic types
+    (@String@, @Int@, @Integer@, @Float@, @Double@, @Bool@) or a list (@[]@)
+    or @Maybe@ wrapping at atomic type.
+
+    /Warning:/ Values created with annotations are not pure - the first
+    time they are used they will include the annotations, but subsequently
+    they will not. To capture the annotations, so they can be used multiple times,
+    use 'cmdArgsMode'.
 -}
 
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines
-    cmdArgs, cmdArgsParse, modeValue,
-    -- * Attributes
+    cmdArgs, cmdArgsMode, cmdArgsRun, CmdArgs(..),
+    -- * Constructing command lines
+    -- | Attributes can work on a flag (inside a field), on a mode (outside the record),
+    --   or on all modes (outside the 'modes' call).
+    (&=), modes, enum,
     module System.Console.CmdArgs.Implicit.UI,
-    -- * Verbosity control
-    isQuiet, isNormal, isLoud,
-    -- * Display help information
-    HelpFormat(..), cmdArgsHelp, getCmdArgsHelp,
-    -- * Default values
-    Default(..),
     -- * Re-exported for convenience
+    -- | Provides a few opaque types (for writing type signatures),
+    --   verbosity control, default values with 'def' and the
+    --   @Data@/@Typeable@ type classes.
+    module System.Console.CmdArgs.Verbosity,
+    module System.Console.CmdArgs.Default,
+    Ann, Mode,
     Data, Typeable
     ) where
 
-import System.IO.Unsafe
-import Data.Dynamic
 import Data.Data
-import Data.List
-import Data.Maybe
-import Data.IORef
 import System.Environment
 import System.Exit
-import System.FilePath
-import Data.Char
-import Control.Monad.State
-import Data.Function
-
-import System.Console.CmdArgs.Implicit.Type
+import System.Console.CmdArgs.Explicit(Mode,process)
+import System.Console.CmdArgs.Implicit.Ann
+import System.Console.CmdArgs.Implicit.Capture
+import System.Console.CmdArgs.Implicit.Step1
+import System.Console.CmdArgs.Implicit.Step2
+import System.Console.CmdArgs.Implicit.Step3
 import System.Console.CmdArgs.Implicit.UI
-import System.Console.CmdArgs.Implicit.Expand
-import System.Console.CmdArgs.Implicit.Flag
-import System.Console.CmdArgs.Implicit.Help
+import System.Console.CmdArgs.Verbosity
+import System.Console.CmdArgs.Default
 
 
----------------------------------------------------------------------
--- DEFAULTS
-
--- | Class for default values
-class Default a where
-    -- | Provide a default value
-    def :: a
-
-instance Default Bool where def = False
-instance Default [a] where def = []
-instance Default Int where def = 0
-instance Default Integer where def = 0
-instance Default Float where def = 0
-instance Default Double where def = 0
+-- | Take annotated records and run the corresponding command line.
+--   Shortcut for @'cmdArgsRun' . 'cmdArgsMode'@.
+cmdArgs :: Data a => a -> IO a
+cmdArgs = cmdArgsRun . cmdArgsMode
 
 
----------------------------------------------------------------------
--- VERBOSITY CONTROL
-
-{-# NOINLINE verbosity #-}
-verbosity :: IORef Int -- 0 = quiet, 1 = normal, 2 = verbose
-verbosity = unsafePerformIO $ newIORef 1
-
--- | Used to test if essential messages should be output to the user.
---   Always true (since even @--quiet@ wants essential messages output).
---   Must be called after 'cmdArgs'.
-isQuiet :: IO Bool
-isQuiet = return True
-
--- | Used to test if normal messages should be output to the user.
---   True unless @--quiet@ is specified.
---   Must be called after 'cmdArgs'.
-isNormal :: IO Bool
-isNormal = fmap (>=1) $ readIORef verbosity
-
--- | Used to test if helpful debug messages should be output to the user.
---   False unless @--verbose@ is specified.
---   Must be called after 'cmdArgs'.
-isLoud :: IO Bool
-isLoud = fmap (>=2) $ readIORef verbosity
-
-
----------------------------------------------------------------------
--- MAIN DRIVERS
-
--- | Extract the default value from inside a Mode.
-modeValue :: Mode a -> a
-modeValue = modeVal
-
-
--- | Pure function for parsing arguments.  Given explicit command-line
---   words and the operation modes this will return either an error
---   (or version) string generator or else it will return the selected
---   mode's structure.
+-- | Take annotated records and turn them in to a 'Mode' value, that can
+--   make use of the "System.Console.CmdArgs.Explicit" functions (i.e. 'process').
 --
---   Alternatively: use 'cmdArgs' for a version that will
---   automatically read the current command line and throw IO
---   exceptions on failures.
-cmdArgsParse :: Data a
-    => String -- ^ Information about the program, something like: @\"ProgramName v1.0, Copyright PersonName 2000\"@.
-    -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
-    -> Maybe Int -- ^ The terminal width for displaying any help text
-                 -- (if known); Nothing = use default of 80 chars.
-    -> [String] -- ^ The command-line arguments to be parsed
-    -> Either (Bool,String -> String) a  -- ^ Left is (is success?, string_func), where
-                                         -- string_func is called with the program name and will
-                                         -- return the error or version string to be
-                                         -- displayed.  Right is the selected mode structure.
-cmdArgsParse short modes width inputargs =
-    let emodes = expand modes
-        (mode,args) = parseModes emodes inputargs
-        wanthelp = hasAction args "!help"
-        wantver = hasAction args "!version"
-        argerrors = [x | Error x <- args]
-        argerror = listToMaybe argerrors
-        parsed = Right . applyActions args . modeValue
-        failmsg m = Left (False, const m)
-        helpmode = case mode of
-                     Right (True,mode) -> Just mode
-                     _ -> Nothing
-        helpfmt = fromDyn (op undefined) ""
-        Update _ op = fromJust $ getAction args "!help"
-    in case (wanthelp, wantver) of
-         (True,_) -> Left (True, getCmdArgsHelp short emodes helpmode helpfmt width)
-         (False,True) -> Left (True, const short)
-         _ -> flip (either failmsg) mode $ 
-              \msv -> maybe (parsed $ snd msv) failmsg argerror
+--   Annotated records are impure, and will only contain annotations on
+--   their first use. The result of this function is pure, and can be reused.
+cmdArgsMode :: Data a => a -> Mode (CmdArgs a)
+cmdArgsMode = step3 . step2 . step1 . capture
 
 
--- | The main entry point for programs using CmdArgs.  This is the IO
---   version that will automatically read the current command-line
---   arguments and will generate program exit calls if appropriate
---   (e.g. on invalid arg input).
+-- | Run a Mode structure. This function reads the command line arguments
+--   and then performs as follows:
 --
---   Approximately:
+--   * If invalid arguments are given, it will display the error message
+--     and exit.
 --
---   @cmdArgs s ms = cmdArgsParse s ms `fmap` getArgs
+--   * If @--help@ is given, it will display the help message and exit.
 --
---   For an example see "System.Console.CmdArgs".
-cmdArgs :: Data a
-    => String -- ^ Information about the program, something like: @\"ProgramName v1.0, Copyright PersonName 2000\"@.
-    -> [Mode a] -- ^ The modes of operation, constructed by 'mode'. For single mode programs it is a singleton list.
-    -> IO a
-cmdArgs short modes = do
-    termwidth <- catch (fmap (Just . read) $ getEnv "COLUMNS") $ return . (const Nothing)
-    parsed <- cmdArgsParse short modes termwidth `fmap` getArgs
-    case parsed of
-      Left (s,e) -> getProgName >>= putStrLn . e
-                    >> if s then exitSuccess else exitFailure
-      Right p -> return p
-
-
----------------------------------------------------------------------
--- HELP INFORMATION
-
--- | Format to display help in.
-data HelpFormat
-    = Text -- ^ As output on the console.
-    | HTML -- ^ Suitable for inclusion in web pages (uses a table rather than explicit wrapping).
-    deriving (Eq,Ord,Show,Read,Enum,Bounded)
-
--- | Fetch the help message as multi-line String specifying help
---   output as it would appear with @--help@.  The first argument
---   should match the first argument to 'cmdArgs'.
+--   * If @--version@ is given, it will display the version and exit.
 --
---   Alternatively, use 'cmdArgsHelp' to display the help message to stdout.
-getCmdArgsHelp :: String -- ^ Information about the program (see 'cmdArgs' above)
-               -> [Mode a] -- ^ All specified modes
-               -> Maybe (Mode a) -- ^ Help is returned for all modes or just the mode specified here
-               -> String -- ^ Format to return help in (e.g. "text" or "html")
-               -> Maybe Int -- ^ Width of the terminal for formatting the help text (if known).
-               -> String -- ^ Raw program name
-               -> String -- ^ Returns formatted help information
-getCmdArgsHelp i ms cm hf tw rpn = let hi = (helpInfo rpn i ms (maybe ms (flip (:) []) cm))
-                                   in showHelp hi hf $ maybe 80 id tw
+--   * In all other circumstances the program will return a value.
+--
+--   * Additionally, if either @--quiet@ or @--verbose@ is given (see 'verbosity')
+--     it will set the verbosity (see 'setVerbosity').
+cmdArgsRun :: Mode (CmdArgs a) -> IO a
+cmdArgsRun m = do
+    args <- getArgs
+    case process m args of
+        Left x -> do putStrLn x; exitFailure
+        Right CmdArgs{..} 
+            | Just x <- cmdArgsHelp -> do putStrLn x; exitSuccess
+            | Just x <- cmdArgsVersion -> do putStrLn x; exitSuccess
+            | otherwise -> do
+                maybe (return ()) setVerbosity cmdArgsVerbosity
+                return cmdArgsValue
 
 
--- | Display the help message, as it would appear with @--help@.
---   The first argument should match the first argument to 'cmdArgs'.
-cmdArgsHelp :: String -> [Mode a] -> HelpFormat -> IO String
-cmdArgsHelp short xs format = do
-    rpn <- getProgName
-    termwidth <- do
-        env <- getEnvironment
-        return $ maybe 80 fst $ listToMaybe . reads =<< lookup "COLUMNS" env
-    return $ showHelp (helpInfo rpn short modes modes) (show format) termwidth
-    where modes = expand xs
+-- | Modes: \"I want a program with multiple modes, like darcs or cabal.\"
+--
+--   Takes a list of modes, and creates a mode which includes them all.
+--   If you want one of the modes to be chosen by default, see 'auto'.
+--
+-- > data Modes = Mode1 | Mode2 | Mode3 deriving Data
+-- > cmdArgs $ modes [Mode1,Mode2,Mode3]
+modes :: Data a => [a] -> a
+modes = many
 
-
-helpInfo :: String -> String -> [Mode a] -> [Mode a] -> [Text]
-helpInfo rpn short tot now =
-    let prog = head $ mapMaybe modeProg tot ++ [map toLower $ takeBaseName rpn]
-        justlist = length now /= 1 && length tot > 2
-        info = [(if justlist
-                   then [Cols [name ++ " --", head [head hl | length hl > 0, length (head hl) > 0]]]
-                   else [Line $ unwords $ prog : [['['|def] ++ name ++ [']'|def] | length tot /= 1] ++ trail] ++
-                            concat [[Line "  ", Line text] | text /= ""]
-                ,concatMap helpFlag flags)
-               | Mode{modeName=name,modeFlags=flags,modeText=text,modeDef=def} <- now
-               , let args = map snd $ sortBy (compare `on` fst) $ concatMap helpFlagArgs flags
-                     trail =  "[FLAG]" : args
-                     hl = lines text
-               ]
-        trip (a,b,c) = Cols [a,b,c]
-        dupes = if length now == 1 then [] else foldr1 intersect (map snd info)
-        flggroupinfo fs = let fgs = groupBy ((==) `on` snd) $ sortBy (compare `on` snd) fs
-                              gid g = if null g then Nothing else snd $ head g
-                              ginfo g | isNothing (gid g) = map (trip . fst) g
-                                      | otherwise = Line ("  ____" ++ (fromJust $ gid g) ++ " Flags____") : 
-                                                    map (trip . fst) g
-                          in concatMap ginfo fgs
-    in
-        Line short :
-        concat [ Line "" : mode ++ [Line "" | flags /= []] ++ flggroupinfo flags
-               | (mode,args) <- info, let flags = if justlist then [] else args \\ dupes] ++
-        (if null dupes then [] else Line "":Line "Common flags:":flggroupinfo dupes) ++
-        concat [ map Line $ "":suf | suf@(_:_) <- map modeHelpSuffix tot]
-
-
----------------------------------------------------------------------
--- PROCESS FLAGS
-
-parseModes :: [Mode a] -> [String] -> (Either String (Bool, Mode a), [Action])
-parseModes modes args
-    | [mode] <- modes = (Right (False,mode), parseFlags (modeFlags mode) args)
-    | [] <- poss, Just mode <- def = (Right (False,mode), parseFlags (modeFlags mode) args)
-    | [mode] <- poss = (Right (True, mode), parseFlags (modeFlags mode) $ tail args)
-    | otherwise = (Left err, parseFlags autoFlags args)
-    where
-        err = if null poss
-              then "No mode given, expected one of: " ++ unwords (map modeName modes)
-              else "Multiple modes given, could be any of: " ++ unwords (map modeName poss)
-
-        def = listToMaybe $ filter modeDef modes
-        poss = let f eq = [m | a <- take 1 args, m <- modes, a `eq` modeName m]
-                   (exact,prefix) = (f (==), f isPrefixOf)
-               in if null exact then prefix else exact
-
-
----------------------------------------------------------------------
--- APPLICATION
-
-setField :: Data a => a -> String -> (Dynamic -> Dynamic) -> a
-setField x name v = flip evalState (constrFields $ toConstr x) $ flip gmapM x $ \i -> do
-    n:ns <- get
-    put ns
-    return $ if n == name then fromDyn (v $ toDyn i) i else i
-
-
-applyActions :: Data a => [Action] -> a -> a
-applyActions (Update name op:as) x | not $ "!" `isPrefixOf` name = applyActions as $ setField x name op
-applyActions (_:as) x = applyActions as x
-applyActions [] x = x
+-- | Flag: \"I want several different flags to set this one field to different values.\"
+--
+--   This annotation takes a type which is an enumeration, and provides multiple
+--   separate flags to set the field to each value.
+--
+-- > data State = On | Off deriving Data
+-- > data Mode = Mode {state :: State}
+-- > cmdArgs $ Mode {state = enum [On &= help "Turn on",Off &= help "Turn off"]}
+-- >   --on   Turn on
+-- >   --off  Turn off
+enum :: Data a => [a] -> a
+enum = many
