@@ -50,7 +50,7 @@ flagHelpFormat f = (flagOpt "" ["help","?"] upd "" "Display help message"){flagI
             where
                 sep = words . map (\x -> if x `elem` ":," then ' ' else toLower x)
                 f x (a,b) = case x of
-                    "full" -> Right (HelpFormatAll,b)
+                    "all" -> Right (HelpFormatAll,b)
                     "one" -> Right (HelpFormatOne,b)
                     "def" -> Right (HelpFormatDefault,b)
                     "html" -> Right (a,HTML)
