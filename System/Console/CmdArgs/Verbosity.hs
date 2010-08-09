@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- |  A module to deal with verbosity, how \'chatty\' a program should be.
 --    This module defines the 'Verbosity' data type, along with functions
@@ -9,6 +10,7 @@ module System.Console.CmdArgs.Verbosity(
     ) where
 
 import Control.Monad
+import Data.Data
 import Data.IORef
 import System.IO.Unsafe
 
@@ -18,7 +20,7 @@ data Verbosity
     = Quiet  -- ^ Only output essential messages (typically errors)
     | Normal -- ^ Output normal messages (typically errors and warnings)
     | Loud   -- ^ Output lots of messages (typically errors, warnings and status updates)
-      deriving (Eq,Ord,Bounded,Enum,Show,Read)
+      deriving (Eq,Ord,Bounded,Enum,Show,Read,Data,Typeable)
 
 
 {-# NOINLINE ref #-}
