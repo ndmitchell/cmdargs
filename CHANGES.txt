@@ -1,6 +1,6 @@
 Changelog for CmdArgs
 
-0.2
-    Complete rewrite
+    #256, add --option=false support
+    Complete rewrite to introduce Explicit module
 0.1.1
     Start of changelog

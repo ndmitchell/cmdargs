@@ -57,6 +57,9 @@ test = do
     isVerbosity ["--color","--quiet","--verbose"] Loud
     isVerbosity [] Normal
     ["--colo"] === hlint{color=True}
+    ["--colour","--colour=false"] === hlint
+    ["--colour=true"] === hlint{color=True}
+    ["-c=off"] === hlint
     ["-ct"] === hlint{color=True,test_=True}
     ["--colour","--test"] === hlint{color=True,test_=True}
     ["-thfoo"] === hlint{test_=True,hint=["foo"]}
