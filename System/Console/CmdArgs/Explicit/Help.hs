@@ -19,28 +19,33 @@ instance Default HelpFormat where def = HelpFormatDefault
 
 
 instance Show (Mode a) where
-    show = show . helpTextDefault []
+    show = show . helpTextDefault
 
 
 -- | Generate a help message from a mode.
 helpText :: HelpFormat -> Mode a -> [Text]
-helpText HelpFormatDefault = helpTextDefault []
-helpText HelpFormatOne = helpTextOne []
-helpText HelpFormatAll = helpTextAll []
+helpText HelpFormatDefault = helpTextDefault
+helpText HelpFormatOne = helpTextOne
+helpText HelpFormatAll = helpTextAll
 
 
-helpTextDefault path x = if length all > 40 then one else all
-    where all = helpTextAll path x
-          one = helpTextOne path x
+helpTextDefault x = if length all > 40 then one else all
+    where all = helpTextAll x
+          one = helpTextOne x
 
 
 -- | Help text for all modes
 --
 -- > <program> [OPTIONS] <file_args>
 -- > <options>
--- > <program> MODE [FLAGS]
-helpTextAll :: [Name] -> Mode a -> [Text]
-helpTextAll = helpTextAny (\x y -> Line "" : helpTextAll x y)
+-- > <program> MODE [SUBMODE] [OPTIONS] [FLAG]
+helpTextAll :: Mode a -> [Text]
+helpTextAll = disp . push ""
+    where
+        disp m = uncurry (++) (helpTextMode m) ++ concatMap (\x -> Line "" : disp x) (modeModes m)
+        push s m = m{modeNames = map (s++) $ modeNames m
+                    ,modeGroupModes = fmap (push s2) $ modeGroupModes m}
+            where s2 = s ++ concat (take 1 $ modeNames m) ++ " "
 
 
 -- | Help text for only this mode
@@ -49,26 +54,27 @@ helpTextAll = helpTextAny (\x y -> Line "" : helpTextAll x y)
 -- > <options>
 -- > <program> MODE [FLAGS]
 -- > <options>
-helpTextOne :: [Name] -> Mode a -> [Text]
-helpTextOne = helpTextAny f
-    where f _ x = [cols [head $ modeNames x ++ [""], modeHelp x]]
+helpTextOne :: Mode a -> [Text]
+helpTextOne m = pre ++ ms ++ suf
+    where 
+        (pre,suf) = helpTextMode m
+        ms = space $ [Line " Modes" | not $ null $ groupUnnamed $ modeGroupModes m] ++ helpGroup f (modeGroupModes m)
+        f m = return $ cols [concat $ take 1 $ modeNames m, modeHelp m]
 
 
-helpTextAny :: ([Name] -> Mode a -> [Text]) -> [Name] -> Mode a -> [Text]
-helpTextAny f path x =
-    [Line $ unwords $ path2 ++ ["[OPTIONS]" | not $ null $ modeFlags x] ++ map argType (maybeToList $ modeArgs x)] ++
-    [Line $ " " ++ modeHelp x | not $ null $ modeHelp x] ++
-    [Line "" | not $ null $ modeFlags x] ++
-    helpGroup helpFlag (modeGroupFlags x) ++
-    helpGroup (f path2) (modeGroupModes x) ++
-    [Line "" | not $ null $ modeHelpSuffix x] ++
-    map (\x -> Line $ " " ++ x) (modeHelpSuffix x)
-    where path2 = path ++ take 1 (modeNames x)
+helpTextMode :: Mode a -> ([Text], [Text])
+helpTextMode x = (pre,suf)
+    where
+        pre = [Line $ unwords $ take 1 (modeNames x) ++ ["[OPTIONS]" | not $ null $ modeFlags x] ++
+                  map argType (maybeToList $ modeArgs x)] ++
+              [Line $ " " ++ modeHelp x | not $ null $ modeHelp x] ++
+              space (helpGroup helpFlag $ modeGroupFlags x)
+        suf = space (map (\x -> Line $ " " ++ x) $ modeHelpSuffix x)
 
 
 helpGroup :: (a -> [Text]) -> Group a -> [Text]
 helpGroup f xs = concatMap f (groupUnnamed xs) ++ concatMap g (groupNamed xs)
-    where g (a,b) = Line a : concatMap f b
+    where g (a,b) = Line (' ':a) : concatMap f b
 
 
 helpFlag :: Flag a -> [Text]
@@ -84,3 +90,4 @@ helpFlag x = [cols [unwords $ map ("-"++) a2, unwords $ map ("--"++) b2, flagHel
                 _ -> ""
 
 cols (x:xs) = Cols $ ("  "++x) : map (' ':) xs
+space xs = [Line "" | not $ null xs] ++ xs

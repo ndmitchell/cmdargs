@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards #-}
+{-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards, DeriveDataTypeable #-}
 
 -- | This module takes the result of Structure, and traslates it to
 --   the CmdArgs.Explicit format.
@@ -14,6 +14,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Verbosity
 import System.Console.CmdArgs.Text
 
+import Data.Data
 import Data.Maybe
 import Data.Monoid
 import Data.List
@@ -29,13 +30,14 @@ data CmdArgs a = CmdArgs
     ,cmdArgsVerbosity :: Maybe Verbosity -- ^ @Just@ if @--quiet@ or @--verbose@ is given, then gives the verbosity to use.
     ,cmdArgsPrivate :: CmdArgsPrivate -- ^ Private: Only exported due to Haddock limitations.
     }
-    deriving Show
+    deriving (Show,Data,Typeable)
 
 cmdArgsHasValue :: CmdArgs a -> Bool
 cmdArgsHasValue x = isNothing (cmdArgsHelp x) && isNothing (cmdArgsVersion x)
 
 data CmdArgsPrivate = CmdArgsPrivate
     Int -- ^ The number of arguments that have been seen
+    deriving (Data,Typeable)
 
 instance Show CmdArgsPrivate where show _ = "CmdArgsPrivate"
 
@@ -54,16 +56,15 @@ step3 p = common p $ transProg $ liftProg p
 common :: Prog2 a -> Mode (CmdArgs a) -> Mode (CmdArgs a)
 common p m
     | null $ modeModes m = addNormal m $ commonFlags p $ addNormal m
-    | otherwise = addCommon m2 $ commonFlags p $ addCommon $ hideHelp m2
+    | otherwise = addCommon m2 $ commonFlags p $ addCommon m2
     where
         add m xs = m{modeGroupFlags = xs `mappend` modeGroupFlags m}
         addNormal m xs = add m $ toGroup xs
-        addCommon m xs = add m $ Group [] [] [(" Common flags",xs)]
+        addCommon m xs = add m $ Group [] [] [("Common flags",xs)]
         addHidden m xs = add m $ Group [] xs []
 
         m2 = m{modeGroupModes = fmap f $ modeGroupModes m}
         f m = addHidden m $ commonFlags p $ addCommon $ m{modeNames = map ((prog2Name p ++ " ") ++) $ modeNames m}
-        hideHelp m = m{modeGroupFlags=mempty, modeArgs=Nothing, modeHelp=""}
 
 
 -- add common flags to a mode
@@ -84,8 +85,9 @@ commonFlags Prog2{..} add = flags
 transProg :: Prog2 (CmdArgs a) -> Mode (CmdArgs a)
 transProg p = res{modeNames = [prog2Name p]}
     where
-        res = if length ys == 1 then head ys else defMode{modeGroupModes = toGroup ys}
-        defMode = maybe zeroMode (ys!!) $ prog2ModeDefault p
+        res = if length ys == 1 then head ys else defMode{modeGroupModes = toGroup ys, modeHelp = prog2Help p}
+        defMode = maybe zeroMode (silentMode . (ys!!)) $ prog2ModeDefault p
+        silentMode m = m{modeGroupFlags=Group [] (modeFlags m) [], modeArgs=fmap (\x -> x{argType=""}) (modeArgs m)}
         ys = zipWith transMode (map ((==) (prog2ModeDefault p) . Just) [0..]) $ prog2Modes p
 
         zeroMode = Mode (toGroup []) [] (embed $ error msg) chk "" [] Nothing $ toGroup []

@@ -56,7 +56,7 @@ flagHelpFormat f = (flagOpt "" ["help","?"] upd "" "Display help message"){flagI
                     "html" -> Right (a,HTML)
                     "text" -> Right (a,defaultWrap)
                     _ | all isDigit x -> Right (a,Wrap $ read x)
-                    _ -> Left "unrecognised help format"
+                    _ -> Left "unrecognised help format, expected one of: all one def html text <NUMBER>"
 
 
 -- | Create a version flag triggered by @-V@/@--version@.

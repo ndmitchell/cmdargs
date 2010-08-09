@@ -36,7 +36,7 @@
 
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines
-    cmdArgs, cmdArgsMode, cmdArgsRun, CmdArgs(..),
+    cmdArgs, cmdArgsMode, cmdArgsRun, cmdArgsApply, CmdArgs(..),
     -- * Constructing command lines
     -- | Attributes can work on a flag (inside a field), on a mode (outside the record),
     --   or on all modes (outside the 'modes' call).
@@ -53,9 +53,8 @@ module System.Console.CmdArgs.Implicit(
     ) where
 
 import Data.Data
-import System.Environment
 import System.Exit
-import System.Console.CmdArgs.Explicit(Mode,process)
+import System.Console.CmdArgs.Explicit(Mode,processArgs)
 import System.Console.CmdArgs.Implicit.Ann
 import System.Console.CmdArgs.Implicit.Capture
 import System.Console.CmdArgs.Implicit.Step1
@@ -96,16 +95,26 @@ cmdArgsMode = step3 . step2 . step1 . capture
 --   * Additionally, if either @--quiet@ or @--verbose@ is given (see 'verbosity')
 --     it will set the verbosity (see 'setVerbosity').
 cmdArgsRun :: Mode (CmdArgs a) -> IO a
-cmdArgsRun m = do
-    args <- getArgs
-    case process m args of
-        Left x -> do putStrLn x; exitFailure
-        Right CmdArgs{..} 
-            | Just x <- cmdArgsHelp -> do putStrLn x; exitSuccess
-            | Just x <- cmdArgsVersion -> do putStrLn x; exitSuccess
-            | otherwise -> do
-                maybe (return ()) setVerbosity cmdArgsVerbosity
-                return cmdArgsValue
+cmdArgsRun m = cmdArgsApply =<< processArgs m
+
+
+-- | Perform the necessary actions dictated by a 'CmdArgs' structure.
+--
+--   * If 'cmdArgsHelp' is @Just@, it will display the help message and exit.
+--
+--   * If 'cmdArgsVersion' is @Just@, it will display the version and exit.
+--
+--   * In all other circumstances it will return a value.
+--
+--   * Additionally, if 'cmdArgsVerbosity' is @Just@ (see 'verbosity')
+--     it will set the verbosity (see 'setVerbosity').
+cmdArgsApply :: CmdArgs a -> IO a
+cmdArgsApply CmdArgs{..}
+    | Just x <- cmdArgsHelp = do putStrLn x; exitSuccess
+    | Just x <- cmdArgsVersion = do putStrLn x; exitSuccess
+    | otherwise = do
+        maybe (return ()) setVerbosity cmdArgsVerbosity
+        return cmdArgsValue
 
 
 -- | Modes: \"I want a program with multiple modes, like darcs or cabal.\"

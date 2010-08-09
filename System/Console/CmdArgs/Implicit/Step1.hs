@@ -22,7 +22,7 @@ step1 :: Capture -> Prog1
 step1 = expand . flatten
 
 
-err x = error $ "CmdArgs.Implicit.Convert: " ++ x
+err x = error $ "CmdArgs.Implicit.Step1: " ++ x
 
 
 mapMode :: (Mode1 -> Mode1) -> Prog1 -> Prog1
@@ -74,14 +74,10 @@ flatten = moveAnn . flattenProg
 
 
 -- Move annotations from Prog to Mode if appropriate
+-- 'Help' can be at the program level for multi-mode programs
 moveAnn :: Prog1 -> Prog1
-moveAnn (Prog1 as ms)
-    | length ms > 1 && one = err "Some mode annotations at program level"
-    | otherwise = Prog1 prog [Mode1 (mode++a) b c | Mode1 a b c <- ms]
-    where
-        (prog,mode) = partition isProgAnn as
-        one = any (/=Explicit) mode
-
+moveAnn (Prog1 as ms) = Prog1 prog [Mode1 (mode++a) b c | Mode1 a b c <- ms]
+    where (prog,mode) = partition (\x -> case x of Help{} -> length ms > 1; _ -> isProgAnn x) as
 
 isProgAnn ProgSummary{} = True
 isProgAnn ProgProgram{} = True

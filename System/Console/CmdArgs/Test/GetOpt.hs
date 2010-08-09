@@ -1,11 +1,14 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module System.Console.CmdArgs.Test.GetOpt where
 
+import Data.Data
 import System.Console.CmdArgs.GetOpt
+import qualified System.Console.CmdArgs.Explicit as Explicit
 import System.Console.CmdArgs.Test.Util
 
 
-data Flag = Verbose | Version | Name String | Output String | Arg String   deriving Show
+data Flag = Verbose | Version | Name String | Output String | Arg String deriving (Show,Data,Typeable)
 
 options :: [OptDescr Flag]
 options =
@@ -24,7 +27,9 @@ tester cmdline = case getOpt Permute options cmdline of
                         (_,_,errs) -> ("failed", unlines errs ++ usageInfo header options)
    where header = "Usage: foobar [OPTION...] files..."
 
-demo = [("getopt", putStrLn . snd . tester)]
+mode = (convert "GetOpt compatibility demo" options){Explicit.modeNames=["getopt"]}
+
+demo = [newDemo print mode]
 
 
 test = do

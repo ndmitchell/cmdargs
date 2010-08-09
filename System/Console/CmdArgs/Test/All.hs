@@ -1,6 +1,8 @@
 
-module System.Console.CmdArgs.Test.All(test,demo) where
+module System.Console.CmdArgs.Test.All(test,demo,Demo,runDemo) where
 
+import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Test.Util
 import qualified System.Console.CmdArgs.Test.Explicit as Explicit
 import qualified System.Console.CmdArgs.Test.Implicit as Implicit
 import qualified System.Console.CmdArgs.Test.GetOpt as GetOpt
@@ -12,5 +14,5 @@ test = do
     Implicit.test
     putStrLn "\nTest completed"
 
-demo :: [(String, [String] -> IO ())]
+demo :: [Mode Demo]
 demo = GetOpt.demo ++ Explicit.demo ++ Implicit.demo

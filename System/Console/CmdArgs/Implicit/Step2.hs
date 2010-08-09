@@ -23,6 +23,7 @@ import Data.Maybe
 data Prog2 a = Prog2
     {prog2Summary :: String
     ,prog2Name :: String
+    ,prog2Help :: String
     ,prog2Verbosity :: Bool
     ,prog2ModeDefault :: Maybe Int -- index in to prog2Modes
     ,prog2Modes :: [Mode2 a]
@@ -72,9 +73,10 @@ isArg _ = False
 -- Translate in to the Mode domain
 
 transProg :: Data a => Prog1 -> Prog2 a
-transProg (Prog1 ann xs) = Prog2 summary program verb defMode (map transMode xs)
+transProg (Prog1 ann xs) = Prog2 summary program hlp verb defMode (map transMode xs)
     where
         summary = concat [x | ProgSummary x <- ann]
+        hlp = concat [x | Help x <- ann]
         defMode = flip findIndex xs $ \(Mode1 an _ _) -> length xs /= 1 && ModeDefault `elem` an
         verb = ProgVerbosity `elem` ann
         program = last $ defProg : [x | ProgProgram x <- ann]

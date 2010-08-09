@@ -144,6 +144,25 @@ checkMode x =
 
 
 ---------------------------------------------------------------------
+-- REMAP
+
+-- | Change the underlying type of a 'Mode' structure.
+remap :: (a -> b) -- ^ Embed the mode
+      -> (b -> (a, a -> b)) -- ^ Extract the mode and give a way of re-embedding
+      -> Mode a -> Mode b
+remap f g x = x
+    {modeGroupModes = fmap (remap f g) $ modeGroupModes x
+    ,modeValue = f $ modeValue x
+    ,modeCheck = \v -> let (a,b) = g v in fmap b $ modeCheck x a
+    ,modeArgs = fmap remapArg $ modeArgs x
+    ,modeGroupFlags = fmap remapFlag $ modeGroupFlags x}
+    where
+        remapUpdate upd = \s v -> let (a,b) = g v in fmap b $ upd s a
+        remapFlag x = x{flagValue = remapUpdate $ flagValue x}
+        remapArg x = x{argValue = remapUpdate $ argValue x}
+
+
+---------------------------------------------------------------------
 -- MODE/MODES CREATORS
 
 -- | Create a mode with a name, an initial value, some help text, a way of processing arguments
@@ -151,9 +170,9 @@ checkMode x =
 mode :: Name -> a -> Help -> Arg a -> [Flag a] -> Mode a
 mode name value help arg flags = Mode (toGroup []) [name] value Right help [] (Just arg) $ toGroup flags
 
--- | Create a list of modes, with an initial value, some help text and the child modes.
-modes :: a -> Help -> [Mode a] -> Mode a
-modes value help xs = Mode (toGroup xs) [] value Right help [] Nothing $ toGroup []
+-- | Create a list of modes, with a program name, an initial value, some help text and the child modes.
+modes :: String -> a -> Help -> [Mode a] -> Mode a
+modes name value help xs = Mode (toGroup xs) [name] value Right help [] Nothing $ toGroup []
 
 
 ---------------------------------------------------------------------

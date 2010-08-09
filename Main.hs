@@ -2,22 +2,38 @@
 
 module Main where
 
-import qualified System.Console.CmdArgs.Test.All as Test
-import System.Environment
+import System.Console.CmdArgs.Test.All
+import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Text
+import System.Console.CmdArgs.Default
 
---import System.Console.CmdArgs
---import qualified System.Console.CmdArgs.Test.Implicit.HLint as H
---import qualified System.Console.CmdArgs.Test.Implicit.Diffy as D
---import qualified System.Console.CmdArgs.Test.Implicit.Maker as M
+
+data Args = Test
+          | Generate
+          | Help HelpFormat TextFormat
+          | Version
+          | Demo Demo
+
+args = (modes "cmdargs" (Help def def) "CmdArgs demo program" ms){modeGroupFlags = toGroup flags}
+    where
+        flags = [flagHelpFormat $ \a b _ -> Help a b
+                ,flagVersion $ const Version
+                ,flagNone ["t","test"] (const Test) "Run the tests"
+                ,flagNone ["g","generate"] (const Generate) "Generate the manual"]
+
+        ms = map (remap Demo (\(Demo x) -> (x,Demo))) demo
 
 
 main = do
-    args <- getArgs
-    case args of
-        "test":_ -> Test.test
-        "generate":_ -> generateManual
-        x:xs | Just y <- lookup x Test.demo -> y xs
-        _ -> error "CmdArgs test program, expected one of: test hlint diffy maker"
+    x <- processArgs args
+    let ver = "CmdArgs demo program, (C) Neil Mitchell"
+    case x of
+        Version -> putStrLn ver
+        Help hlp txt -> putStrLn $ showText txt $ Line ver : Line "" : helpText hlp args
+        Test -> test
+        Generate -> generateManual
+        Demo x -> runDemo x
+
 
 ---------------------------------------------------------------------
 -- GENERATE MANUAL

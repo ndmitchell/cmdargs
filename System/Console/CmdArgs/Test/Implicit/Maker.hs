@@ -30,7 +30,7 @@ build = Build
     ,files = def &= args
     } &= help "Build the project" &= auto
 
-mode = cmdArgsMode $ modes [build,wipe,test_] &= program "maker" &= summary "Maker v1.0"
+mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= program "maker" &= summary "Maker v1.0"
 
 test = do
     let Tester{(===),fails} = tester "Maker" mode

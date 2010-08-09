@@ -1,7 +1,7 @@
 :set -w -fwarn-unused-binds -fwarn-unused-imports
 :load Main
 
-:def test const $ return ":main test"
+:def test const $ return ":main --test"
 
 :{
 :def hpc const $ return $ unlines

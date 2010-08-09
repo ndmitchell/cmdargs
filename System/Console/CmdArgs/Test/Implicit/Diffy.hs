@@ -20,7 +20,7 @@ diff = Diff
     ,out = outFlags "diff.txt"
     } &= help "Perform a diff"
 
-mode = cmdArgsMode $ modes [create,diff] &= program "difftastic" &= summary "Diffy v1.0"
+mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "difftastic" &= summary "Diffy v1.0"
 
 test = do
     let Tester{..} = tester "Diffy" mode
