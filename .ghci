@@ -7,7 +7,7 @@
 :def hpc const $ return $ unlines
     [":!(if not exist .hpc mkdir .hpc) && ghc --make Main -w -odir .hpc -hidir .hpc -o .hpc/cmdargs -fhpc"
     ,":!del cmdargs.tix"
-    ,":!.hpc\\cmdargs test"
+    ,":!.hpc\\cmdargs --test"
     ,":!hpc.exe markup cmdargs.tix --destdir=.hpc"
     ,":!hpc.exe report cmdargs.tix"
     ,":!del cmdargs.tix"
