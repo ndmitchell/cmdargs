@@ -110,7 +110,7 @@ transFlagType :: Data a => Flag1 -> Maybe (Flag2Type a)
 transFlagType (Flag1 ann fld val)
     | FlagEnum `elem` ann = Just $ Flag2Value $ \x -> setField fld x val
     | isNothing mty = Nothing
-    | fromReadContainer ty == ReadBool = Just $ Flag2Bool $ \b x -> setField fld x $ addContainer ty (getField fld x) (Any b)
+    | isReadBool $ fromReadContainer ty = Just $ Flag2Bool $ \b x -> setField fld x $ addContainer ty (getField fld x) (Any b)
     | otherwise = Just $ Flag2String $ \s x -> fmap (setField fld x) $ reader ty s $ getField fld x
     where
         mty = toReadContainer $ anyType val

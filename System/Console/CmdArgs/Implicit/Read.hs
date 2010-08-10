@@ -9,7 +9,6 @@ data ReadContainer
     = ReadList ReadAtom
     | ReadMaybe ReadAtom
     | ReadAtom ReadAtom
-      deriving (Show,Eq)
 
 data ReadAtom
     = ReadBool
@@ -19,7 +18,8 @@ data ReadAtom
     | ReadDouble
     | ReadString
 --    | ReadTuple [ReadAtom] -- Possible to add relatively easily
-      deriving (Read,Show,Eq)
+
+isReadBool ReadBool{} = True; isReadBool _ = False
 
 fromReadContainer :: ReadContainer -> ReadAtom
 fromReadContainer (ReadList x) = x
