@@ -3,6 +3,10 @@ module System.Console.CmdArgs.Test.Implicit.Tests where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
 
+test = test1 >> test2
+demos = [toDemo mode1, toDemo mode2]
+
+
 data Test1
     = Test1 {maybeInt :: Maybe Int, listDouble :: [Double], maybeStr :: Maybe String, float :: Float
             ,bool :: Bool, maybeBool :: Maybe Bool, listBool :: [Bool]}

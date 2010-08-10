@@ -6,6 +6,10 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Test.Util
 import Data.Maybe
 
+toDemo :: (Typeable a, Show a) => Mode (CmdArgs a) -> Mode Demo
+toDemo = newDemo $ \x -> cmdArgsApply x >>= print
+
+
 data Tester a = Tester
     {(===) :: [String] -> a -> IO ()
     ,fails :: [String] -> IO ()
