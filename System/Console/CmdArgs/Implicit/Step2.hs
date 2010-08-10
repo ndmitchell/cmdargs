@@ -97,7 +97,7 @@ transMode (Mode1 an c xs) = Mode2
 
 transFlag :: Data a => Flag1 -> Flag2 a
 transFlag flag@(Flag1 ann fld val)
-    | Just upd <- transFlagType flag = Flag2 names upd opt flaghelp help
+    | Just (flaghelpdef,upd) <- transFlagType flag = Flag2 names upd opt (if null flaghelp then flaghelpdef else flaghelp) help
     | otherwise = error $ "Don't know how to deal with field type, " ++ fld ++ " :: " ++ show val
     where
         opt = let a = [x | FlagOptional x <- ann] in if null a then Nothing else Just $ concat a
@@ -106,19 +106,19 @@ transFlag flag@(Flag1 ann fld val)
         flaghelp = concat [x | FlagType x <- ann]
 
 
-transFlagType :: Data a => Flag1 -> Maybe (Flag2Type a)
+transFlagType :: Data a => Flag1 -> Maybe (String,Flag2Type a)
 transFlagType (Flag1 ann fld val)
-    | FlagEnum `elem` ann = Just $ Flag2Value $ \x -> setField fld x val
+    | FlagEnum `elem` ann = Just $ (,) "" $ Flag2Value $ \x -> setField fld x val
     | isNothing mty = Nothing
-    | isReadBool $ fromReadContainer ty = Just $ Flag2Bool $ \b x -> setField fld x $ addContainer ty (getField fld x) (Any b)
-    | otherwise = Just $ Flag2String $ \s x -> fmap (setField fld x) $ reader ty s $ getField fld x
+    | isReadBool $ fromReadContainer ty = f $ Flag2Bool $ \b x -> setField fld x $ addContainer ty (getField fld x) (Any b)
+    | otherwise = f $ Flag2String $ \s x -> fmap (setField fld x) $ reader ty s $ getField fld x
     where
         mty = toReadContainer val
         ty = fromJust mty
+        f x = Just (readHelp $ fromReadContainer ty, x)
 
 
 transArg :: Data a => Flag1 -> Arg2 a
-transArg x@(Flag1 ann _ _) = Arg2 hlp (fromFlag2String $ flag2Upd y) pos (flag2Opt y)
+transArg x@(Flag1 ann _ _) = Arg2 (flag2FlagHelp y) (fromFlag2String $ flag2Upd y) pos (flag2Opt y)
     where y = transFlag x
           pos = listToMaybe [i | FlagArgPos i <- ann]
-          hlp = if null $ flag2FlagHelp y then "FILE" else flag2FlagHelp y

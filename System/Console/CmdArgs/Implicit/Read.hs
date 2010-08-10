@@ -94,3 +94,14 @@ readOne a xs | null ys = Left $ "Could not read, expected one of: " ++ unwords (
              | length ys > 1 = Left $ "Ambiguous read, could be any of: " ++ unwords (map fst ys)
              | otherwise = Right $ snd $ head ys
     where ys = filter (\x -> a `isPrefixOf` fst x) xs
+
+
+readHelp :: ReadAtom -> String
+readHelp ty = case ty of
+    ReadBool -> "BOOL"
+    ReadInt -> "INT"
+    ReadInteger -> "INT"
+    ReadFloat -> "NUM"
+    ReadDouble -> "NUM"
+    ReadString -> "ITEM"
+    ReadEnum xs -> map toUpper $ tyconUQname $ show $ anyType $ snd $ head xs
