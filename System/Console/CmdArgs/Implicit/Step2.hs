@@ -101,7 +101,7 @@ transFlag flag@(Flag1 ann fld val)
     | otherwise = error $ "Don't know how to deal with field type, " ++ fld ++ " :: " ++ show val
     where
         opt = let a = [x | FlagOptional x <- ann] in if null a then Nothing else Just $ concat a
-        help = concat [x | Help x <- ann]
+        help = concat [x | Help x <- ann] ++ concat [" (default=" ++ x ++ ")" | Just x <- [opt], x /= ""]
         names = [x | Name x <- ann]
         flaghelp = concat [x | FlagType x <- ann]
 
