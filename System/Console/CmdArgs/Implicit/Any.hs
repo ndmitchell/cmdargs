@@ -116,3 +116,13 @@ isTypeList x = tyConString (typeRepTyCon $ anyType x) == "[]"
 isTypeMaybe x = tyConString (typeRepTyCon $ anyType x) == "Maybe"
 fromTypeList x | isTypeList x = head $ typeRepArgs $ anyType x
 fromTypeMaybe x | isTypeMaybe x = head $ typeRepArgs $ anyType x
+
+
+fromListAny :: AnyT [a] -> AnyT a
+fromListAny (Any x) | isTypeList $ Any x = gmapQi 0 Any (fromConstr ctr `asTypeOf` x)
+    where Just ctr = readConstr (dataTypeOf x) "(:)"
+
+
+fromMaybeAny :: AnyT (Maybe a) -> AnyT a
+fromMaybeAny (Any x) | isTypeMaybe $ Any x = gmapQi 0 Any (fromConstr ctr `asTypeOf` x)
+    where Just ctr = readConstr (dataTypeOf x) "Just"
