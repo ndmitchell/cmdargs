@@ -11,10 +11,10 @@ data Test1
 
 reading = Reading def def def (def &= args) def def def
 
-mode1 = cmdArgsMode $ modes [reading,Other]  &= help "Testing various corner cases"
+mode1 = cmdArgsMode $ modes [reading,Other]  &= help "Testing various corner cases (1)"
 
-test = do
-    let Tester{fails,(===)} = tester "Test" mode1
+test1 = do
+    let Tester{fails,(===)} = tester "Test1" mode1
     fails []
     ["reading"] === reading
     ["reading","--maybeint=12"] === reading{maybeInt = Just 12}
@@ -32,3 +32,18 @@ test = do
     ["reading","--maybebool=off"] === reading{maybeBool=Just False}
     ["reading","--listbool","--listbool=true","--listbool=false"] === reading{listBool=[True,True,False]}
     fails ["reading","--listbool=fred"]
+
+
+-- from bug #230
+data Test2 = Cmd1 {bs :: [String]}
+           | Cmd2 {bar :: Int}
+             deriving (Show, Eq, Data, Typeable)
+
+mode2 = cmdArgsMode $ modes [Cmd1 [], Cmd2 42] &= help "Testing various corner cases (2)"
+
+test2 = do
+    let Tester{fails,(===)} = tester "Test2" mode2
+    fails []
+    ["cmd1","-btest"] === Cmd1 ["test"]
+    ["cmd2","-b14"] === Cmd2 14
+
