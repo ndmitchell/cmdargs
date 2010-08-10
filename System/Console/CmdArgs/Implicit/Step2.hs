@@ -94,6 +94,7 @@ transMode (Mode1 an c xs) = Mode2
     where (args,rest) = partition (ann isArg) xs
           ann f (Flag1 x _ _) = any f x
 
+
 transFlag :: Data a => Flag1 -> Flag2 a
 transFlag flag@(Flag1 ann fld val)
     | Just upd <- transFlagType flag = Flag2 names upd opt flaghelp help
