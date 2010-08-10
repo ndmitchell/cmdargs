@@ -53,7 +53,7 @@ test2 = do
 
 
 -- various argument position
-data Test3 = Test3 {pos1_1 :: [String], pos1_2 :: [String], pos1_rest :: [String]}
+data Test3 = Test3 {pos1_1 :: [Int], pos1_2 :: [String], pos1_rest :: [String]}
              deriving (Show, Eq, Data, Typeable)
 
 mode3 = cmdArgsMode $ Test3 (def &= argPos 1) (def &= argPos 2 &= opt "foo") (def &= args)
@@ -62,9 +62,9 @@ test3 = do
     let Tester{fails,(===)} = tester "Test3" mode3
     fails []
     fails ["a"]
-    ["a","b"] === Test3 ["b"] ["foo"] ["a"]
-    ["a","b","c"] === Test3 ["b"] ["c"] ["a"]
-    ["a","b","c","d"] === Test3 ["b"] ["c"] ["a","d"]
+    ["a","1"] === Test3 [1] ["foo"] ["a"]
+    ["a","1","c"] === Test3 [1] ["c"] ["a"]
+    ["a","1","c","d"] === Test3 [1] ["c"] ["a","d"]
 
 
 -- from bug #222
