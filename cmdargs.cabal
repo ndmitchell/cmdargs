@@ -74,5 +74,6 @@ executable cmdargs
         System.Console.CmdArgs.Test.Implicit.Diffy
         System.Console.CmdArgs.Test.Implicit.HLint
         System.Console.CmdArgs.Test.Implicit.Maker
+        System.Console.CmdArgs.Test.Implicit.Tests
         System.Console.CmdArgs.Test.Implicit.Util
         System.Console.CmdArgs.Test.Util
