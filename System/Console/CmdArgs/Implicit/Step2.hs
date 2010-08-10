@@ -113,7 +113,7 @@ transFlagType (Flag1 ann fld val)
     | isReadBool $ fromReadContainer ty = Just $ Flag2Bool $ \b x -> setField fld x $ addContainer ty (getField fld x) (Any b)
     | otherwise = Just $ Flag2String $ \s x -> fmap (setField fld x) $ reader ty s $ getField fld x
     where
-        mty = toReadContainer $ anyType val
+        mty = toReadContainer val
         ty = fromJust mty
 
 

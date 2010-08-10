@@ -27,16 +27,16 @@ fromReadContainer (ReadMaybe x) = x
 fromReadContainer (ReadAtom x) = x
 
 
-toReadContainer :: TypeRep -> Maybe ReadContainer
-toReadContainer t = case tyConString c of
-        "[]" | show (head ts) /= "Char" -> fmap ReadList $ toReadAtom $ head ts
-        "Maybe" -> fmap ReadMaybe $ toReadAtom $ head ts
-        _ -> fmap ReadAtom $ toReadAtom t
-    where (c,ts) = splitTyConApp t
+toReadContainer :: Any -> Maybe ReadContainer
+toReadContainer x = case tyConString $ typeRepTyCon t of
+        "[]" | show t /= "[Char]" -> fmap ReadList $ toReadAtom $ fromListAny x
+        "Maybe" -> fmap ReadMaybe $ toReadAtom $ fromMaybeAny x
+        _ -> fmap ReadAtom $ toReadAtom x
+    where t = anyType x
 
 
-toReadAtom :: TypeRep -> Maybe ReadAtom
-toReadAtom t = case show t of
+toReadAtom :: Any -> Maybe ReadAtom
+toReadAtom x = case show $ anyType x of
     "Bool" -> Just ReadBool
     "Int" -> Just ReadInt
     "Integer" -> Just ReadInteger
