@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #222, support opt and args together
     #230, different modes can share short flags
     #295, make verbosity flags explicit
     #231, add support for Maybe

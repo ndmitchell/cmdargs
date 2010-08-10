@@ -123,10 +123,15 @@ transArgs xs x = x{modeCheck=chk, modeArgs = Just $ flagArg upd hlp}
 
         chk v | not $ cmdArgsHasValue v = Right v
               | n < mn = Left $ "Requires at least " ++ show mn ++ " arguments, got " ++ show n
-              | otherwise = foldl f (Right v) (drop n ord)
+              | otherwise = foldl f (addOptArgs n v) (drop n ord)
             where n = getArgsSeen v
                   f (Right v) arg = arg2Upd arg (fromJust $ arg2Opt arg) v
                   f x _ = x
+
+        -- if we have repeating args which is also opt, translate that here
+        addOptArgs n v
+            | Just x <- rep, Just o <- arg2Opt x, Just n <= findIndex (isNothing . arg2Pos) (ord ++ [x]) = arg2Upd x o v
+            | otherwise = Right v
 
         hlp = unwords $ a ++ map (\x -> "["++x++"]") b
             where (a,b) = splitAt mn $ map arg2FlagHelp $ ord ++ maybeToList rep
