@@ -2,7 +2,9 @@
 module System.Console.CmdArgs.Implicit.Read where
 
 import System.Console.CmdArgs.Implicit.Any
+import Data.Char
 import Data.Data
+import Data.List
 
 
 data ReadContainer
@@ -17,6 +19,7 @@ data ReadAtom
     | ReadFloat
     | ReadDouble
     | ReadString
+    | ReadEnum [(String,Any)]
 --    | ReadTuple [ReadAtom] -- Possible to add relatively easily
 
 isReadBool ReadBool{} = True; isReadBool _ = False
@@ -43,7 +46,18 @@ toReadAtom x = case show $ anyType x of
     "Float" -> Just ReadFloat
     "Double" -> Just ReadDouble
     "[Char]" -> Just ReadString
-    _ -> Nothing
+    _ -> toReadEnum x
+
+
+toReadEnum :: Any -> Maybe ReadAtom
+toReadEnum (Any x)
+    | isAlgType t && all ((==) 0 . arity) cs
+        = Just $ ReadEnum [(map toLower $ showConstr c, Any $ fromConstr c `asTypeOf` x) | c <- cs]
+    | otherwise = Nothing
+    where
+        t = dataTypeOf x
+        cs = dataTypeConstrs t
+        arity c = length $ gmapQ Any $ fromConstr c `asTypeOf` x
 
 
 -- | Both Any will be the same type as ReadContainer
@@ -68,7 +82,15 @@ readAtom ty s = case ty of
     ReadFloat -> f (0::Float)
     ReadDouble -> f (0::Double)
     ReadString -> Right $ Any s
+    ReadEnum xs -> readOne (map toLower s) xs
     where
         f t = case reads s of
             [(x,"")] -> Right $ Any $ x `asTypeOf` t
             _ -> Left $ "Could not read as type " ++ show (typeOf t) ++ ", " ++ show s
+
+
+readOne :: String -> [(String,a)] -> Either String a
+readOne a xs | null ys = Left $ "Could not read, expected one of: " ++ unwords (map fst xs)
+             | length ys > 1 = Left $ "Ambiguous read, could be any of: " ++ unwords (map fst ys)
+             | otherwise = Right $ snd $ head ys
+    where ys = filter (\x -> a `isPrefixOf` fst x) xs

@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #292, add support for automatic enumerations
     #221, make argpos work with non-string fields
     #222, support opt and args together
     #230, different modes can share short flags

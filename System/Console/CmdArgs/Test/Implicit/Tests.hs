@@ -4,8 +4,8 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4
-demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4]
+test = test1 >> test2 >> test3 >> test4 >> test5
+demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -78,3 +78,20 @@ test4 = do
     [] === Test4 ["hello"]
     ["a"] === Test4 ["a"]
     ["a","b"] === Test4 ["a","b"]
+
+
+-- from #292, automatic enumerations
+data ABC = Abacus | Arbitrary | B | C deriving (Eq,Show,Data,Typeable)
+data Test5 = Test5 {choice :: ABC} deriving (Eq,Show,Data,Typeable)
+
+mode5 = cmdArgsMode $ Test5 B
+
+test5 = do
+    let Tester{(===),fails} = tester "Test5" mode5
+    [] === Test5 B
+    fails ["--choice=A"]
+    ["--choice=c"] === Test5 C
+    ["--choice=C"] === Test5 C
+    ["--choice=Aba"] === Test5 Abacus
+    ["--choice=abacus"] === Test5 Abacus
+    ["--choice=c","--choice=B"] === Test5 B
