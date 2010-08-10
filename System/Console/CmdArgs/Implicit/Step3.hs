@@ -147,7 +147,7 @@ orderArgs args = (f 0 ord, listToMaybe rep)
         f i (x:xs) = case fromJust (arg2Pos x) `compare` i of
             LT -> f i xs
             EQ -> x : f (i+1) xs
-            GT -> take 1 rep ++ f (i+1) xs
+            GT -> take 1 rep ++ f (i+1) (x:xs)
 
 
 ---------------------------------------------------------------------
