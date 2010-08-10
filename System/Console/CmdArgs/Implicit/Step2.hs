@@ -75,7 +75,7 @@ isArg _ = False
 transProg :: Data a => Prog1 -> Prog2 a
 transProg (Prog1 ann xs) = Prog2 summary program hlp verb defMode (map transMode xs)
     where
-        summary = concat [x | ProgSummary x <- ann]
+        summary = let x = concat [x | ProgSummary x <- ann] in if null x then "The " ++ defProg ++ " program" else x
         hlp = concat [x | Help x <- ann]
         defMode = flip findIndex xs $ \(Mode1 an _ _) -> length xs /= 1 && ModeDefault `elem` an
         verb = ProgVerbosity `elem` ann
