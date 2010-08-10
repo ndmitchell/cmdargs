@@ -4,11 +4,12 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
 
 data Test1
-    = Reading {maybeInt :: Maybe Int, listDouble :: [Double], maybeStr :: Maybe String, float :: Float}
+    = Reading {maybeInt :: Maybe Int, listDouble :: [Double], maybeStr :: Maybe String, float :: Float
+              ,bool :: Bool, maybeBool :: Maybe Bool, listBool :: [Bool]}
     | Other
       deriving (Show,Eq,Data,Typeable)
 
-reading = Reading def def def (def &= args)
+reading = Reading def def def (def &= args) def def def
 
 mode1 = cmdArgsMode $ modes [reading,Other]  &= help "Testing various corner cases"
 
@@ -26,3 +27,8 @@ test = do
     ["reading","--maybestr=test"] === reading{maybeStr=Just "test"}
     ["reading","12.5"] === reading{float=12.5}
     ["reading","12.5","18"] === reading{float=18}
+    ["reading","--bool"] === reading{bool=True}
+    ["reading","--maybebool"] === reading{maybeBool=Just True}
+    ["reading","--maybebool=off"] === reading{maybeBool=Just False}
+    ["reading","--listbool","--listbool=true","--listbool=false"] === reading{listBool=[True,True,False]}
+    fails ["reading","--listbool=fred"]
