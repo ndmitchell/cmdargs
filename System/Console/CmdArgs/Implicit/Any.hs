@@ -83,7 +83,7 @@ consAny :: AnyT a -> AnyT [a] -> AnyT [a]
 consAny x (Any y)
     | anyType x == fromTypeList (Any y)
     = Any $ fromConstrI (\i -> fromAny $ if i == 0 then x else Any y) ctr `asTypeOf` y
-    where ctr = fromJust $ readConstr (dataTypeOf y) "(:)"
+    where Just ctr = readConstr (dataTypeOf y) "(:)"
 
 nullAny :: AnyT [a] -> Bool
 nullAny (Any x)
@@ -95,14 +95,14 @@ justAny_ :: AnyT (Maybe a) -> AnyT a -> AnyT (Maybe a)
 justAny_ (Any o) x
     | fromTypeMaybe (Any o) == anyType x
     = Any $ fromConstrB (fromAny x) ctr `asTypeOf` o
-    where ctr = fromJust $ readConstr (dataTypeOf o) "Just"
+    where Just ctr = readConstr (dataTypeOf o) "Just"
 
 
 nilAny_ :: AnyT [a] -> AnyT [a]
 nilAny_ (Any o) 
     | isTypeList $ Any o
     = Any $ fromConstrB undefined ctr `asTypeOf` o
-    where ctr = fromJust $ readConstr (dataTypeOf o) "[]"
+    where Just ctr = readConstr (dataTypeOf o) "[]"
 
 
 appendAny :: AnyT [a] -> AnyT [a] -> AnyT [a]
