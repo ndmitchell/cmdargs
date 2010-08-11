@@ -47,11 +47,12 @@ library
         System.Console.CmdArgs.Verbosity
 
     other-modules:
+        Data.Generics.Any
+        Data.Generics.Any.Prelude
         System.Console.CmdArgs.Explicit.Help
         System.Console.CmdArgs.Explicit.Process
         System.Console.CmdArgs.Explicit.Type
         System.Console.CmdArgs.Implicit.Ann
-        System.Console.CmdArgs.Implicit.Any
         System.Console.CmdArgs.Implicit.Capture
         System.Console.CmdArgs.Implicit.Read
         System.Console.CmdArgs.Implicit.Step1

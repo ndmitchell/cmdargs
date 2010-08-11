@@ -53,8 +53,9 @@ module System.Console.CmdArgs.Implicit(
     ) where
 
 import Data.Data
+import Data.Generics.Any
 import System.Exit
-import System.Console.CmdArgs.Explicit(Mode,processArgs)
+import System.Console.CmdArgs.Explicit(Mode,processArgs,remap)
 import System.Console.CmdArgs.Implicit.Ann
 import System.Console.CmdArgs.Implicit.Capture
 import System.Console.CmdArgs.Implicit.Step1
@@ -77,7 +78,9 @@ cmdArgs = cmdArgsRun . cmdArgsMode
 --   Annotated records are impure, and will only contain annotations on
 --   their first use. The result of this function is pure, and can be reused.
 cmdArgsMode :: Data a => a -> Mode (CmdArgs a)
-cmdArgsMode = step3 . step2 . step1 . capture
+cmdArgsMode = remap embed proj . step3 . step2 . step1 . capture
+    where embed = fmap fromAny
+          proj x = (fmap Any x, embed)
 
 
 -- | Run a Mode structure. This function reads the command line arguments

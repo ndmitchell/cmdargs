@@ -1,10 +1,10 @@
 
 module System.Console.CmdArgs.Implicit.Read(isReadBool, toReadContainer, reader, addContainer, readHelp) where
 
-import System.Console.CmdArgs.Implicit.Any
+import Data.Generics.Any
+import qualified Data.Generics.Any.Prelude as A
 import System.Console.CmdArgs.Explicit
 import Data.Char
-import Data.Data
 import Data.List
 
 
@@ -34,15 +34,14 @@ fromReadContainer (ReadAtom x) = x
 
 
 toReadContainer :: Any -> Maybe ReadContainer
-toReadContainer x = case tyConString $ typeRepTyCon t of
-        "[]" | show t /= "[Char]" -> fmap ReadList $ toReadAtom $ fromListAny x
-        "Maybe" -> fmap ReadMaybe $ toReadAtom $ fromMaybeAny x
+toReadContainer x = case typeShell x of
+        "[]" | typeName x /= "[Char]" -> fmap ReadList $ toReadAtom $ A.fromList x
+        "Maybe" -> fmap ReadMaybe $ toReadAtom $ A.fromMaybe x
         _ -> fmap ReadAtom $ toReadAtom x
-    where t = anyType x
 
 
 toReadAtom :: Any -> Maybe ReadAtom
-toReadAtom x = case show $ anyType x of
+toReadAtom x = case typeName x of
     "Bool" -> Just ReadBool
     "Int" -> Just ReadInt
     "Integer" -> Just ReadInteger
@@ -53,14 +52,11 @@ toReadAtom x = case show $ anyType x of
 
 
 toReadEnum :: Any -> Maybe ReadAtom
-toReadEnum (Any x)
-    | isAlgType t && all ((==) 0 . arity) cs
-        = Just $ ReadEnum [(map toLower $ showConstr c, Any $ fromConstr c `asTypeOf` x) | c <- cs]
+toReadEnum x
+    | isAlgType x && all ((==) 0 . arity . compose0 x) cs
+        = Just $ ReadEnum [(map toLower c, compose0 x c) | c <- cs]
     | otherwise = Nothing
-    where
-        t = dataTypeOf x
-        cs = dataTypeConstrs t
-        arity c = length $ gmapQ Any $ fromConstr c `asTypeOf` x
+    where cs = ctors x
 
 
 -- | Both Any will be the same type as ReadContainer
@@ -72,8 +68,8 @@ reader t s x = fmap (addContainer t x) $ readAtom (fromReadContainer t) s
 --   Type (c a) -> c a -> a -> c a
 addContainer :: ReadContainer -> Any -> Any -> Any
 addContainer (ReadAtom _) _ x = x
-addContainer (ReadMaybe _) o x = justAny_ o x
-addContainer (ReadList _) o x = appendAny o $ consAny x $ nilAny_ o
+addContainer (ReadMaybe _) o x = A.just_ o x
+addContainer (ReadList _) o x = A.append o $ A.cons x $ A.nil_ o
 
 
 -- | The Any will be the type as ReadAtom
@@ -89,7 +85,7 @@ readAtom ty s = case ty of
     where
         f t = case reads s of
             [(x,"")] -> Right $ Any $ x `asTypeOf` t
-            _ -> Left $ "Could not read as type " ++ show (typeOf t) ++ ", " ++ show s
+            _ -> Left $ "Could not read as type " ++ show (typeOf $ Any t) ++ ", " ++ show s
 
 
 readOne :: String -> [(String,a)] -> Either String a
@@ -107,4 +103,4 @@ readHelp ty = case fromReadContainer ty of
     ReadFloat -> "NUM"
     ReadDouble -> "NUM"
     ReadString -> "ITEM"
-    ReadEnum xs -> map toUpper $ tyconUQname $ show $ anyType $ snd $ head xs
+    ReadEnum xs -> map toUpper $ typeShell $ snd $ head xs

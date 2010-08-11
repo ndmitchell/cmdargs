@@ -32,6 +32,9 @@ data CmdArgs a = CmdArgs
     }
     deriving (Show,Data,Typeable)
 
+instance Functor CmdArgs where
+    fmap f x = x{cmdArgsValue = f $ cmdArgsValue x}
+
 cmdArgsHasValue :: CmdArgs a -> Bool
 cmdArgsHasValue x = isNothing (cmdArgsHelp x) && isNothing (cmdArgsVersion x)
 

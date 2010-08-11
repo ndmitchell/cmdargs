@@ -5,11 +5,10 @@
 module System.Console.CmdArgs.Implicit.Step1(step1, Prog1(..), Mode1(..), Flag1(..)) where
 
 import System.Console.CmdArgs.Implicit.Ann
-import System.Console.CmdArgs.Implicit.Any
+import Data.Generics.Any
 import System.Console.CmdArgs.Implicit.Capture
 
 import Data.Char
-import Data.Data
 import Data.List
 
 
@@ -53,9 +52,9 @@ assignShort (Mode1 a b c) = Mode1 a b [Flag1 ((s \\ dupe) ++ x) y z | (s,Flag1 x
                                        , x <- take 1 [head x | Name x <- a], x `notElem` seen]
 
 
-assignLong (Mode1 a b c) = Mode1 (add (showConstr $ anyConstr b) a) b $ map f c
+assignLong (Mode1 a b c) = Mode1 (add (ctor b) a) b $ map f c
     where f (Flag1 a b c) = Flag1 (add newname a) b c
-               where newname = if FlagEnum `elem` a then showConstr $ anyConstr c else b
+               where newname = if FlagEnum `elem` a then ctor c else b
           add s xs = [Name ss | all g xs, Name ss `notElem` xs] ++ xs
                where ss = map (\x -> if x == '_' then '-' else toLower x) $ if last s == '_' then init s else s
 
@@ -94,7 +93,7 @@ flattenProg x = err $ "Unexpected in a program: " ++ show x
 
 flattenMode :: Capture -> Mode1
 flattenMode (Ann a b) = let Mode1 x y z = flattenMode b in Mode1 (x++[a]) y z
-flattenMode (Ctor x ys) = Mode1 [] x [Flag1 a n b | (y,n) <- zip ys $ constrFields $ anyConstr x, Flag1 a _ b <- flattenFlag y]
+flattenMode (Ctor x ys) = Mode1 [] x [Flag1 a n b | (y,n) <- zip ys $ fields x, Flag1 a _ b <- flattenFlag y]
 flattenMode x = err $ "Unexpected in a mode: " ++ show x
 
 

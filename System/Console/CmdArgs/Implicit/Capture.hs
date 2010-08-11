@@ -11,7 +11,7 @@ import Data.IORef
 import System.IO.Unsafe
 import Control.Exception
 import System.Console.CmdArgs.Implicit.Ann
-import System.Console.CmdArgs.Implicit.Any
+import Data.Generics.Any(Any(..))
 
 
 -- test = show $ capture $ many [Just ((66::Int) &= P 1 &= P 2), Nothing &= P 8] &= P 3

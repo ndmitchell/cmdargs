@@ -9,13 +9,12 @@ module System.Console.CmdArgs.Implicit.Step2(
     ) where
 
 import System.Console.CmdArgs.Implicit.Ann
-import System.Console.CmdArgs.Implicit.Any
 import System.Console.CmdArgs.Implicit.Read
 import System.Console.CmdArgs.Implicit.Step1
 import System.Console.CmdArgs.Explicit
 
 import Data.Char
-import Data.Data
+import Data.Generics.Any
 import Data.List
 import Data.Maybe
 
@@ -59,7 +58,7 @@ data Arg2 a = Arg2
     }
 
 
-step2 :: Data a => Prog1 -> Prog2 a
+step2 :: Prog1 -> Prog2 Any
 step2 = transProg
 
 
@@ -72,7 +71,7 @@ isArg _ = False
 -- TRANSLATE
 -- Translate in to the Mode domain
 
-transProg :: Data a => Prog1 -> Prog2 a
+transProg :: Prog1 -> Prog2 Any
 transProg (Prog1 ann xs) = Prog2 summary program hlp verb defMode (map transMode xs)
     where
         summary = let x = concat [x | ProgSummary x <- ann] in if null x then "The " ++ defProg ++ " program" else x
@@ -80,13 +79,13 @@ transProg (Prog1 ann xs) = Prog2 summary program hlp verb defMode (map transMode
         defMode = flip findIndex xs $ \(Mode1 an _ _) -> length xs /= 1 && ModeDefault `elem` an
         verb = ProgVerbosity `elem` ann
         program = last $ defProg : [x | ProgProgram x <- ann]
-        defProg = let Mode1 _ x _ = head xs in map toLower $ tyconUQname $ show $ anyType x
+        defProg = let Mode1 _ x _ = head xs in map toLower $ typeShell x
 
 
-transMode :: Data a => Mode1 -> Mode2 a
+transMode :: Mode1 -> Mode2 Any
 transMode (Mode1 an c xs) = Mode2
     [x | Name x <- an]
-    (fromAny c)
+    c
     (concat [x | Help x <- an])
     (concat [x | ModeHelpSuffix x <- an])
     (map transFlag rest)
@@ -95,7 +94,7 @@ transMode (Mode1 an c xs) = Mode2
           ann f (Flag1 x _ _) = any f x
 
 
-transFlag :: Data a => Flag1 -> Flag2 a
+transFlag :: Flag1 -> Flag2 Any
 transFlag flag@(Flag1 ann fld val)
     | Just (flaghelpdef,upd) <- transFlagType flag = Flag2 names upd opt (if null flaghelp then flaghelpdef else flaghelp) help
     | otherwise = error $ "Don't know how to deal with field type, " ++ fld ++ " :: " ++ show val
@@ -106,7 +105,7 @@ transFlag flag@(Flag1 ann fld val)
         flaghelp = concat [x | FlagType x <- ann]
 
 
-transFlagType :: Data a => Flag1 -> Maybe (String,Flag2Type a)
+transFlagType :: Flag1 -> Maybe (String,Flag2Type Any)
 transFlagType (Flag1 ann fld val)
     | FlagEnum `elem` ann = Just $ (,) "" $ Flag2Value $ \x -> setField fld x val
     | isNothing mty = Nothing
@@ -118,7 +117,7 @@ transFlagType (Flag1 ann fld val)
         f x = Just (readHelp ty, x)
 
 
-transArg :: Data a => Flag1 -> Arg2 a
+transArg :: Flag1 -> Arg2 Any
 transArg x@(Flag1 ann _ _) = Arg2 (flag2FlagHelp y) (fromFlag2String $ flag2Upd y) pos (flag2Opt y)
     where y = transFlag x
           pos = listToMaybe [i | FlagArgPos i <- ann]
