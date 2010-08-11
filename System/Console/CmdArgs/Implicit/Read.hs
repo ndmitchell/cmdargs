@@ -1,5 +1,5 @@
 
-module System.Console.CmdArgs.Implicit.Read where
+module System.Console.CmdArgs.Implicit.Read(isReadBool, fromReadContainer, isReadBool, toReadContainer, reader, addContainer, readHelp) where
 
 import System.Console.CmdArgs.Implicit.Any
 import Data.Char
