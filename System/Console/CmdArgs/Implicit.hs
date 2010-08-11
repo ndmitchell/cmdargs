@@ -78,7 +78,7 @@ cmdArgs = cmdArgsRun . cmdArgsMode
 --   Annotated records are impure, and will only contain annotations on
 --   their first use. The result of this function is pure, and can be reused.
 cmdArgsMode :: Data a => a -> Mode (CmdArgs a)
-cmdArgsMode = remap embed proj . step3 . step2 . step1 . capture
+cmdArgsMode = remap embed proj . step3 . step2 . step1 . capture . Any
     where embed = fmap fromAny
           proj x = (fmap Any x, embed)
 

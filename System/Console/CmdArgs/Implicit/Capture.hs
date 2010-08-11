@@ -6,12 +6,12 @@ module System.Console.CmdArgs.Implicit.Capture(
     Capture(..), capture, many, (&=)
     ) where
 
-import Data.Data
+import Data.Data(Data)
 import Data.IORef
 import System.IO.Unsafe
 import Control.Exception
 import System.Console.CmdArgs.Implicit.Ann
-import Data.Generics.Any(Any(..))
+import Data.Generics.Any
 
 
 -- test = show $ capture $ many [Just ((66::Int) &= P 1 &= P 2), Nothing &= P 8] &= P 3
@@ -46,7 +46,7 @@ set x = modify $ \f -> Right $ f x
 -- | Collapse multiple values in to one.
 many :: Data a => [a] -> a
 many xs = unsafePerformIO $ do
-    ys <- mapM force xs
+    ys <- mapM (force . Any) xs
     set $ Many ys
     return $ head xs
 
@@ -60,18 +60,18 @@ many xs = unsafePerformIO $ do
     return x
 
 
-capture :: Data a => a -> Capture
+capture :: Any -> Capture
 capture x = unsafePerformIO $ force x
 
 
-force :: Data a => a -> IO Capture
-force x = do
+force :: Any -> IO Capture
+force x@(Any xx) = do
     push
-    evaluate x
+    evaluate xx
     y <- pop
     case y of
         Right r -> return r
-        Left f | not $ isAlgType $ dataTypeOf x -> return $ f $ Value $ Any x
+        Left f | not $ isAlgType x -> return $ f $ Value x
                | otherwise -> do
-            cs <- sequence $ gmapQ force x
-            return $ f $ Ctor (Any x) cs
+            cs <- mapM force $ children x
+            return $ f $ Ctor x cs
