@@ -20,6 +20,20 @@ type FlagHelp = String
 
 
 ---------------------------------------------------------------------
+-- UTILITY
+
+-- | Parse a boolean, accepts as True: true yes on enabled 1. 
+parseBool :: String -> Maybe Bool
+parseBool s | ls `elem` true  = Just True
+            | ls `elem` false = Just False
+            | otherwise = Nothing
+    where
+        ls = map toLower s
+        true = ["true","yes","on","enabled","1"]
+        false = ["false","no","off","disabled","0"]
+
+
+---------------------------------------------------------------------
 -- GROUPS
 
 -- | A group of items (modes or flags). The items are treated as a list, but the
@@ -202,9 +216,6 @@ flagArg upd typ = Arg upd typ
 flagBool :: [Name] -> (Bool -> a -> a) -> Help -> Flag a
 flagBool names f help = Flag names (FlagOptRare "") upd "" help
     where
-        upd s x = if s == "" || ls `elem` boolTrue then Right $ f True x
-                  else if ls `elem` boolFalse then Right $ f False x
-                  else Left "expected boolean value (true/false)"
-            where ls = map toLower s
-        boolTrue = ["true","yes","on","enabled","1"]
-        boolFalse = ["false","no","off","disabled","0"]
+        upd s x = case if s == "" then Just True else parseBool s of
+            Just b -> Right $ f b x
+            Nothing -> Left "expected boolean value (true/false)"
