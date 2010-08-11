@@ -2,6 +2,7 @@
 module System.Console.CmdArgs.Implicit.Read(isReadBool, toReadContainer, reader, addContainer, readHelp) where
 
 import System.Console.CmdArgs.Implicit.Any
+import System.Console.CmdArgs.Explicit
 import Data.Char
 import Data.Data
 import Data.List
@@ -78,7 +79,7 @@ addContainer (ReadList _) o x = appendAny o $ consAny x $ nilAny_ o
 -- | The Any will be the type as ReadAtom
 readAtom :: ReadAtom -> String -> Either String Any
 readAtom ty s = case ty of
-    ReadBool -> f False -- not very good, but should never be hit
+    ReadBool -> maybe (Left $ "Could not read as boolean, " ++ show s) (Right . Any) $ parseBool s
     ReadInt -> f (0::Int)
     ReadInteger -> f (0::Integer)
     ReadFloat -> f (0::Float)
