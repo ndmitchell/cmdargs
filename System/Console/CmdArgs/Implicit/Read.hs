@@ -1,5 +1,5 @@
 
-module System.Console.CmdArgs.Implicit.Read(isReadBool, fromReadContainer, isReadBool, toReadContainer, reader, addContainer, readHelp) where
+module System.Console.CmdArgs.Implicit.Read(isReadBool, toReadContainer, reader, addContainer, readHelp) where
 
 import System.Console.CmdArgs.Implicit.Any
 import Data.Char
@@ -22,7 +22,9 @@ data ReadAtom
     | ReadEnum [(String,Any)]
 --    | ReadTuple [ReadAtom] -- Possible to add relatively easily
 
-isReadBool ReadBool{} = True; isReadBool _ = False
+isReadBool x = case fromReadContainer x of
+    ReadBool{} -> True
+    _ -> False
 
 fromReadContainer :: ReadContainer -> ReadAtom
 fromReadContainer (ReadList x) = x
@@ -96,8 +98,8 @@ readOne a xs | null ys = Left $ "Could not read, expected one of: " ++ unwords (
     where ys = filter (\x -> a `isPrefixOf` fst x) xs
 
 
-readHelp :: ReadAtom -> String
-readHelp ty = case ty of
+readHelp :: ReadContainer -> String
+readHelp ty = case fromReadContainer ty of
     ReadBool -> "BOOL"
     ReadInt -> "INT"
     ReadInteger -> "INT"
