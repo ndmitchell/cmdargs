@@ -76,8 +76,9 @@ children (Any x) = gmapQ Any x
 
 
 compose0 :: Any -> CtorName -> Any
-compose0 (Any x) c = Any $ fromConstr y `asTypeOf` x
+compose0 (Any x) c = Any $ fromConstrB err y `asTypeOf` x
     where Just y = readConstr (D.dataTypeOf x) c
+          err = error $ "Data.Generics.Any: Undefined field inside compose0, " ++ c ++ " :: " ++ show (Any x)
 
 
 recompose :: Any -> [Any] -> Any
