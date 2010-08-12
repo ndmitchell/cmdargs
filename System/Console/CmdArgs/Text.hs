@@ -134,17 +134,16 @@ showHTML xs = unlines $
     where
         cols = maximum [length x | Cols x <- xs]
 
-        f (Line x) = tr $ td cols (null a) b
-            where (a,b) = span isSpace x
-        f (Cols xs) = tr $ concatMap (td 1 True) (init xs) ++ td (cols + 1 - length xs) True (last xs)
+        f (Line x) = tr $ td cols x
+        f (Cols xs) = tr $ concatMap (td 1) (init xs) ++ td (cols + 1 - length xs) (last xs)
 
         tr x = "<tr>" ++ x ++ "</tr>"
-        td cols indent x = "<td" ++ (if cols == 1 then "" else " colspan='" ++ show cols ++ "'")
-                                 ++ (if indent then " class='indent'" else "") ++ ">" ++
-                           text x ++ "</td>"
-        text "" = "&nbsp;"
-        text xs = concatMap g xs
-            where g '&' = "&amp;"
-                  g '>' = "&gt;"
-                  g '<' = "&lt;"
-                  g x = [x]
+        td cols x = "<td" ++ (if cols == 1 then "" else " colspan='" ++ show cols ++ "'")
+                          ++ (if a /= "" then " style='padding-left:" ++ show (length a) ++ "ex;'" else "") ++
+                     ">" ++ if null b then "&nbsp;" else concatMap esc b ++ "</td>"
+            where (a,b) = span isSpace x
+
+        esc '&' = "&amp;"
+        esc '>' = "&gt;"
+        esc '<' = "&lt;"
+        esc x = [x]
