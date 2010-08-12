@@ -107,17 +107,16 @@ import System.Console.CmdArgs
 data Sample = Sample {hello :: String}
               deriving (Show, Data, Typeable)
 
-sample = mode $ Sample{hello = def}
+sample = Sample{hello = def}
 
-main = print =<< cmdArgs "Sample v1, (C) Neil Mitchell 2009" [sample]
+main = print =<< cmdArgs sample
 </pre>
 <p>
 	To use the CmdArgs library there are three steps:
 </p>
 <ol>
 	<li>Define a record data type (<tt>Sample</tt>) that contains a field for each argument. This type needs to have instances for <tt>Show</tt>, <tt>Data</tt> and <tt>Typeable</tt>.</li>
-	<li>Give a value of that type (<tt>sample</tt>) with default values (<tt>def</tt> is the default value of any type). This value must be turned into a command line mode by calling the function <tt>mode</tt>.</li>
-	<li>Call <tt>cmdArgs</tt> passing the mode, along with some text about the program.</li>
+	<li>Give a value of that type (<tt>sample</tt>) with default values (<tt>def</tt> is a default value of any type, but I could also have written <tt>""</tt>). This value is turned into a command line by calling the <tt>cmdArgs</tt> function.</li>
 </ol>
 <p>
 	Now we have a reasonably functional command line argument processor. Some sample interactions are:
@@ -126,44 +125,40 @@ main = print =<< cmdArgs "Sample v1, (C) Neil Mitchell 2009" [sample]
 $ runhaskell Sample.hs --hello=world
 Sample {hello = "world"}
 
+$ runhaskell Sample.hs --version
+The sample program
+
 $ runhaskell Sample.hs --help
-Sample v1, (C) Neil Mitchell 2009
+The sample program
 
-sample [FLAG]
+sample [OPTIONS]
 
-  -? --help[=FORMAT]  Show usage information (optional format)
-  -V --version        Show version information
-  -v --verbose        Higher verbosity
-  -q --quiet          Lower verbosity
-  -h --hello=VALUE
+  -? --help        Display help message
+  -V --version     Print version information
+  -h --hello=ITEM
 </pre>
 <p>
-	The CmdArgs library automatically provides support for:
+	CmdArgs uses defaults to automatically infer a command line parser for a value, and provides annotations to override any of the the defaults. CmdArgs automatically supports <tt>--help</tt> and <tt>--version</tt> flags, and optionally supports verbosity flags.
 </p>
-<ul>
-	<li>Help - if the user specifies <tt>--help</tt> then a help message is displayed. If <tt>--help=HTML</tt> is specified, then the help message is formatted in HTML, suitable for pasting into a web page (see the bottom of this document).</li>
-	<li>Version - if the user specifies <tt>--version</tt> then the first argument passed to <tt>cmdArgs</tt> is written to the screen.</li>
-	<li>Verbosity - if the user specifies <tt>--verbose</tt> or <tt>--quiet</tt> then the verbosity is set appropriately. The current verbosity can be queried with the functions <tt>isQuiet</tt>, <tt>isNormal</tt> and <tt>isLoud</tt>.</li>
-</ul>
 
 <h2>Specifying Attributes</h2>
 <p>
 	In order to control the behaviour we can add attributes. For example to add an attribute specifying the help text for the <tt>--hello</tt> argument we can write:
 </p>
 <pre>
-sample = mode $ Sample{hello = def &= text "Who to say hello to"}
+sample = Sample{hello = def &= help "Who to say hello to"}
 </pre>
 <p>
 	We can add additional attributes, for example to specify the type of the value expected by hello:
 </p>
 <pre>
-sample = mode $ Sample {hello = def &= text "Who to say hello to" & typ "WORLD"}
+sample = Sample {hello = def &= help "Who to say hello to" &= typ "WORLD"}
 </pre>
 <p>
 	Now when running <tt>--help</tt> the final line is:
 </p>
 <pre>
-  -h --hello=WORLD    Who to say hello to
+  -h --hello=WORLD  Who to say hello to
 </pre>
 <p>
 	There are many more attributes, detailed in the <a href="http://hackage.haskell.org/packages/archive/cmdargs/latest/doc/html/System-Console-CmdArgs.html#2">Haddock documentation</a>.
@@ -179,10 +174,10 @@ data Sample = Hello {whom :: String}
             | Goodbye
               deriving (Show, Data, Typeable)
 
-hello = mode $ Hello{whom = def}
-goodbye = mode $ Goodbye
+hello = Hello{whom = def}
+goodbye = Goodbye
 
-main = print =<< cmdArgs "Sample v2, (C) Neil Mitchell 2009" [hello,goodbye]
+main = print =<< cmdArgs (modes [hello,goodbye])
 </pre>
 <p>
 	Compared to the first example, we now have multiple constructors, and a sample value for each constructor is passed to <tt>cmdArgs</tt>. Some sample interactions with this command line are:
@@ -195,19 +190,19 @@ $ runhaskell Sample.hs goodbye
 Goodbye
 
 $ runhaskell Sample.hs --help
-Sample v2, (C) Neil Mitchell 2009
+The sample program
 
-sample hello [FLAG]
+sample [OPTIONS]
 
-  -w --whom=VALUE
+ Common flags
+  -? --help       Display help message
+  -V --version    Print version information
 
-sample goodbye [FLAG]
+sample hello [OPTIONS]
 
-Common flags:
-  -? --help[=FORMAT]  Show usage information (optional format)
-  -V --version        Show version information
-  -v --verbose        Higher verbosity
-  -q --quiet          Lower verbosity
+  -w --whom=ITEM
+
+sample goodbye [OPTIONS]
 </pre>
 <p>
 	As before, the behaviour can be customised using attributes.
@@ -360,12 +355,11 @@ main = print =<< cmdArgs "Diffy v1.0" modes
 <h3>Maker</h3>
 
 <p>
-	The Maker sample is based around a build system, where we can either build a project, clean the temporary files, or run a test. The test mode is designed to run another program, passing any unknown arguments onwards. Some interesting features are:
+	The Maker sample is based around a build system, where we can either build a project, clean the temporary files, or run a test. Some interesting features are:
 </p>
 <ul>
 	<li>The build mode is the default, so <tt>maker</tt> on it's own will be interpretted as a build command.</li>
 	<li>The build method is an enumeration.</li>
-	<li>The test mode collects unknown flags in the field <tt>extra</tt>.</li>
 	<li>The <tt>threads</tt> field is in two of the constructors, but not all three. It is given the short flag <tt>-j</tt>, rather than the default <tt>-t</tt>.</li>
 </ul>
 
