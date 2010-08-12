@@ -38,3 +38,20 @@ isTuple x = isJust $ readTupleType $ typeShell x
 fromList w = children (compose0 w "(:)") !! 0
 fromMaybe w = children (compose0 w "Just") !! 0
 fromTuple w = children (compose0 w $ typeShell w)
+
+unit :: AnyT ()
+unit = Any ()
+
+-- Could use a witness and avoid switching on the list of tuples, but this
+-- presents a nicer interface
+tuple :: [Any] -> Any
+tuple [] = unit
+tuple [x] = x
+-- $(2\7 tuple [$(1,$ Any x$)] = Any ($(1,$ x$)))
+tuple [Any x1,Any x2] = Any (x1,x2)
+tuple [Any x1,Any x2,Any x3] = Any (x1,x2,x3)
+tuple [Any x1,Any x2,Any x3,Any x4] = Any (x1,x2,x3,x4)
+tuple [Any x1,Any x2,Any x3,Any x4,Any x5] = Any (x1,x2,x3,x4,x5)
+tuple [Any x1,Any x2,Any x3,Any x4,Any x5,Any x6] = Any (x1,x2,x3,x4,x5,x6)
+tuple [Any x1,Any x2,Any x3,Any x4,Any x5,Any x6,Any x7] = Any (x1,x2,x3,x4,x5,x6,x7)
+tuple _ = error "Data.Generics.Any: Tuples of 8 elements or more are not supported by Data.Data"
