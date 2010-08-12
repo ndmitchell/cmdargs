@@ -238,55 +238,75 @@ data HLint = HLint
     ,color :: Bool
     ,ignore :: [String]
     ,show_ :: Bool
-    ,test :: Bool
+    ,extension :: [String]
+    ,language :: [String]
+    ,utf8 :: Bool
+    ,encoding :: String
+    ,find :: [FilePath]
+    ,test_ :: Bool
+    ,datadir :: [FilePath]
     ,cpp_define :: [String]
-    ,cpp_include :: [String]
-    ,files :: [String]
+    ,cpp_include :: [FilePath]
+    ,files :: [FilePath]
     }
     deriving (Data,Typeable,Show,Eq)
 
-hlint = mode $ HLint
-    {report = def &= empty "report.html" & typFile & text "Generate a report in HTML"
-    ,hint = def &= typFile & text "Hint/ignore file to use"
-    ,color = def &= flag "c" & flag "colour" & text "Color the output (requires ANSI terminal)"
-    ,ignore = def &= typ "MESSAGE" & text "Ignore a particular hint"
-    ,show_ = def &= text "Show all ignored ideas"
-    ,test = def &= text "Run in test mode"
-    ,cpp_define = def &= typ "NAME[=VALUE]" & text "CPP #define"
-    ,cpp_include = def &= typDir & text "CPP include path"
-    ,files = def &= args & typ "FILE/DIR"
+hlint = HLint
+    {report = def &= opt "report.html" &= typFile &= help "Generate a report in HTML"
+    ,hint = def &= typFile &= help "Hint/ignore file to use"
+    ,color = def &= name "c" &= name "colour" &= help "Color the output (requires ANSI terminal)"
+    ,ignore = def &= typ "MESSAGE" &= help "Ignore a particular hint"
+    ,show_ = def &= help "Show all ignored ideas"
+    ,extension = def &= typ "EXT" &= help "File extensions to search (defaults to hs and lhs)"
+    ,language = def &= name "X" &= typ "LANG" &= help "Language extension (Arrows, NoCPP)"
+    ,utf8 = def &= help "Use UTF-8 text encoding"
+    ,encoding = def &= typ "ENC" &= help "Choose the text encoding"
+    ,find = def &= typFile &= help "Find hints in a Haskell file"
+    ,test_ = def &= help "Run in test mode"
+    ,datadir = def &= typDir &= help "Override the data directory"
+    ,cpp_define = def &= typ "NAME[=VALUE]" &= help "CPP #define"
+    ,cpp_include = def &= typDir &= help "CPP include path"
+    ,files = def &= args &= typ "FILES/DIRS"
     } &=
-    prog "hlint" &
-    text "Suggest improvements to Haskell source code" &
-    helpSuffix ["To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
+    verbosity &=
+    help "Suggest improvements to Haskell source code" &=
+    summary "HLint v0.0.0, (C) Neil Mitchell 2006-2010" &=
+    details ["Hlint gives hints on how to improve Haskell code",""
+            ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
-modes = [hlint]
-
-main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
+mode = cmdArgsMode hlint
 </pre>
 <!-- END -->
 <!-- BEGIN help hlint -->
 <table class='cmdargs'>
-<tr><td colspan='3'>HLint v1.6.5, (C) Neil Mitchell 2006-2009</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>hlint [FLAG] [FILE/DIR]</td></tr>
-<tr><td colspan='3' class='indent'>Suggest improvements to Haskell source code</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
-<tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
-<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verbosity</td></tr>
-<tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
-<tr><td class='indent'>-r</td><td>--report[=FILE]</td><td>Generate a report in HTML (default=report.html)</td></tr>
-<tr><td class='indent'>-h</td><td>--hint=FILE</td><td>Hint/ignore file to use</td></tr>
-<tr><td class='indent'>-c</td><td>--color --colour</td><td>Color the output (requires ANSI terminal)</td></tr>
-<tr><td class='indent'>-i</td><td>--ignore=MESSAGE</td><td>Ignore a particular hint</td></tr>
-<tr><td class='indent'>-s</td><td>--show</td><td>Show all ignored ideas</td></tr>
-<tr><td class='indent'>-t</td><td>--test</td><td>Run in test mode</td></tr>
-<tr><td class='indent'></td><td>--cpp-define=NAME[=VALUE]</td><td>CPP #define</td></tr>
-<tr><td class='indent'></td><td>--cpp-include=DIR</td><td>CPP include path</td></tr>
+<tr><td colspan='3' class='indent'>HLint v0.0.0, (C) Neil Mitchell 2006-2010</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>hlint [OPTIONS] [FILES/DIRS]</td></tr>
+<tr><td colspan='3'>Suggest improvements to Haskell source code</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td class='indent'>  -?</td><td class='indent'> --help</td><td class='indent'>  Display help message</td></tr>
+<tr><td class='indent'>  -V</td><td class='indent'> --version</td><td class='indent'>  Print version information</td></tr>
+<tr><td class='indent'>  -v</td><td class='indent'> --verbose</td><td class='indent'>  Loud verbosity</td></tr>
+<tr><td class='indent'>  -q</td><td class='indent'> --quiet</td><td class='indent'>  Quiet verbosity</td></tr>
+<tr><td class='indent'>  -r</td><td class='indent'> --report[=FILE]</td><td class='indent'>  Generate a report in HTML (default=report.html)</td></tr>
+<tr><td class='indent'>  -h</td><td class='indent'> --hint=FILE</td><td class='indent'>  Hint/ignore file to use</td></tr>
+<tr><td class='indent'>  -c</td><td class='indent'> --color --colour</td><td class='indent'>  Color the output (requires ANSI terminal)</td></tr>
+<tr><td class='indent'>  -i</td><td class='indent'> --ignore=MESSAGE</td><td class='indent'>  Ignore a particular hint</td></tr>
+<tr><td class='indent'>  -s</td><td class='indent'> --show</td><td class='indent'>  Show all ignored ideas</td></tr>
+<tr><td class='indent'>  </td><td class='indent'> --extension=EXT</td><td class='indent'>  File extensions to search (defaults to hs and lhs)</td></tr>
+<tr><td class='indent'>  -X</td><td class='indent'> --language=LANG</td><td class='indent'>  Language extension (Arrows, NoCPP)</td></tr>
+<tr><td class='indent'>  -u</td><td class='indent'> --utf8</td><td class='indent'>  Use UTF-8 text encoding</td></tr>
+<tr><td class='indent'>  </td><td class='indent'> --encoding=ENC</td><td class='indent'>  Choose the text encoding</td></tr>
+<tr><td class='indent'>  -f</td><td class='indent'> --find=FILE</td><td class='indent'>  Find hints in a Haskell file</td></tr>
+<tr><td class='indent'>  -t</td><td class='indent'> --test</td><td class='indent'>  Run in test mode</td></tr>
+<tr><td class='indent'>  -d</td><td class='indent'> --datadir=DIR</td><td class='indent'>  Override the data directory</td></tr>
+<tr><td class='indent'>  </td><td class='indent'> --cpp-define=NAME[=VALUE]</td><td class='indent'>  CPP #define</td></tr>
+<tr><td class='indent'>  </td><td class='indent'> --cpp-include=DIR</td><td class='indent'>  CPP include path</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3'>Hlint gives hints on how to improve Haskell code</td></tr>
 <tr><td colspan='3'>&nbsp;</td></tr>
 <tr><td colspan='3'>To check all Haskell files in 'src' and generate a report type:</td></tr>
-<tr><td colspan='3' class='indent'>hlint src --report</td></tr>
+<tr><td colspan='3'>hlint src --report</td></tr>
 </table>
 <!-- END -->
 
@@ -307,48 +327,47 @@ main = print =<< cmdArgs "HLint v1.6.5, (C) Neil Mitchell 2006-2009" modes
 module Diffy where
 import System.Console.CmdArgs
 
-data Diffy = Create {src :: FilePath, out :: FilePath}
+data Diffy = Create {src :: Maybe FilePath, out :: FilePath}
            | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
              deriving (Data,Typeable,Show,Eq)
 
-outFlags = text "Output file" & typFile
+outFlags x = x &= help "Output file" &= typFile
 
-create = mode $ Create
-    {src = "." &= text "Source directory" & typDir
-    ,out = "ls.txt" &= outFlags
-    } &= prog "diffy" & text "Create a fingerprint"
+create = Create
+    {src = def &= help "Source directory" &= typDir
+    ,out = outFlags "ls.txt"
+    } &= help "Create a fingerprint"
 
-diff = mode $ Diff
-    {old = def &= typ "OLDFILE" & argPos 0
-    ,new = def &= typ "NEWFILE" & argPos 1
-    ,out = "diff.txt" &= outFlags
-    } &= text "Perform a diff"
+diff = Diff
+    {old = def &= typ "OLDFILE" &= argPos 0
+    ,new = def &= typ "NEWFILE" &= argPos 1
+    ,out = outFlags "diff.txt"
+    } &= help "Perform a diff"
 
-modes = [create,diff]
-
-main = print =<< cmdArgs "Diffy v1.0" modes
+mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "difftastic" &= summary "Diffy v1.0"
 </pre>
 <!-- END -->
 <!-- BEGIN help diffy -->
 <table class='cmdargs'>
-<tr><td colspan='3'>Diffy v1.0</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>diffy create [FLAG]</td></tr>
-<tr><td colspan='3' class='indent'>Create a fingerprint</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'>-s</td><td>--src=DIR</td><td>Source directory (default=.)</td></tr>
-<tr><td class='indent'>-o</td><td>--out=FILE</td><td>Output file (default=ls.txt)</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>diffy diff [FLAG] OLDFILE NEWFILE</td></tr>
-<tr><td colspan='3' class='indent'>Perform a diff</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'>-o</td><td>--out=FILE</td><td>Output file (default=diff.txt)</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>Common flags:</td></tr>
-<tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
-<tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
-<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verbosity</td></tr>
-<tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
+<tr><td colspan='3' class='indent'>Diffy v1.0</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>difftastic [OPTIONS]</td></tr>
+<tr><td colspan='3'>Create and compare differences</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3'>Common flags</td></tr>
+<tr><td class='indent'>  -?</td><td class='indent'> --help</td><td class='indent'>  Display help message</td></tr>
+<tr><td class='indent'>  -V</td><td class='indent'> --version</td><td class='indent'>  Print version information</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>difftastic create [OPTIONS]</td></tr>
+<tr><td colspan='3'>Create a fingerprint</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td class='indent'>  -s</td><td class='indent'> --src=DIR</td><td class='indent'>  Source directory</td></tr>
+<tr><td class='indent'>  -o</td><td class='indent'> --out=FILE</td><td class='indent'>  Output file</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>difftastic diff [OPTIONS] OLDFILE NEWFILE</td></tr>
+<tr><td colspan='3'>Perform a diff</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td class='indent'>  -o</td><td class='indent'> --out=FILE</td><td class='indent'>  Output file</td></tr>
 </table>
 <!-- END -->
 
@@ -379,54 +398,37 @@ data Maker
     | Build {threads :: Int, method :: Method, files :: [FilePath]}
       deriving (Data,Typeable,Show,Eq)
 
-threadsMsg = text "Number of threads to use" & flag "j" & typ "NUM"
+threadsMsg x = x &= help "Number of threads to use" &= name "j" &= typ "NUM"
 
-wipe = mode $ Wipe &= prog "maker" & text "Clean all build objects"
-
-test = mode $ Test
-    {threads = def &= threadsMsg
-    ,extra = def &= typ "ANY" & args & unknownFlags
-    } &= text "Run the test suite"
-
-build = mode $ Build
-    {threads = def &= threadsMsg
-    ,method = enum Release
-        [Debug &= text "Debug build"
-        ,Release &= text "Release build"
-        ,Profile &= text "Profile build"]
-    ,files = def &= args
-    } &= text "Build the project" & defMode
-
-modes = [build,wipe,test]
-
-main = print =<< cmdArgs "Maker v1.0" modes
+wipe = Wipe &= help "Clean all build objects"
 </pre>
 <!-- END -->
 <!-- BEGIN help maker -->
 <table class='cmdargs'>
-<tr><td colspan='3'>Maker v1.0</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>maker [build] [FLAG] [FILE]</td></tr>
-<tr><td colspan='3' class='indent'>Build the project</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'>-j</td><td>--threads=NUM</td><td>Number of threads to use</td></tr>
-<tr><td class='indent'>-d</td><td>--debug</td><td>Debug build</td></tr>
-<tr><td class='indent'>-r</td><td>--release</td><td>Release build</td></tr>
-<tr><td class='indent'>-p</td><td>--profile</td><td>Profile build</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>maker wipe [FLAG]</td></tr>
-<tr><td colspan='3' class='indent'>Clean all build objects</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>maker test [FLAG] [ANY]</td></tr>
-<tr><td colspan='3' class='indent'>Run the test suite</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td class='indent'>-j</td><td>--threads=NUM</td><td>Number of threads to use</td></tr>
-<tr><td colspan='3'>&nbsp;</td></tr>
-<tr><td colspan='3'>Common flags:</td></tr>
-<tr><td class='indent'>-?</td><td>--help[=FORMAT]</td><td>Show usage information (optional format)</td></tr>
-<tr><td class='indent'>-V</td><td>--version</td><td>Show version information</td></tr>
-<tr><td class='indent'>-v</td><td>--verbose</td><td>Higher verbosity</td></tr>
-<tr><td class='indent'>-q</td><td>--quiet</td><td>Lower verbosity</td></tr>
+<tr><td colspan='3' class='indent'>Maker v1.0</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>maker [OPTIONS] </td></tr>
+<tr><td colspan='3'>Build helper program</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3'>Common flags</td></tr>
+<tr><td class='indent'>  -?</td><td class='indent'> --help</td><td class='indent'>  Display help message</td></tr>
+<tr><td class='indent'>  -V</td><td class='indent'> --version</td><td class='indent'>  Print version information</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>maker [build] [OPTIONS] [ITEM]</td></tr>
+<tr><td colspan='3'>Build the project</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td class='indent'>  -j</td><td class='indent'> --threads=NUM</td><td class='indent'>  Number of threads to use</td></tr>
+<tr><td class='indent'>  -r</td><td class='indent'> --release</td><td class='indent'>  Release build</td></tr>
+<tr><td class='indent'>  -d</td><td class='indent'> --debug</td><td class='indent'>  Debug build</td></tr>
+<tr><td class='indent'>  -p</td><td class='indent'> --profile</td><td class='indent'>  Profile build</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>maker wipe [OPTIONS]</td></tr>
+<tr><td colspan='3'>Clean all build objects</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td colspan='3' class='indent'>maker test [OPTIONS] [ANY]</td></tr>
+<tr><td colspan='3'>Run the test suite</td></tr>
+<tr><td colspan='3' class='indent'>&nbsp;</td></tr>
+<tr><td class='indent'>  -j</td><td class='indent'> --threads=NUM</td><td class='indent'>  Number of threads to use</td></tr>
 </table>
 <!-- END -->
 

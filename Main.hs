@@ -3,9 +3,17 @@
 module Main where
 
 import System.Console.CmdArgs.Test.All
+import qualified System.Console.CmdArgs.Test.Implicit.Diffy as D
+import qualified System.Console.CmdArgs.Test.Implicit.HLint as H
+import qualified System.Console.CmdArgs.Test.Implicit.Maker as M
+import System.Console.CmdArgs.Implicit(CmdArgs(..))
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 import System.Console.CmdArgs.Default
+
+import Data.List
+import Data.Maybe
+import System.IO
 
 
 data Args = Test
@@ -40,8 +48,6 @@ main = do
 
 generateManual :: IO ()
 generateManual = do
-    error "todo"
-{-
     src <- readFile "cmdargs.htm"
     () <- length src `seq` return ()
     res <- fmap unlines $ f $ lines src
@@ -58,16 +64,26 @@ generateManual = do
         f (x:xs) = fmap (x:) $ f xs
 
 generateChunk :: [String] -> IO [String]
-generateChunk ["help",x] = do
-    src <- readFile $ x ++ ".hs"
-    let str = head [takeWhile (/= '\"') $ drop 1 $ dropWhile (/= '\"') x | x <- lines src, "main" `isPrefixOf` x]
-    () <- length src `seq` return ()
-    fmap lines $ case x of
-        "hlint" -> cmdArgsHelp str H.modes HTML
-        "diffy" -> cmdArgsHelp str D.modes HTML
-        "maker" -> cmdArgsHelp str M.modes HTML
+generateChunk ["help",x] = return $ case x of
+    "hlint" -> f H.mode
+    "diffy" -> f D.mode
+    "maker" -> f M.mode
+    where f = lines . fromJust . cmdArgsHelp . flip processValue ["--help=html"]
 
 generateChunk ["code",x] = do
-    src <- readFile $ x ++ ".hs"
-    return $ ["<pre>"] ++ lines src ++ ["</pre>"]
--}
+    src <- readFile $ "System/Console/CmdArgs/Test/Implicit/" ++ x ++ ".hs"
+    return $ ["<pre>"] ++ recode (lines src) ++ ["</pre>"]
+
+
+recode :: [String] -> [String]
+recode = concatMap f . blanks . takeWhile (not . isPrefixOf "test")
+    where
+        blanks ("":"":xs) = blanks ("":xs)
+        blanks [""] = []
+        blanks [] = []
+        blanks (x:xs) = x : blanks xs
+
+        f x | x == "import System.Console.CmdArgs.Test.Implicit.Util" = []
+            | "{-# LANGUAGE " `isPrefixOf` x = ["{-# LANGUAGE DeriveDataTypeable #-}"]
+            | "module System.Console.CmdArgs.Test.Implicit." `isPrefixOf` x = ["module " ++ drop 44 x]
+        f x = [x]
