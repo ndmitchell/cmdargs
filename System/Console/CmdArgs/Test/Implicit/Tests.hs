@@ -4,8 +4,8 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4 >> test5
-demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5]
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6
+demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -95,3 +95,18 @@ test5 = do
     ["--choice=Aba"] === Test5 Abacus
     ["--choice=abacus"] === Test5 Abacus
     ["--choice=c","--choice=B"] === Test5 B
+
+-- tuple support
+data Test6 = Test6 {val1 :: (Int,Bool), val2 :: [(Int,(String,Double))]} deriving (Eq,Show,Data,Typeable)
+val6 = Test6 def def
+
+mode6 = cmdArgsMode val6
+
+test6 = do
+    let Tester{(===),fails} = tester "Test6" mode6
+    [] === val6
+    ["--val1=1,True"] === val6{val1=(1,True)}
+    ["--val1=84,off"] === val6{val1=(84,False)}
+    fails ["--val1=84"]
+    fails ["--val1=84,off,1"]
+    ["--val2=1,2,3","--val2=5,6,7"] === val6{val2=[(1,("2",3)),(5,("6",7))]}

@@ -5,6 +5,7 @@ import Data.Generics.Any
 import qualified Data.Generics.Any.Prelude as A
 import System.Console.CmdArgs.Explicit
 import Data.Char
+import Data.Either
 import Data.List
 
 
@@ -21,7 +22,7 @@ data ReadAtom
     | ReadDouble
     | ReadString
     | ReadEnum [(String,Any)]
---    | ReadTuple [ReadAtom] -- Possible to add relatively easily
+    | ReadTuple [ReadAtom]
 
 isReadBool x = case fromReadContainer x of
     ReadBool{} -> True
@@ -48,6 +49,7 @@ toReadAtom x = case typeName x of
     "Float" -> Just ReadFloat
     "Double" -> Just ReadDouble
     "[Char]" -> Just ReadString
+    _ | A.isTuple x -> fmap ReadTuple $ mapM toReadAtom $ children $ compose0 x $ typeShell x
     _ -> toReadEnum x
 
 
@@ -81,26 +83,55 @@ readAtom ty s = case ty of
     ReadFloat -> f (0::Float)
     ReadDouble -> f (0::Double)
     ReadString -> Right $ Any s
-    ReadEnum xs -> readOne (map toLower s) xs
+    ReadEnum xs -> readEnum (map toLower s) xs
+    ReadTuple _ -> readTuple ty s
     where
         f t = case reads s of
             [(x,"")] -> Right $ Any $ x `asTypeOf` t
             _ -> Left $ "Could not read as type " ++ show (typeOf $ Any t) ++ ", " ++ show s
 
 
-readOne :: String -> [(String,a)] -> Either String a
-readOne a xs | null ys = Left $ "Could not read, expected one of: " ++ unwords (map fst xs)
-             | length ys > 1 = Left $ "Ambiguous read, could be any of: " ++ unwords (map fst ys)
-             | otherwise = Right $ snd $ head ys
+readEnum:: String -> [(String,a)] -> Either String a
+readEnum a xs | null ys = Left $ "Could not read, expected one of: " ++ unwords (map fst xs)
+              | length ys > 1 = Left $ "Ambiguous read, could be any of: " ++ unwords (map fst ys)
+              | otherwise = Right $ snd $ head ys
     where ys = filter (\x -> a `isPrefixOf` fst x) xs
 
 
+readTuple :: ReadAtom -> String -> Either String Any
+readTuple ty s
+    | length ss /= length ts = Left "Incorrect number of comma separated fields for tuple"
+    | not $ null left = Left $ head left
+    | otherwise = Right $ gen right
+    where
+        (left,right) = partitionEithers $ zipWith readAtom ts ss
+        (ts,gen) = flatten ty
+        ss = split s
+
+
+split :: String -> [String]
+split = lines . map (\x -> if x == ',' then '\n' else x)
+
+flatten :: ReadAtom -> ([ReadAtom], [Any] -> Any)
+flatten (ReadTuple xs) = (concat ns, A.tuple . zipWith ($) fs . unconcat ns)
+    where (ns,fs) = unzip $ map flatten xs
+flatten x = ([x], \[a] -> a)
+
+
+unconcat :: [[w]] -> [a] -> [[a]]
+unconcat [] [] = []
+unconcat (w:ws) xs = x1 : unconcat ws x2
+    where (x1,x2) = splitAt (length w) xs
+
+
 readHelp :: ReadContainer -> String
-readHelp ty = case fromReadContainer ty of
-    ReadBool -> "BOOL"
-    ReadInt -> "INT"
-    ReadInteger -> "INT"
-    ReadFloat -> "NUM"
-    ReadDouble -> "NUM"
-    ReadString -> "ITEM"
-    ReadEnum xs -> map toUpper $ typeShell $ snd $ head xs
+readHelp = f . fromReadContainer
+    where
+        f ReadBool = "BOOL"
+        f ReadInt = "INT"
+        f ReadInteger = "INT"
+        f ReadFloat = "NUM"
+        f ReadDouble = "NUM"
+        f ReadString = "ITEM"
+        f (ReadEnum xs) = map toUpper $ typeShell $ snd $ head xs
+        f (ReadTuple xs) = intercalate "," $ map f xs

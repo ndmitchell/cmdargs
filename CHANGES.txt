@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Add support for reading tuple values (including nested)
     #292, add support for automatic enumerations
     #221, make argpos work with non-string fields
     #222, support opt and args together
