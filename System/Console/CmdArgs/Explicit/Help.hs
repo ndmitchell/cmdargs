@@ -78,7 +78,7 @@ helpGroup f xs = concatMap f (groupUnnamed xs) ++ concatMap g (groupNamed xs)
 
 
 helpFlag :: Flag a -> [Text]
-helpFlag x = [cols [unwords $ map ("-"++) a2, unwords $ map ("--"++) b2, flagHelp x]]
+helpFlag x = [cols [unwords $ map ("-"++) a2, unwords $ map ("--"++) b2, ' ' : flagHelp x]]
         where
             (a,b) = partition ((==) 1 . length) $ flagNames x
             (a2,b2) = if null b then (add a opt, b) else (a, add b opt)
