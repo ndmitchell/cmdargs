@@ -340,27 +340,27 @@ diff = Diff
     ,out = outFlags "diff.txt"
     } &= help "Perform a diff"
 
-mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "difftastic" &= summary "Diffy v1.0"
+mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
 </pre>
 <!-- END -->
 <!-- BEGIN help diffy -->
 <table class='cmdargs'>
 <tr><td colspan='3'>Diffy v1.0</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>difftastic [OPTIONS]</td></tr>
+<tr><td colspan='3'>diffy [OPTIONS]</td></tr>
 <tr><td colspan='3' style='padding-left:1ex;'>Create and compare differences</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3' style='padding-left:1ex;'>Common flags</td></tr>
 <tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
 <tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>difftastic create [OPTIONS]</td></tr>
+<tr><td colspan='3'>diffy create [OPTIONS]</td></tr>
 <tr><td colspan='3' style='padding-left:1ex;'>Create a fingerprint</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td style='padding-left:2ex;'>-s</td><td style='padding-left:1ex;'>--src=DIR</td><td style='padding-left:2ex;'>Source directory</td></tr>
 <tr><td style='padding-left:2ex;'>-o</td><td style='padding-left:1ex;'>--out=FILE</td><td style='padding-left:2ex;'>Output file</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>difftastic diff [OPTIONS] OLDFILE NEWFILE</td></tr>
+<tr><td colspan='3'>diffy diff [OPTIONS] OLDFILE NEWFILE</td></tr>
 <tr><td colspan='3' style='padding-left:1ex;'>Perform a diff</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td style='padding-left:2ex;'>-o</td><td style='padding-left:1ex;'>--out=FILE</td><td style='padding-left:2ex;'>Output file</td></tr>
