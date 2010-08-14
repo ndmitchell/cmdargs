@@ -7,6 +7,7 @@ data Ann
     = Help String
     | Name String
     | Explicit
+    | GroupName String
 
     | FlagOptional String
     | FlagArgs

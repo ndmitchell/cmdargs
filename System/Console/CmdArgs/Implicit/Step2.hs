@@ -30,6 +30,7 @@ data Prog2 a = Prog2
 
 data Mode2 a = Mode2
     {mode2Names :: [Name]
+    ,mode2Group :: String
     ,mode2Value :: a
     ,mode2Help :: Help
     ,mode2Suffix :: [String]
@@ -39,6 +40,7 @@ data Mode2 a = Mode2
 
 data Flag2 a = Flag2
     {flag2Names :: [Name]
+    ,flag2Group :: String
     ,flag2Upd :: Flag2Type a
     ,flag2Opt :: Maybe String
     ,flag2FlagHelp :: FlagHelp
@@ -85,6 +87,7 @@ transProg (Prog1 ann xs) = Prog2 summary program hlp verb defMode (map transMode
 transMode :: Mode1 -> Mode2 Any
 transMode (Mode1 an c xs) = Mode2
     [x | Name x <- an]
+    (last $ "" : [x | GroupName x <- an])
     c
     (concat [x | Help x <- an])
     (concat [x | ModeHelpSuffix x <- an])
@@ -96,10 +99,12 @@ transMode (Mode1 an c xs) = Mode2
 
 transFlag :: Flag1 -> Flag2 Any
 transFlag flag@(Flag1 ann fld val)
-    | Just (flaghelpdef,upd) <- transFlagType flag = Flag2 names upd opt (if null flaghelp then flaghelpdef else flaghelp) help
+    | Just (flaghelpdef,upd) <- transFlagType flag =
+        Flag2 names grp upd opt (if null flaghelp then flaghelpdef else flaghelp) help
     | otherwise = error $ "Don't know how to deal with field type, " ++ fld ++ " :: " ++ show val
     where
         opt = let a = [x | FlagOptional x <- ann] in if null a then Nothing else Just $ concat a
+        grp = last $ "" : [x | GroupName x <- ann]
         help = concat [x | Help x <- ann] ++ concat [" (default=" ++ x ++ ")" | Just x <- [opt], x /= ""]
         names = [x | Name x <- ann]
         flaghelp = concat [x | FlagType x <- ann]

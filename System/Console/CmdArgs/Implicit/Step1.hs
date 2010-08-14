@@ -19,7 +19,7 @@ data Flag1 = Flag1 [Ann] String Any deriving Show
 
 
 step1 :: Capture -> Prog1
-step1 = expand . inherit . flatten
+step1 = expand . groupnames . inherit . flatten
 
 
 err x = error $ "CmdArgs.Implicit.Step1: " ++ x
@@ -63,6 +63,23 @@ assignLong (Mode1 a b c) = Mode1 (add (ctor b) a) b $ map f c
           g FlagArgs = False
           g FlagArgPos{} = False
           g _ = True
+
+
+---------------------------------------------------------------------
+-- GROUP NAMES
+-- Make sure every mode/flag has a GroupName annotation
+
+groupnames :: Prog1 -> Prog1
+groupnames (Prog1 a b) = Prog1 a $ f onmode "" [Mode1 c d $ f onflag "" e | Mode1 c d e <- b]
+    where
+        onmode (Mode1 a b c) = (a, \a -> Mode1 a b c)
+        onflag (Flag1 a b c) = (a, \a -> Flag1 a b c)
+
+        f on name [] = []
+        f on name (x:xs) = case [y | GroupName y <- c] of
+            [] -> g (GroupName name:c) : f on name xs
+            ys -> x : f on (last ys) xs
+            where (c,g) = on x
 
 
 ---------------------------------------------------------------------

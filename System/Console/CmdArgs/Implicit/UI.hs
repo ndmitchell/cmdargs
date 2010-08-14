@@ -93,6 +93,18 @@ argPos :: Int -> Ann
 argPos = FlagArgPos
 
 
+-- | Flag\/Mode: \"Give these flags/modes a group name in the help output.\"
+--
+--   This mode will be used for all following modes/flags, until the
+--   next @groupname@.
+--
+-- > {hello = def &= groupname "Welcomes"}
+-- > Welcomes
+-- >   -h --hello=VALUE
+groupname :: String -> Ann
+groupname = GroupName
+
+
 -- | Mode: \"A longer description of this mode is ...\"
 --
 --   Suffix to be added to the help message.

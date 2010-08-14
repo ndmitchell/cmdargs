@@ -4,8 +4,10 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7
-demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6, toDemo mode7]
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8
+demos = zipWith f [1..]
+        [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
+        ,toDemo mode7, toDemo mode8]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -127,3 +129,18 @@ test7 = do
     ["test72","--unique=2"] === Test72 2 0
     ["test73","--rename=2"] === Test73 0 2
     ["test73","--unique=2"] === Test73 2 0
+
+-- from #252, grouping
+data Test8 = Test8 {test8a :: Int, test8b :: Int, test8c :: Int}
+           | Test81
+           | Test82
+             deriving (Eq,Show,Data,Typeable)
+
+mode8 = cmdArgsMode $ modes [Test8 1 (2 &= groupname "Flags") 3 &= groupname "Mode1", Test81, Test82 &= groupname "Mode2"]
+
+test8 = do
+    let Tester{(===),fails} = tester "Test8" mode8
+    -- FIXME: No good way to test the help output
+    fails []
+    ["test8","--test8a=18"] === Test8 18 2 3
+

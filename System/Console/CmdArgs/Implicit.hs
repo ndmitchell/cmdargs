@@ -14,7 +14,7 @@
 
     Attributes are used to control a number of behaviours:
     
-    * The help message: 'help', 'typ', 'details', 'summary', 'program'
+    * The help message: 'help', 'typ', 'details', 'summary', 'program', 'groupname'
     
     * Flag behaviour: 'opt', 'enum', 'verbosity'
     

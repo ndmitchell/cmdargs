@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #252, add support for grouped flags/modes
     #333, support missing fields
     Add support for reading tuple values (including nested)
     #292, add support for automatic enumerations

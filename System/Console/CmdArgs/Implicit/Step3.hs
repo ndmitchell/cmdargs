@@ -14,6 +14,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Verbosity
 import System.Console.CmdArgs.Text
 
+import Control.Arrow
 import Data.Data
 import Data.Maybe
 import Data.Monoid
@@ -88,10 +89,11 @@ commonFlags Prog2{..} add = flags
 transProg :: Prog2 (CmdArgs a) -> Mode (CmdArgs a)
 transProg p = res{modeNames = [prog2Name p]}
     where
-        res = if length ys == 1 then head ys else defMode{modeGroupModes = toGroup ys, modeHelp = prog2Help p}
-        defMode = maybe zeroMode (silentMode . (ys!!)) $ prog2ModeDefault p
+        res = if length ys == 1 then snd $ head ys else defMode{modeGroupModes = toGroups ys, modeHelp = prog2Help p}
+        defMode = maybe zeroMode (silentMode . snd . (ys!!)) $ prog2ModeDefault p
         silentMode m = m{modeGroupFlags=Group [] (modeFlags m) [], modeArgs=fmap (\x -> x{argType=""}) (modeArgs m)}
-        ys = zipWith transMode (map ((==) (prog2ModeDefault p) . Just) [0..]) $ prog2Modes p
+        ys = zip (map mode2Group $ prog2Modes p) $
+                 zipWith transMode (map ((==) (prog2ModeDefault p) . Just) [0..]) $ prog2Modes p
 
         zeroMode = Mode (toGroup []) [] (embed $ error msg) chk "" [] Nothing $ toGroup []
             where msg = "System.Console.CmdArgs.Implicit: No default mode given (see cmdArgsHelp/cmdArgsVersion)"
@@ -107,7 +109,13 @@ transMode auto Mode2{..} = transArgs mode2Args $ Mode
     mode2Help
     mode2Suffix
     Nothing
-    (toGroup $ map transFlag mode2Flags)
+    (toGroups $ map (flag2Group &&& transFlag) mode2Flags)
+
+
+toGroups :: [(String,a)] -> Group a
+toGroups xs = Group (f "") [] (map (id &&& f) names)
+    where names = filter (not . null) $ nub $ map fst xs
+          f x = map snd $ filter ((==) x . fst) xs
 
 
 transFlag :: Flag2 (CmdArgs a) -> Flag (CmdArgs a)
