@@ -111,7 +111,7 @@ test6 = do
     fails ["--val1=84,off,1"]
     ["--val2=1,2,3","--val2=5,6,7"] === val6{val2=[(1,("2",3)),(5,("6",7))]}
 
--- from #33, add default fields
+-- from #333, add default fields
 data Test7 = Test71 {shared :: Int}
            | Test72 {unique :: Int, shared :: Int}
            | Test73 {unique :: Int, shared :: Int}
