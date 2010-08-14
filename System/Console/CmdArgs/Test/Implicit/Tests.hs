@@ -1,5 +1,8 @@
 {-# LANGUAGE DeriveDataTypeable, NamedFieldPuns #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
+
 module System.Console.CmdArgs.Test.Implicit.Tests where
+
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util

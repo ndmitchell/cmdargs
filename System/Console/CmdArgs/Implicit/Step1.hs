@@ -1,4 +1,5 @@
 {-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards #-}
+{-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 
 -- | This module takes the result of Structure, and traslates it to
 --   the CmdArgs.Explicit format.
