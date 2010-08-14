@@ -24,9 +24,12 @@
 
     * multi-mode programs: 'modes', 'auto'
 
-    Each field in the record must be one of the supported atomic types
-    (@String@, @Int@, @Integer@, @Float@, @Double@, @Bool@) or a list (@[]@)
-    or @Maybe@ wrapping at atomic type.
+    [Supported Types] Each field in the record must be one of the supported
+    atomic types (@String@, @Int@, @Integer@, @Float@, @Double@, @Bool@) or
+    a list (@[]@) or @Maybe@ wrapping at atomic type.
+
+    [Missing Fields] If a field is shared by multiple modes, it may be omitted
+    in subsequent modes, and will default to the previous value.
 
     /Warning:/ Values created with annotations are not pure - the first
     time they are used they will include the annotations, but subsequently

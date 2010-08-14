@@ -4,8 +4,8 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6
-demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6]
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7
+demos = zipWith f [1..] [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6, toDemo mode7]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -110,3 +110,20 @@ test6 = do
     fails ["--val1=84"]
     fails ["--val1=84,off,1"]
     ["--val2=1,2,3","--val2=5,6,7"] === val6{val2=[(1,("2",3)),(5,("6",7))]}
+
+-- from #33, add default fields
+data Test7 = Test71 {shared :: Int}
+           | Test72 {unique :: Int, shared :: Int}
+           | Test73 {unique :: Int, shared :: Int}
+             deriving (Eq,Show,Data,Typeable)
+
+mode7 = cmdArgsMode $ modes [Test71{shared = def &= name "rename"}, Test72{unique=def}, Test73{}]
+
+test7 = do
+    let Tester{(===),fails} = tester "Test7" mode7
+    fails []
+    ["test71","--rename=2"] === Test71 2
+    ["test72","--rename=2"] === Test72 0 2
+    ["test72","--unique=2"] === Test72 2 0
+    ["test73","--rename=2"] === Test73 0 2
+    ["test73","--unique=2"] === Test73 2 0

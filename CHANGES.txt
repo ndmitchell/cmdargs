@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #333, support missing fields
     Add support for reading tuple values (including nested)
     #292, add support for automatic enumerations
     #221, make argpos work with non-string fields

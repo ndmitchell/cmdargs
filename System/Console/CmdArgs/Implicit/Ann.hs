@@ -13,6 +13,7 @@ data Ann
     | FlagArgPos Int
     | FlagType String
     | FlagEnum -- private, specified by 'one'
+    | FlagInherit -- private, specified by omitting it (which throws RecConError)
 
     | ModeDefault
     | ModeHelpSuffix [String]

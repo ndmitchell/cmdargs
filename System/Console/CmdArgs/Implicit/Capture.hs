@@ -1,3 +1,4 @@
+{-# LANGUAGE PatternGuards, ScopedTypeVariables #-}
 
 -- | This module does all the tricky/unsafe bits of CmdArgs.
 --   It captures annotations on the data structure in the most direct way
@@ -23,6 +24,7 @@ data Capture
     = Many [Capture]
     | Ann Ann Capture
     | Value Any
+    | Missing Any -- a RecConError
     | Ctor Any [Capture]
       deriving Show
       
@@ -67,9 +69,10 @@ capture x = unsafePerformIO $ force x
 force :: Any -> IO Capture
 force x@(Any xx) = do
     push
-    evaluate xx
+    res <- try $ evaluate xx
     y <- pop
     case y of
+        _ | Left (_ :: RecConError) <- res -> return $ Missing x
         Right r -> return r
         Left f | not $ isAlgType x -> return $ f $ Value x
                | otherwise -> do

@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards #-}
 
 -- | This module takes the result of Structure, and traslates it to
 --   the CmdArgs.Explicit format.
@@ -10,6 +10,7 @@ import System.Console.CmdArgs.Implicit.Capture
 
 import Data.Char
 import Data.List
+import Data.Maybe
 
 
 data Prog1 = Prog1 [Ann] [Mode1] deriving Show
@@ -18,7 +19,7 @@ data Flag1 = Flag1 [Ann] String Any deriving Show
 
 
 step1 :: Capture -> Prog1
-step1 = expand . flatten
+step1 = expand . inherit . flatten
 
 
 err x = error $ "CmdArgs.Implicit.Step1: " ++ x
@@ -65,6 +66,32 @@ assignLong (Mode1 a b c) = Mode1 (add (ctor b) a) b $ map f c
 
 
 ---------------------------------------------------------------------
+-- INHERIT
+-- Deal with FlagInherit
+
+inherit :: Prog1 -> Prog1
+inherit (Prog1 a b) = Prog1 a $ f ask0 b
+    where
+        ask0 s = err $ "Field missing and not specified previously: " ++ show s
+
+        f ask (x:xs) = x2 : f (\s -> fromMaybe (ask s) $ lookup s [(a,b) | b@(Flag1 _ a _) <- cs]) xs
+            where x2@(Mode1 _ _ cs) = inheritMode ask x
+        f ask [] = []
+
+
+inheritMode :: (String -> Flag1) -> Mode1 -> Mode1
+inheritMode ask (Mode1 a b c) = Mode1 a (foldr ($) b upd) c2
+    where (c2,upd) = unzip $ map (inheritFlag ask) c
+
+
+inheritFlag :: (String -> Flag1) -> Flag1 -> (Flag1, Any -> Any)
+inheritFlag ask (Flag1 a b c)
+    | FlagInherit `notElem` a = (Flag1 a b c, id)
+    | Flag1 a2 b2 c2 <- ask b, typeOf c == typeOf c2 = (Flag1 a2 b2 c2, setField (b2,c2))
+    | otherwise = err $ "Field missing and previous instance has a different type:" ++ show b
+
+
+---------------------------------------------------------------------
 -- FLATTEN
 -- Separate the data in to Prog/Mode/Flag
 
@@ -100,6 +127,7 @@ flattenMode x = err $ "Unexpected in a mode: " ++ show x
 flattenFlag :: Capture -> [Flag1]
 flattenFlag (Ann a b) = [Flag1 (x++[a]) y z | Flag1 x y z <- flattenFlag b]
 flattenFlag (Value x) = [Flag1 [] "" x]
+flattenFlag (Missing x) = [Flag1 [FlagInherit] "" x]
 flattenFlag x@Ctor{} = [Flag1 [] "" $ flattenValue x]
 flattenFlag (Many xs) = concatMap flattenFlag $ map (Ann FlagEnum) xs
 flattenFlag x = err $ "Unexpected in a flag: " ++ show x
