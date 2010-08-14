@@ -110,8 +110,8 @@ getField lbl x = fromMaybe (error $ "getField: Could not find field " ++ show lb
     lookup lbl $ zip (fields x) (children x)
 
 
-setField :: FieldName -> Any -> Any -> Any
-setField lbl parent child 
+setField :: (FieldName,Any) -> Any -> Any
+setField (lbl,child) parent
     | lbl `notElem` fs = error $ "setField: Could not find field " ++ show lbl
     | otherwise = recompose parent $ zipWith (\f c -> if f == lbl then child else c) fs cs
     where
