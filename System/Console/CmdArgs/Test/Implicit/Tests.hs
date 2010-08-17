@@ -7,10 +7,10 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
-        ,toDemo mode7, toDemo mode8]
+        ,toDemo mode7, toDemo mode8, toDemo mode9]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -147,3 +147,20 @@ test8 = do
     fails []
     ["test8","--test8a=18"] === Test8 18 2 3
 
+-- bug from Sebastian Fischer, enums with multiple fields
+data XYZ = X | Y | Z deriving (Eq,Show,Data,Typeable)
+data Test9 = Test91 {foo :: XYZ}
+           | Test92 {foo :: XYZ}
+             deriving (Eq,Show,Data,Typeable)
+
+mode9 = cmdArgsMode $ modes [Test91 {foo = enum [X &= help "pick X (default)", Y &= help "pick Y"]} &= auto, Test92{}]
+
+test9 = do
+    let Tester{(===),fails} = tester "Test9" mode9
+    [] === Test91 X
+    ["test91","-x"] === Test91 X
+    ["test91","-y"] === Test91 Y
+    fails ["test91","-z"]
+    ["test92","-x"] === Test92 X
+    ["test92","-y"] === Test92 Y
+    ["test92"] === Test92 X

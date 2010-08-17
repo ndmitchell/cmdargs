@@ -11,7 +11,6 @@ import System.Console.CmdArgs.Implicit.Capture
 
 import Data.Char
 import Data.List
-import Data.Maybe
 
 
 data Prog1 = Prog1 [Ann] [Mode1] deriving Show
@@ -92,22 +91,22 @@ inherit (Prog1 a b) = Prog1 a $ f ask0 b
     where
         ask0 s = err $ "Field missing and not specified previously: " ++ show s
 
-        f ask (x:xs) = x2 : f (\s -> fromMaybe (ask s) $ lookup s [(a,b) | b@(Flag1 _ a _) <- cs]) xs
+        f ask (x:xs) = x2 : f (\s -> let c = [b | b@(Flag1 _ a _) <- cs, a == s] in if null c then ask s else c) xs
             where x2@(Mode1 _ _ cs) = inheritMode ask x
         f ask [] = []
 
 
-inheritMode :: (String -> Flag1) -> Mode1 -> Mode1
-inheritMode ask (Mode1 a b c) = Mode1 a (foldr ($) b upd) c2
+inheritMode :: (String -> [Flag1]) -> Mode1 -> Mode1
+inheritMode ask (Mode1 a b c) = Mode1 a (foldr ($) b upd) (concat c2)
     where (c2,upd) = unzip $ map (inheritFlag ask) c
 
 
-inheritFlag :: (String -> Flag1) -> Flag1 -> (Flag1, Any -> Any)
+inheritFlag :: (String -> [Flag1]) -> Flag1 -> ([Flag1], Any -> Any)
 inheritFlag ask (Flag1 a b c)
-    | FlagInherit `notElem` a = (Flag1 a b c, id)
-    | Flag1 a2 b2 c2 <- ask b, typeOf c == typeOf c2 = (Flag1 a2 b2 c2, setField (b2,c2))
-    | otherwise = err $ "Field missing and previous instance has a different type:" ++ show b
-
+    | FlagInherit `notElem` a = ([Flag1 a b c], id)
+    | or [typeOf c /= typeOf c2 | Flag1 _ _ c2 <- ys] = err $ "Field missing and previous instance has a different type:" ++ show b
+    | Flag1 a2 b2 c2 : _ <- ys = (ys, setField (b2,c2))
+    where ys = ask b
 
 ---------------------------------------------------------------------
 -- FLATTEN

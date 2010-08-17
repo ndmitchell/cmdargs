@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Bug, missing fields and explicit enums didn't work together
 0.2
     #252, add support for grouped flags/modes
     #333, support missing fields
