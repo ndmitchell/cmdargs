@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, NamedFieldPuns #-}
-{-# OPTIONS_GHC -fno-warn-missing-fields #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields -fno-warn-unused-binds #-}
 
 module System.Console.CmdArgs.Test.Implicit.Tests where
 
@@ -24,7 +24,7 @@ def1 = Test1 def def def (def &= args) def def def
 mode1 = cmdArgsMode $ def1
 
 test1 = do
-    let Tester{fails,(===)} = tester "Test1" mode1
+    let Tester{..} = tester "Test1" mode1
     [] === def1
     ["--maybeint=12"] === def1{maybeInt = Just 12}
     ["--maybeint=12","--maybeint=14"] === def1{maybeInt = Just 14}
@@ -51,7 +51,7 @@ data Test2 = Cmd1 {bs :: [String]}
 mode2 = cmdArgsMode $ modes [Cmd1 [], Cmd2 42]
 
 test2 = do
-    let Tester{fails,(===)} = tester "Test2" mode2
+    let Tester{..} = tester "Test2" mode2
     fails []
     ["cmd1","-btest"] === Cmd1 ["test"]
     ["cmd2","-b14"] === Cmd2 14
@@ -64,7 +64,7 @@ data Test3 = Test3 {pos1_1 :: [Int], pos1_2 :: [String], pos1_rest :: [String]}
 mode3 = cmdArgsMode $ Test3 (def &= argPos 1) (def &= argPos 2 &= opt "foo") (def &= args)
 
 test3 = do
-    let Tester{fails,(===)} = tester "Test3" mode3
+    let Tester{..} = tester "Test3" mode3
     fails []
     fails ["a"]
     ["a","1"] === Test3 [1] ["foo"] ["a"]
@@ -79,7 +79,7 @@ data Test4 = Test4 {test_4 :: [String]}
 mode4 = cmdArgsMode $ Test4 (def &= opt "hello" &= args)
 
 test4 = do
-    let Tester{(===)} = tester "Test4" mode4
+    let Tester{..} = tester "Test4" mode4
     [] === Test4 ["hello"]
     ["a"] === Test4 ["a"]
     ["a","b"] === Test4 ["a","b"]
@@ -92,7 +92,7 @@ data Test5 = Test5 {choice :: ABC} deriving (Eq,Show,Data,Typeable)
 mode5 = cmdArgsMode $ Test5 B
 
 test5 = do
-    let Tester{(===),fails} = tester "Test5" mode5
+    let Tester{..} = tester "Test5" mode5
     [] === Test5 B
     fails ["--choice=A"]
     ["--choice=c"] === Test5 C
@@ -108,7 +108,7 @@ val6 = Test6 def def
 mode6 = cmdArgsMode val6
 
 test6 = do
-    let Tester{(===),fails} = tester "Test6" mode6
+    let Tester{..} = tester "Test6" mode6
     [] === val6
     ["--val1=1,True"] === val6{val1=(1,True)}
     ["--val1=84,off"] === val6{val1=(84,False)}
@@ -125,7 +125,7 @@ data Test7 = Test71 {shared :: Int}
 mode7 = cmdArgsMode $ modes [Test71{shared = def &= name "rename"}, Test72{unique=def}, Test73{}]
 
 test7 = do
-    let Tester{(===),fails} = tester "Test7" mode7
+    let Tester{..} = tester "Test7" mode7
     fails []
     ["test71","--rename=2"] === Test71 2
     ["test72","--rename=2"] === Test72 0 2
@@ -142,7 +142,7 @@ data Test8 = Test8 {test8a :: Int, test8b :: Int, test8c :: Int}
 mode8 = cmdArgsMode $ modes [Test8 1 (2 &= groupname "Flags") 3 &= groupname "Mode1", Test81, Test82 &= groupname "Mode2"]
 
 test8 = do
-    let Tester{(===),fails} = tester "Test8" mode8
+    let Tester{..} = tester "Test8" mode8
     -- FIXME: No good way to test the help output
     fails []
     ["test8","--test8a=18"] === Test8 18 2 3
@@ -153,10 +153,10 @@ data Test9 = Test91 {foo :: XYZ}
            | Test92 {foo :: XYZ}
              deriving (Eq,Show,Data,Typeable)
 
-mode9 = cmdArgsMode $ modes [Test91 {foo = enum [X &= help "pick X (default)", Y &= help "pick Y"]} &= auto, Test92{}]
+mode9 = cmdArgsMode $ modes [Test91 {foo = enum [X &= help "pick X (default)", Y &= help "pick Y"] &= opt "Y"} &= auto, Test92{}]
 
 test9 = do
-    let Tester{(===),fails} = tester "Test9" mode9
+    let Tester{..} = tester "Test9" mode9
     [] === Test91 X
     ["test91","-x"] === Test91 X
     ["test91","-y"] === Test91 Y
