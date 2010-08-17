@@ -25,10 +25,10 @@ mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences
 test = do
     let Tester{..} = tester "Diffy" mode
     fails []
-    isHelp ["--help"]
-    isHelp ["create","--help"]
-    isHelp ["diff","--help"]
-    isVersion ["--version"]
+    isHelp ["--help"] []
+    isHelp ["create","--help"] []
+    isHelp ["diff","--help"] []
+    isVersion ["--version"] "Diffy v1.0"
     ["create"] === create
     fails ["create","file1"]
     fails ["create","--quiet"]

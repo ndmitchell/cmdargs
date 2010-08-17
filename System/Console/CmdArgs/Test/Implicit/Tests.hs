@@ -143,7 +143,7 @@ mode8 = cmdArgsMode $ modes [Test8 1 (2 &= groupname "Flags") 3 &= groupname "Mo
 
 test8 = do
     let Tester{..} = tester "Test8" mode8
-    -- FIXME: No good way to test the help output
+    isHelp ["-?"] ["  --test8a=INT"," Flags","  --test8b=INT"]
     fails []
     ["test8","--test8a=18"] === Test8 18 2 3
 
