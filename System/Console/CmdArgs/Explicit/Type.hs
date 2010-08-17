@@ -40,7 +40,7 @@ parseBool s | ls `elem` true  = Just True
 --   group structure is used when displaying the help message.
 data Group a = Group
     {groupUnnamed :: [a] -- ^ Normal items.
-    ,groupHiden :: [a] -- ^ Items that are hidden (not displayed in the help message).
+    ,groupHidden :: [a] -- ^ Items that are hidden (not displayed in the help message).
     ,groupNamed :: [(Help, [a])] -- ^ Items that have been grouped, along with a description of each group.
     } deriving Show 
 
