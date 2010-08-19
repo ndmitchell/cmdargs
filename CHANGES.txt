@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Change the help format
     Rename groupHiden to groupHidden, patch from Matthew Cox
     Bug, missing fields and explicit enums didn't work together
 0.2
