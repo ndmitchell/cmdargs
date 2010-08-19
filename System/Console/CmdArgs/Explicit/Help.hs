@@ -1,3 +1,46 @@
+{-
+Sample renderings:
+
+-- ONE MODE
+Program description
+
+programname [OPTIONS] FILE1 FILE2 [FILES]
+  Program to perform some action
+  
+  -f --flag     description
+Flag grouping:
+  -a --another  description
+
+
+-- MANY MODES WITH ONE SHOWN
+Program description
+
+programname [COMMAND] [OPTIONS] ...
+  Program to perform some action
+
+Commands:
+  [build]  Build action here
+  test     Test action here
+
+Flags:
+  -s --special  Special for the root only
+Common flags:
+  -? --help     Build action here
+
+
+-- MANY MODES WITH ALL SHOWN
+Program description
+
+programname [COMMAND] [OPTIONS] ...
+  Program to perform some action
+
+  -s --special  Special for the root only
+Common flags:
+  -? --help     Build action here
+
+programname [build] [OPTIONS] [FILES}
+  Action to perform here
+-}
 
 module System.Console.CmdArgs.Explicit.Help(HelpFormat(..), helpText) where
 
