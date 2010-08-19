@@ -101,23 +101,27 @@ helpTextOne :: Mode a -> [Text]
 helpTextOne m = pre ++ ms ++ suf
     where 
         (pre,suf) = helpTextMode m
-        ms = space $ [Line " Modes" | not $ null $ groupUnnamed $ modeGroupModes m] ++ helpGroup f (modeGroupModes m)
-        f m = return $ cols [concat $ take 1 $ modeNames m, modeHelp m]
+        ms = space $ [Line "Commands:" | not $ null $ groupUnnamed $ modeGroupModes m] ++ helpGroup f (modeGroupModes m)
+        f m = return $ cols [concat $ take 1 $ modeNames m, ' ' : modeHelp m]
 
 
 helpTextMode :: Mode a -> ([Text], [Text])
-helpTextMode x = (pre,suf)
+helpTextMode x@Mode{modeGroupFlags=flags,modeGroupModes=modes} = (pre,suf)
     where
-        pre = [Line $ unwords $ take 1 (modeNames x) ++ ["[OPTIONS]" | not $ null $ modeFlags x] ++
+        pre = [Line $ unwords $ take 1 (modeNames x) ++
+                  ["[COMMAND] ..." | notNullGroup modes] ++
+                  ["[OPTIONS]" | not $ null $ fromGroup flags] ++
                   map argType (maybeToList $ modeArgs x)] ++
-              [Line $ " " ++ modeHelp x | not $ null $ modeHelp x] ++
-              space (helpGroup helpFlag $ modeGroupFlags x)
-        suf = space (map (\x -> Line $ " " ++ x) $ modeHelpSuffix x)
+              [Line $ "  " ++ modeHelp x | not $ null $ modeHelp x]
+        suf = space
+                  ([Line "Flags:" | mixedGroup flags] ++
+                   (helpGroup helpFlag $ modeGroupFlags x)) ++
+              space (map Line $ modeHelpSuffix x)
 
 
 helpGroup :: (a -> [Text]) -> Group a -> [Text]
 helpGroup f xs = concatMap f (groupUnnamed xs) ++ concatMap g (groupNamed xs)
-    where g (a,b) = Line (' ':a) : concatMap f b
+    where g (a,b) = Line (a ++ ":") : concatMap f b
 
 
 helpFlag :: Flag a -> [Text]
@@ -134,3 +138,8 @@ helpFlag x = [cols [unwords $ map ("-"++) a2, unwords $ map ("--"++) b2, ' ' : f
 
 cols (x:xs) = Cols $ ("  "++x) : map (' ':) xs
 space xs = [Line "" | not $ null xs] ++ xs
+
+
+nullGroup x = null (groupUnnamed x) && null (groupNamed x)
+notNullGroup = not . nullGroup
+mixedGroup x = not $ null (groupUnnamed x) || null (groupNamed x) -- has both unnamed and named

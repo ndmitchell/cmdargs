@@ -139,11 +139,11 @@ data Test8 = Test8 {test8a :: Int, test8b :: Int, test8c :: Int}
            | Test82
              deriving (Eq,Show,Data,Typeable)
 
-mode8 = cmdArgsMode $ modes [Test8 1 (2 &= groupname "Flags") 3 &= groupname "Mode1", Test81, Test82 &= groupname "Mode2"]
+mode8 = cmdArgsMode $ modes [Test8 1 (2 &= groupname "More flags") 3 &= groupname "Mode1", Test81, Test82 &= groupname "Mode2"]
 
 test8 = do
     let Tester{..} = tester "Test8" mode8
-    isHelp ["-?"] ["  --test8a=INT"," Flags","  --test8b=INT"]
+    isHelp ["-?"] ["Flags:","  --test8a=INT","More flags:","  --test8b=INT"]
     fails []
     ["test8","--test8a=18"] === Test8 18 2 3
 
