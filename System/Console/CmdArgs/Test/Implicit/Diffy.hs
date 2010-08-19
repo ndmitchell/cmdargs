@@ -28,6 +28,7 @@ test = do
     isHelp ["--help"] []
     isHelp ["create","--help"] []
     isHelp ["diff","--help"] []
+    isHelpNot ["--help"] ["diffy"]
     isVersion ["--version"] "Diffy v1.0"
     ["create"] === create
     fails ["create","file1"]

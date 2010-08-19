@@ -17,13 +17,14 @@ data Tester a = Tester
     {(===) :: [String] -> a -> IO ()
     ,fails :: [String] -> IO ()
     ,isHelp :: [String] -> [String] -> IO ()
+    ,isHelpNot :: [String] -> [String] -> IO ()
     ,isVersion :: [String] -> String -> IO ()
     ,isVerbosity :: [String] -> Verbosity -> IO ()
     }
 
 
 tester :: (Show a, Eq a) => String -> Mode (CmdArgs a) -> Tester a
-tester name m = Tester (===) fails isHelp isVersion isVerbosity
+tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity
     where
         failed msg args xs = failure msg $ ("Name","Implicit "++name):("Args",show args):xs
 
@@ -39,6 +40,10 @@ tester name m = Tester (===) fails isHelp isVersion isVerbosity
         isHelp args want = case process m args of
             Right x | Just got <- cmdArgsHelp x, match want (lines got) -> success
             _ -> failed "Failed on isHelp" args []
+
+        isHelpNot args want = case process m args of
+            Right x | Just got <- cmdArgsHelp x, not $ match want (lines got) -> success
+            _ -> failed "Failed on isHelpNot" args []
 
         isVersion args want = case process m args of
             Right x | Just got <- cmdArgsVersion x, match [want] [got] -> success
