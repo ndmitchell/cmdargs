@@ -1,11 +1,24 @@
 
 module System.Console.CmdArgs.Test.Explicit(test, demo) where
 
+import System.Console.CmdArgs.Default
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Test.Util
 
 
-demo = []
+demo = [newDemo act dem]
+
+act xs | ("help","") `elem` xs = print $ helpText def dem
+       | otherwise = print xs
+
+dem :: Mode [(String,String)]
+dem = mode "explicit" [] "Explicit sample program" (flagArg (upd "file") "FILE")
+      [flagOpt "world" ["hello","h"] (upd "world") "WHO" "World argument"
+      ,flagReq ["greeting","g"] (upd "greeting") "MSG" "Greeting to give"
+      ,flagHelpSimple (("help",""):)
+      ]
+    where upd msg x v = Right $ (msg,x):v
+
 
 test :: IO ()
 test = do

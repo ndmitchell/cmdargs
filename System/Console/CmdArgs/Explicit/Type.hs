@@ -72,7 +72,7 @@ toGroup x = Group x [] []
 --   * Optionally an unnamed argument ('modeArgs')
 data Mode a = Mode
     {modeGroupModes :: Group (Mode a) -- ^ The available sub-modes
-    ,modeNames :: [Name] -- ^ The names assigned to this mode
+    ,modeNames :: [Name] -- ^ The names assigned to this mode (for the root mode, this name is used as the program name)
     ,modeValue :: a -- ^ Value to start with
     ,modeCheck :: a -> Either String a -- checking a value is correct
     ,modeHelp :: Help -- ^ Help text

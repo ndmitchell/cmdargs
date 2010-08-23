@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Add a documentation example for the Explicit mode
     Improve the purity and annotations a bit, try disabling CSE
     Change the help format
     Rename groupHiden to groupHidden, patch from Matthew Cox
