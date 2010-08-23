@@ -7,10 +7,10 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
-        ,toDemo mode7, toDemo mode8, toDemo mode9]
+        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -164,3 +164,15 @@ test9 = do
     ["test92","-x"] === Test92 X
     ["test92","-y"] === Test92 Y
     ["test92"] === Test92 X
+
+-- share common fields in the help message
+data Test10 = Test101 {food :: Int}
+            | Test102 {food :: Int, bard :: Int}
+              deriving (Eq,Show,Data,Typeable)
+
+mode10 = cmdArgsMode $ modes [Test101 def, Test102 def def]
+
+test10 = do
+    let Tester{..} = tester "Test10" mode10
+    -- FIXME: isHelp ["-?=one"] ["  -f --food=INT"]
+    isHelpNot ["-?=one"] ["  -b --bard=INT"]
