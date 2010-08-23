@@ -24,23 +24,26 @@
 
     * multi-mode programs: 'modes', 'auto'
 
-    [Supported Types] Each field in the record must be one of the supported
+    /Supported Types/: Each field in the record must be one of the supported
     atomic types (@String@, @Int@, @Integer@, @Float@, @Double@, @Bool@, an
     enumeration, a tuple of atomic types) or a list (@[]@) or @Maybe@ wrapping
     at atomic type.
 
-    [Missing Fields] If a field is shared by multiple modes, it may be omitted
+    /Missing Fields/: If a field is shared by multiple modes, it may be omitted
     in subsequent modes, and will default to the previous value.
 
-    /Warning:/ Values created with annotations are not pure - the first
-    time they are used they will include the annotations, but subsequently
-    they will not. To capture the annotations, so they can be used multiple times,
-    use 'cmdArgsMode'.
+    /Purity/: Values created with annotations are not pure - the first
+    time they are computed they will include the annotations, but subsequently
+    they will not. If you wish to run the above example in a more robust way:
 
-    If you are using GHC's optimisations you may need to specify
+    @sample = 'cmdArgsMode' $ Sample{hello = ... -- as before@
+
+    @main = print =<< 'cmdArgsRun' sample@
+
+    Even using this scheme, sometimes GHC's optimisations may share values who
+    have the same annotation. To disable sharing you may need to specify
     @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ in the module you define the flags.
 -}
-
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines
     cmdArgs, cmdArgsMode, cmdArgsRun, cmdArgsApply, CmdArgs(..),

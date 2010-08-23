@@ -1,41 +1,43 @@
 
--- | This module constructs command lines. You may either use the helper functions
---   ('flagNone', 'flagOpt', 'mode' etc.) or construct the type directly. These
---   types are intended to give all the necessary power to the person constructing
---   a command line parser.
---
---   For people constructing simpler command line parsers, the module
---   "System.Console.CmdArgs.Implicit" may be more appropriate.
---
---   As an example of a simple parser:
---
--- > arguments :: Mode [(String,String)]
--- > arguments = mode "explicit" [] "Explicit sample program" (flagArg (upd "file") "FILE")
--- >     [flagOpt "world" ["hello","h"] (upd "world") "WHO" "World argument"
--- >     ,flagReq ["greeting","g"] (upd "greeting") "MSG" "Greeting to give"
--- >     ,flagHelpSimple (("help",""):)]
--- >     where upd msg x v = Right $ (msg,x):v
---
---   And this can be invoked by:
---
--- > main = do
--- >     x <- processArgs arguments
--- >     if ("help","") `elem` xs then
--- >         print $ helpText def arguments
--- >      else
--- >         print x
---
---   /Groups/: The 'Group' structure allows flags/modes to be grouped for the purpose of
---   displaying help. When processing command lines, the group structure is ignored.
---
---   /Modes/: The Explicit module allows multiple mode programs by placing additional modes
---   in 'modeGroupModes'. Every mode is allowed sub-modes, and thus multiple levels of mode
---   may be created. Given a mode @x@ with sub-modes @xs@, if the first argument corresponds
---   to the name of a sub-mode, then that sub-mode will be applied. If not, then the arguments
---   will be processed by mode @x@. Consequently, if you wish to force the user to explicitly
---   enter a mode, simply give sub-modes, and leave 'modeArgs' as @Nothing@. Alternatively, if
---   you want one sub-mode to be selected by default, place all it's flags both in the sub-mode
---   and the outer mode.
+{-|
+    This module constructs command lines. You may either use the helper functions
+    ('flagNone', 'flagOpt', 'mode' etc.) or construct the type directly. These
+    types are intended to give all the necessary power to the person constructing
+    a command line parser.
+
+    For people constructing simpler command line parsers, the module
+    "System.Console.CmdArgs.Implicit" may be more appropriate.
+
+    As an example of a parser:
+
+  > arguments :: Mode [(String,String)]
+  > arguments = mode "explicit" [] "Explicit sample program" (flagArg (upd "file") "FILE")
+  >     [flagOpt "world" ["hello","h"] (upd "world") "WHO" "World argument"
+  >     ,flagReq ["greeting","g"] (upd "greeting") "MSG" "Greeting to give"
+  >     ,flagHelpSimple (("help",""):)]
+  >     where upd msg x v = Right $ (msg,x):v
+
+    And this can be invoked by:
+
+  > main = do
+  >     x <- processArgs arguments
+  >     if ("help","") `elem` xs then
+  >         print $ helpText def arguments
+  >      else
+  >         print x
+
+    /Groups/: The 'Group' structure allows flags/modes to be grouped for the purpose of
+    displaying help. When processing command lines, the group structure is ignored.
+
+    /Modes/: The Explicit module allows multiple mode programs by placing additional modes
+    in 'modeGroupModes'. Every mode is allowed sub-modes, and thus multiple levels of mode
+    may be created. Given a mode @x@ with sub-modes @xs@, if the first argument corresponds
+    to the name of a sub-mode, then that sub-mode will be applied. If not, then the arguments
+    will be processed by mode @x@. Consequently, if you wish to force the user to explicitly
+    enter a mode, simply give sub-modes, and leave 'modeArgs' as @Nothing@. Alternatively, if
+    you want one sub-mode to be selected by default, place all it's flags both in the sub-mode
+    and the outer mode.
+-}
 module System.Console.CmdArgs.Explicit(
     -- * Running command lines
     module System.Console.CmdArgs.Explicit.Process,
