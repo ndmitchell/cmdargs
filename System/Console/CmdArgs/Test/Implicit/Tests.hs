@@ -7,10 +7,10 @@ import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >> test11
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
-        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10]
+        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -176,3 +176,19 @@ test10 = do
     let Tester{..} = tester "Test10" mode10
     -- FIXME: isHelp ["-?=one"] ["  -f --food=INT"]
     isHelpNot ["-?=one"] ["  -b --bard=INT"]
+
+-- test for GHC over-optimising
+
+data Test11 = Test11A {test111 :: String}
+            | Test11B {test111 :: String}
+              deriving (Eq,Show,Data,Typeable)
+
+test11A = Test11A { test111 = def &= argPos 0 }
+test11B = Test11B { test111 = def &= argPos 0 }
+mode11 = cmdArgsMode $ modes [test11A, test11B]
+
+test11 = do
+    let Tester{..} = tester "Test11" mode11
+    fails []
+    ["test11a","test"] === Test11A "test"
+    ["test11b","test"] === Test11B "test"

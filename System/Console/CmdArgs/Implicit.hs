@@ -36,6 +36,9 @@
     time they are used they will include the annotations, but subsequently
     they will not. To capture the annotations, so they can be used multiple times,
     use 'cmdArgsMode'.
+
+    If you are using GHC's optimisations you may need to specify
+    @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ in the module you define the flags.
 -}
 
 module System.Console.CmdArgs.Implicit(

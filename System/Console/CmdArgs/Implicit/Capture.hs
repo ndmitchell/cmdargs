@@ -7,6 +7,28 @@ module System.Console.CmdArgs.Implicit.Capture(
     Capture(..), capture, many, (&=)
     ) where
 
+{-
+Notes on purity:
+
+There is a risk that things that are unsafe will be inlined. That can generally be
+removed by NOININE on everything.
+
+There is also a risk that things get commoned up. For example:
+
+foo = trace "1" 1
+bar = trace "1" 1
+main = do
+    evaluate foo
+    evaluate bar
+
+Will print "1" only once, since foo and bar share the same pattern. However, if
+anything in the value is a lambda they are not seen as equal. We exploit this by
+defining const_ and id_ as per this module.
+
+Now anything wrapped in id_ looks different from anything else.
+-}
+
+
 import Data.Data(Data)
 import Data.IORef
 import System.IO.Unsafe
@@ -46,6 +68,7 @@ set x = modify $ \f -> Right $ f x
 
 
 -- | Collapse multiple values in to one.
+{-# NOINLINE many #-}
 many :: Data a => [a] -> a
 many xs = unsafePerformIO $ do
     ys <- mapM (force . Any) xs
@@ -55,13 +78,15 @@ many xs = unsafePerformIO $ do
 
 -- | Add an annotation to a value. Note that if the value is evaluated
 --   more than once the annotation will only be available the first time.
-(&=) :: Data a => a -> Ann -> a
-(&=) x y = unsafePerformIO $ do
+{-# NOINLINE addAnn #-}
+addAnn :: Data a => a -> Ann -> a
+addAnn x y = unsafePerformIO $ do
     add (Ann y)
     evaluate x
     return x
 
 
+{-# NOINLINE capture #-}
 capture :: Any -> Capture
 capture x = unsafePerformIO $ force x
 
@@ -78,3 +103,18 @@ force x@(Any xx) = do
                | otherwise -> do
             cs <- mapM force $ children x
             return $ f $ Ctor x cs
+
+
+{-# INLINE (&=) #-}
+(&=) :: Data a => a -> Ann -> a
+(&=) x y = addAnn (id_ x) (id_ y)
+
+
+{-# NOINLINE const_ #-}
+const_ :: a -> b -> b
+const_ f x = x
+
+{-# INLINE id_ #-}
+id_ :: a -> a
+id_ x = const_ (\() -> ()) x
+

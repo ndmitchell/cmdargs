@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, NamedFieldPuns #-}
+{-# OPTIONS_GHC -fno-cse #-}
 module System.Console.CmdArgs.Test.Implicit.Maker where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
