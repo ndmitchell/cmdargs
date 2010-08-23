@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.3
     Add a documentation example for the Explicit mode
     Improve the purity and annotations a bit, try disabling CSE
     Change the help format
