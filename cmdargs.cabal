@@ -42,6 +42,7 @@ library
 
     exposed-modules:
         System.Console.CmdArgs
+        System.Console.CmdArgs.Annotate
         System.Console.CmdArgs.Default
         System.Console.CmdArgs.Explicit
         System.Console.CmdArgs.GetOpt
@@ -56,7 +57,6 @@ library
         System.Console.CmdArgs.Explicit.Process
         System.Console.CmdArgs.Explicit.Type
         System.Console.CmdArgs.Implicit.Ann
-        System.Console.CmdArgs.Implicit.Capture
         System.Console.CmdArgs.Implicit.Read
         System.Console.CmdArgs.Implicit.Step1
         System.Console.CmdArgs.Implicit.Step2

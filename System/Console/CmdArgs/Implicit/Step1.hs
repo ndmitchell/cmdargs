@@ -7,7 +7,7 @@ module System.Console.CmdArgs.Implicit.Step1(step1, Prog1(..), Mode1(..), Flag1(
 
 import System.Console.CmdArgs.Implicit.Ann
 import Data.Generics.Any
-import System.Console.CmdArgs.Implicit.Capture
+import System.Console.CmdArgs.Annotate
 
 import Data.Char
 import Data.List

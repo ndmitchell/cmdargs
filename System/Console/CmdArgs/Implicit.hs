@@ -67,7 +67,7 @@ import Data.Generics.Any
 import System.Exit
 import System.Console.CmdArgs.Explicit(Mode,processArgs,remap)
 import System.Console.CmdArgs.Implicit.Ann
-import qualified System.Console.CmdArgs.Implicit.Capture as Capture
+import qualified System.Console.CmdArgs.Annotate as A
 import System.Console.CmdArgs.Implicit.Step1
 import System.Console.CmdArgs.Implicit.Step2
 import System.Console.CmdArgs.Implicit.Step3
@@ -88,7 +88,7 @@ cmdArgs = cmdArgsRun . cmdArgsMode
 --   Annotated records are impure, and will only contain annotations on
 --   their first use. The result of this function is pure, and can be reused.
 cmdArgsMode :: Data a => a -> Mode (CmdArgs a)
-cmdArgsMode = remap embed proj . step3 . step2 . step1 . Capture.capture . Any
+cmdArgsMode = remap embed proj . step3 . step2 . step1 . A.capture . Any
     where embed = fmap fromAny
           proj x = (fmap Any x, embed)
 
@@ -138,7 +138,7 @@ cmdArgsApply CmdArgs{..}
 -- > data Modes = Mode1 | Mode2 | Mode3 deriving Data
 -- > cmdArgs $ modes [Mode1,Mode2,Mode3]
 modes :: Data a => [a] -> a
-modes = Capture.many
+modes = A.many
 
 -- | Flag: \"I want several different flags to set this one field to different values.\"
 --
@@ -151,11 +151,11 @@ modes = Capture.many
 -- >   --on   Turn on
 -- >   --off  Turn off
 enum :: Data a => [a] -> a
-enum = Capture.many
+enum = A.many
 
 
 -- | Add an annotation to a value. Note that if the value is evaluated
 --   more than once the annotation will only be available the first time.
 {-# INLINE (&=) #-}
 (&=) :: Data a => a -> Ann -> a
-(&=) = (Capture.&=)
+(&=) = (A.&=)
