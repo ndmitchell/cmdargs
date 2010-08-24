@@ -1,6 +1,8 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module System.Console.CmdArgs.Implicit.Ann where
+
+import Data.Data
 
 -- | The general type of annotations that can be associated with a value.
 data Ann
@@ -22,4 +24,4 @@ data Ann
     | ProgSummary String
     | ProgProgram String
     | ProgVerbosity
-      deriving (Eq,Ord,Show)
+      deriving (Eq,Ord,Show,Data,Typeable)

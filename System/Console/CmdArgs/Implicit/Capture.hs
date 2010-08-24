@@ -33,7 +33,6 @@ import Data.Data(Data)
 import Data.IORef
 import System.IO.Unsafe
 import Control.Exception
-import System.Console.CmdArgs.Implicit.Ann
 import Data.Generics.Any
 
 
@@ -42,14 +41,22 @@ import Data.Generics.Any
 
 infixl 2 &=
 
-data Capture
-    = Many [Capture]
-    | Ann Ann Capture
+data Capture a
+    = Many [Capture a]
+    | Ann a (Capture a)
     | Value Any
     | Missing Any -- a RecConError
-    | Ctor Any [Capture]
+    | Ctor Any [Capture a]
       deriving Show
-      
+
+instance Functor Capture where
+    fmap f (Many xs) = Many $ map (fmap f) xs
+    fmap f (Ann a x) = Ann (f a) $ fmap f x
+    fmap f (Value x) = Value x
+    fmap f (Missing x) = Missing x
+    fmap f (Ctor x xs) = Ctor x $ map (fmap f) xs
+
+
 {-
 The idea is to keep a stack of either continuations, or values
 If you encounter 'many' you become a value
@@ -57,7 +64,7 @@ If you encounter '&=' you increase the continuation
 -}
 
 {-# NOINLINE ref #-}
-ref :: IORef [Either (Capture -> Capture) Capture]
+ref :: IORef [Either (Capture Any -> Capture Any) (Capture Any)]
 ref = unsafePerformIO $ newIORef []
 
 push = modifyIORef ref (Left id :)
@@ -76,22 +83,20 @@ many xs = unsafePerformIO $ do
     return $ head xs
 
 
--- | Add an annotation to a value. Note that if the value is evaluated
---   more than once the annotation will only be available the first time.
 {-# NOINLINE addAnn #-}
-addAnn :: Data a => a -> Ann -> a
+addAnn :: (Data a, Data b) => a -> b -> a
 addAnn x y = unsafePerformIO $ do
-    add (Ann y)
+    add (Ann $ Any y)
     evaluate x
     return x
 
 
 {-# NOINLINE capture #-}
-capture :: Any -> Capture
-capture x = unsafePerformIO $ force x
+capture :: Data a => Any -> Capture a
+capture x = unsafePerformIO $ fmap (fmap fromAny) $ force x
 
 
-force :: Any -> IO Capture
+force :: Any -> IO (Capture Any)
 force x@(Any xx) = do
     push
     res <- try $ evaluate xx
@@ -105,8 +110,13 @@ force x@(Any xx) = do
             return $ f $ Ctor x cs
 
 
+-- | Add an annotation to a value. Note that if the value is evaluated
+--   more than once the annotation will only be available the first time.
+--
+--   If exporting this function with a more restrictive type signature
+--   add an INLINE pragma (to reduce the chance of CSE occuring).
 {-# INLINE (&=) #-}
-(&=) :: Data a => a -> Ann -> a
+(&=) :: (Data a, Data b) => a -> b -> a
 (&=) x y = addAnn (id_ x) (id_ y)
 
 
