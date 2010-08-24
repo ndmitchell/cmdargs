@@ -28,12 +28,15 @@ type AnyT t = Any
 instance Show Any where
     show = show . typeOf
 
-fromAny :: Data a => Any -> a
-fromAny (Any x) = case cast x of
+fromAny :: Typeable a => Any -> a
+fromAny (Any x) = case D.cast x of
     Just y -> y
     ~(Just y) -> error $ "Data.Generics.Any.fromAny: Failed to extract any, got " ++
                          show (D.typeOf x) ++ ", wanted " ++ show (D.typeOf y)
 
+
+cast :: Typeable a => Any -> Maybe a
+cast (Any x) = D.cast x
 
 ---------------------------------------------------------------------
 -- SYB COMPATIBILITY
