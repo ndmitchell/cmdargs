@@ -50,7 +50,7 @@ module System.Console.CmdArgs.Implicit(
     -- * Constructing command lines
     -- | Attributes can work on a flag (inside a field), on a mode (outside the record),
     --   or on all modes (outside the 'modes' call).
-    (&=), modes, enum,
+    (&=), modes, enum, enum_, modes_, cmdArgsMode_,
     module System.Console.CmdArgs.Implicit.UI,
     -- * Re-exported for convenience
     -- | Provides a few opaque types (for writing type signatures),
@@ -80,6 +80,12 @@ import System.Console.CmdArgs.Default
 --   Shortcut for @'cmdArgsRun' . 'cmdArgsMode'@.
 cmdArgs :: Data a => a -> IO a
 cmdArgs = cmdArgsRun . cmdArgsMode
+
+
+cmdArgsMode_ :: Data a => A.Annotate Ann -> Mode (CmdArgs a)
+cmdArgsMode_ = remap embed proj . step3 . step2 . step1 . A.capture_
+    where embed = fmap fromAny
+          proj x = (fmap Any x, embed)
 
 
 -- | Take annotated records and turn them in to a 'Mode' value, that can
@@ -159,3 +165,12 @@ enum = A.many
 {-# INLINE (&=) #-}
 (&=) :: Data a => a -> Ann -> a
 (&=) = (A.&=)
+
+
+enum_ :: (Data c, Data f) => (c -> f) -> [A.Annotate Ann] -> A.Annotate Ann
+enum_ = (A.:=+)
+
+modes_ :: [A.Annotate Ann] -> A.Annotate Ann
+modes_ = A.many_
+
+
