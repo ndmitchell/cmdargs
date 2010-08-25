@@ -1,11 +1,28 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, ExistentialQuantification, DeriveDataTypeable #-}
 
--- | This module does all the tricky/unsafe bits of CmdArgs.
---   It captures annotations on the data structure in the most direct way
---   possible.
+-- | This module captures annotations on a value, and builds a 'Capture' value.
+--   This module has two ways of writing annotations:
+--
+--   /Impure/: The impure method of writing annotations is susceptible to over-optimisation by GHC
+--   (sometimes @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ will be required). However, there is relatively good
+--   type safety and the code is concise.
+--
+--   /Pure/: The pure method is more verbose, and lacks some type safety, but is pure.
+--
+--   As an example of the two styles:
+--
+-- > data Foo = Foo {foo :: Int, bar :: Int}
+--
+--   @ impure = 'capture' $ Foo {foo = 12, bar = 'many' [1 '&=' \"inner\", 2]} '&=' \"top\"@
+--
+--   @ pure = 'capture_' $ 'record' Foo{} [foo := 12, bar :=+ ['atom' 1 '+=' \"inner\", 'atom' 2]] '+=' \"top\"@
+--
+--   Both evaluate to:
+--
+-- > Capture (Ann "top") (Ctor (Foo 12 1) [Value 12, Many [Ann "inner" (Value 1), Value 2]]
 module System.Console.CmdArgs.Annotate(
     -- * Capture framework
-    Capture(..),
+    Capture(..), Any(..), fromCapture,
     -- * Impure
     capture, many, (&=),
     -- * Pure
@@ -26,11 +43,11 @@ infix 3 :=
 
 -- | The result of capturing some annotations.
 data Capture a
-    = Many [Capture a] -- Many values collapsed ('many'/'many_')
-    | Ann a (Capture a) -- An annotation attached to a value ('&='/'+=')
-    | Value Any -- A value (just a value, or 'atom')
-    | Missing Any -- A missing field (a 'RecConError' exception, or missing from 'ctor')
-    | Ctor Any [Capture a] -- A constructor (a constructor, or 'ctor')
+    = Many [Capture a] -- ^ Many values collapsed ('many' or 'many_')
+    | Ann a (Capture a) -- ^ An annotation attached to a value ('&=' or '+=')
+    | Value Any -- ^ A value (just a value, or 'atom')
+    | Missing Any -- ^ A missing field (a 'RecConError' exception, or missing from 'record')
+    | Ctor Any [Capture a] -- ^ A constructor (a constructor, or 'record')
       deriving Show
 
 instance Functor Capture where
@@ -39,6 +56,15 @@ instance Functor Capture where
     fmap f (Value x) = Value x
     fmap f (Missing x) = Missing x
     fmap f (Ctor x xs) = Ctor x $ map (fmap f) xs
+
+
+-- | Return the value inside a capture
+fromCapture :: Capture a -> Any
+fromCapture (Many (x:_)) = fromCapture x
+fromCapture (Ann _ x) = fromCapture x
+fromCapture (Value x) = x
+fromCapture (Missing x) = x
+fromCapture (Ctor x _) = x
 
 
 ---------------------------------------------------------------------
@@ -103,6 +129,7 @@ addAnn x y = unsafePerformIO $ do
     return x
 
 
+-- | Capture a value 
 {-# NOINLINE capture #-}
 capture :: (Data a, Typeable b) => a -> Capture b
 capture x = unsafePerformIO $ fmap (fmap fromAny) $ force $ Any x
@@ -179,7 +206,7 @@ capture_ (ACtor x xs)
     | not $ null rep = error $ "Some fields got repeated under " ++ show x ++ "." ++ ctor x ++ ": " ++ show rep
     | otherwise = Ctor x2 xs2
     where
-        x2 = recompose x $ map fieldValue xs2
+        x2 = recompose x $ map fromCapture xs2
         xs2 = [fromMaybe (Missing c) $ lookup i is | let is = zip inds $ map capture_ xs, (i,c) <- zip [0..] $ children x]
         inds = zipWith fromMaybe [0..] $ map (fieldIndex x) xs
         rep = inds \\ nub inds
@@ -193,14 +220,6 @@ fieldIndex ctor (f :=+ _) | isJust res = res
     where c = recompose ctor [Any $ throwInt i `asTypeOf` x | (i,Any x) <- zip [0..] (children ctor)]
           res = catchInt $ f $ fromAny c
 fieldIndex _ _ = Nothing
-
-
-fieldValue :: Capture a -> Any
-fieldValue (Many (x:_)) = fieldValue x
-fieldValue (Ann _ x) = fieldValue x
-fieldValue (Value x) = x
-fieldValue (Missing x) = x
-fieldValue (Ctor x _) = x
 
 
 
