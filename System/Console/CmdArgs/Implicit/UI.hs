@@ -148,7 +148,7 @@ program = ProgProgram
 --   A field should not have any flag names guessed for it.
 --   All flag names must be specified by 'flag'.
 --
--- > {hello = def &= explicit &= flag "foo"}
+-- > {hello = def &= explicit &= name "foo"}
 -- >   --foo=VALUE
 explicit :: Ann
 explicit = Explicit
