@@ -5,22 +5,23 @@
 --   possible.
 module System.Console.CmdArgs.Annotate(
     -- * Capture framework
-    Capture(..), capture,
+    Capture(..),
     -- * Impure
-    many, (&=),
+    capture, many, (&=),
     -- * Pure
-    many_, (+=), atom, record, Annotate((:=)), field, capture_
+    capture_, many_, (+=), atom, record, Annotate((:=),(:=+))
     ) where
 
 import Data.Data(Data,Typeable)
+import Data.List
+import Data.Maybe
 import Data.IORef
 import System.IO.Unsafe
 import Control.Exception
 import Data.Generics.Any
-import System.Console.CmdArgs.Default
 
 infixl 2 &=, +=
-infix 1 :=
+infix 3 :=
 
 
 -- | The result of capturing some annotations.
@@ -38,12 +39,6 @@ instance Functor Capture where
     fmap f (Value x) = Value x
     fmap f (Missing x) = Missing x
     fmap f (Ctor x xs) = Ctor x $ map (fmap f) xs
-
-
-
-capture :: forall a b . (Data a, Typeable b) => a -> Capture b
-capture x | Just x <- cast $ Any x = capture_ x
-          | otherwise = captureImpure $ Any x
 
 
 ---------------------------------------------------------------------
@@ -108,9 +103,9 @@ addAnn x y = unsafePerformIO $ do
     return x
 
 
-{-# NOINLINE captureImpure #-}
-captureImpure :: Typeable a => Any -> Capture a
-captureImpure x = unsafePerformIO $ fmap (fmap fromAny) $ force x
+{-# NOINLINE capture #-}
+capture :: (Data a, Typeable b) => a -> Capture b
+capture x = unsafePerformIO $ fmap (fmap fromAny) $ force $ Any x
 
 
 force :: Any -> IO (Capture Any)
@@ -149,34 +144,78 @@ id_ x = const_ (\() -> ()) x
 ---------------------------------------------------------------------
 -- PURE PART
 
+-- | Warning: This structure has an unimplemented Data instance, do not
+--   try and use it.
 data Annotate a
-    = forall c f . Data f => (c -> f) := f
+    = forall c f . (Data c, Data f) => (c -> f) := f
+    | forall c f . (Data c, Data f) => (c -> f) :=+ [Annotate a]
     | AAnn a (Annotate a)
     | AMany [Annotate a]
     | AAtom Any
     | ACtor Any [Annotate a]
       deriving Typeable
 
-
-field :: (Data f, Default f) => (c -> f) -> Annotate a
-field f = f := def
-
+instance Data a => Data (Annotate a)
 
 (+=) :: Annotate a -> a -> Annotate a
 (+=) = flip AAnn
 
-
 many_ :: [Annotate a] -> Annotate a
 many_ = AMany
-
 
 atom :: Data a => a -> Annotate b
 atom = AAtom . Any
 
-
 record :: Data a => a -> [Annotate b] -> Annotate b
 record a b = ACtor (Any a) b
 
+capture_ :: Show a => Annotate a -> Capture a
+capture_ (AAnn a x) = Ann a (capture_ x)
+capture_ (AMany xs) = Many (map capture_ xs)
+capture_ (AAtom x) = Value x
+capture_ (_ := c) = Value $ Any c
+capture_ (_ :=+ c) = Many $ map capture_ c
+capture_ (ACtor x xs)
+    | not $ null rep = error $ "Some fields got repeated under " ++ show x ++ "." ++ ctor x ++ ": " ++ show rep
+    | otherwise = Ctor x2 xs2
+    where
+        x2 = recompose x $ map fieldValue xs2
+        xs2 = [fromMaybe (Missing c) $ lookup i is | let is = zip inds $ map capture_ xs, (i,c) <- zip [0..] $ children x]
+        inds = zipWith fromMaybe [0..] $ map (fieldIndex x) xs
+        rep = inds \\ nub inds
 
-capture_ :: Annotate a -> Capture a
-capture_ = error "capture_ not yet implemented"
+
+fieldIndex :: Any -> Annotate a -> Maybe Int
+fieldIndex ctor (AAnn a x) = fieldIndex ctor x
+fieldIndex ctor (f := _) = fieldIndex ctor (f :=+ [])
+fieldIndex ctor (f :=+ _) | isJust res = res
+                          | otherwise = error $ "Couldn't resolve field for " ++ show ctor
+    where c = recompose ctor [Any $ throwInt i `asTypeOf` x | (i,Any x) <- zip [0..] (children ctor)]
+          res = catchInt $ f $ fromAny c
+fieldIndex _ _ = Nothing
+
+
+fieldValue :: Capture a -> Any
+fieldValue (Many (x:_)) = fieldValue x
+fieldValue (Ann _ x) = fieldValue x
+fieldValue (Value x) = x
+fieldValue (Missing x) = x
+fieldValue (Ctor x _) = x
+
+
+
+data ExceptionInt = ExceptionInt Int deriving (Show, Typeable)
+instance Exception ExceptionInt
+
+
+throwInt :: Int -> a
+throwInt i = throw (ExceptionInt i)
+
+
+{-# NOINLINE catchInt #-}
+catchInt :: a -> Maybe Int
+catchInt x = unsafePerformIO $ do
+    y <- try (evaluate x)
+    return $ case y of
+        Left (ExceptionInt z) -> Just z
+        _ -> Nothing
