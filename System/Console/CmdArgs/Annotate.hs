@@ -4,10 +4,9 @@
 --   This module has two ways of writing annotations:
 --
 --   /Impure/: The impure method of writing annotations is susceptible to over-optimisation by GHC
---   (sometimes @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ will be required). However, there is relatively good
---   type safety and the code is concise.
+--   (sometimes @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ will be required).
 --
---   /Pure/: The pure method is more verbose, and lacks some type safety, but is pure.
+--   /Pure/: The pure method is more verbose, and lacks some type safety.
 --
 --   As an example of the two styles:
 --
@@ -42,12 +41,12 @@ infix 3 :=
 
 
 -- | The result of capturing some annotations.
-data Capture a
-    = Many [Capture a] -- ^ Many values collapsed ('many' or 'many_')
-    | Ann a (Capture a) -- ^ An annotation attached to a value ('&=' or '+=')
+data Capture ann
+    = Many [Capture ann] -- ^ Many values collapsed ('many' or 'many_')
+    | Ann ann (Capture ann) -- ^ An annotation attached to a value ('&=' or '+=')
     | Value Any -- ^ A value (just a value, or 'atom')
     | Missing Any -- ^ A missing field (a 'RecConError' exception, or missing from 'record')
-    | Ctor Any [Capture a] -- ^ A constructor (a constructor, or 'record')
+    | Ctor Any [Capture ann] -- ^ A constructor (a constructor, or 'record')
       deriving Show
 
 instance Functor Capture where
@@ -58,8 +57,8 @@ instance Functor Capture where
     fmap f (Ctor x xs) = Ctor x $ map (fmap f) xs
 
 
--- | Return the value inside a capture
-fromCapture :: Capture a -> Any
+-- | Return the value inside a capture.
+fromCapture :: Capture ann -> Any
 fromCapture (Many (x:_)) = fromCapture x
 fromCapture (Ann _ x) = fromCapture x
 fromCapture (Value x) = x
@@ -114,7 +113,7 @@ set x = modify $ \f -> Right $ f x
 
 -- | Collapse multiple values in to one.
 {-# NOINLINE many #-}
-many :: Data a => [a] -> a
+many :: Data val => [val] -> val
 many xs = unsafePerformIO $ do
     ys <- mapM (force . Any) xs
     set $ Many ys
@@ -122,16 +121,19 @@ many xs = unsafePerformIO $ do
 
 
 {-# NOINLINE addAnn #-}
-addAnn :: (Data a, Data b) => a -> b -> a
+addAnn :: (Data val, Data ann) => val -> ann -> val
 addAnn x y = unsafePerformIO $ do
     add (Ann $ Any y)
     evaluate x
     return x
 
 
--- | Capture a value 
+-- | Capture a value. Note that if the value is evaluated
+--   more than once the result may be different, i.e.
+--
+-- > capture x /= capture x
 {-# NOINLINE capture #-}
-capture :: (Data a, Typeable b) => a -> Capture b
+capture :: (Data val, Data ann) => val -> Capture ann
 capture x = unsafePerformIO $ fmap (fmap fromAny) $ force $ Any x
 
 
@@ -149,13 +151,15 @@ force x@(Any xx) = do
             return $ f $ Ctor x cs
 
 
--- | Add an annotation to a value. Note that if the value is evaluated
---   more than once the annotation will only be available the first time.
+-- | Add an annotation to a value.
 --
---   If exporting this function with a more restrictive type signature
---   add an INLINE pragma (to reduce the chance of CSE occuring).
+--   It is recommended that anyone making use of this function redefine
+--   it with a more restrictive type signature to control the type of the
+--   annotation (the second argument). Any redefinitions of this function
+--   should add an INLINE pragma, to reduce the chance of incorrect
+--   optimisations.
 {-# INLINE (&=) #-}
-(&=) :: (Data a, Data b) => a -> b -> a
+(&=) :: (Data val, Data ann) => val -> ann -> val
 (&=) x y = addAnn (id_ x) (id_ y)
 
 
@@ -171,31 +175,38 @@ id_ x = const_ (\() -> ()) x
 ---------------------------------------------------------------------
 -- PURE PART
 
--- | Warning: This structure has an unimplemented Data instance, do not
---   try and use it.
-data Annotate a
-    = forall c f . (Data c, Data f) => (c -> f) := f
-    | forall c f . (Data c, Data f) => (c -> f) :=+ [Annotate a]
-    | AAnn a (Annotate a)
-    | AMany [Annotate a]
+-- | This type represents an annotated value. The type of the underlying value is not specified.
+data Annotate ann
+    = forall c f . (Data c, Data f) => (c -> f) := f -- ^ Construct a field.
+    | forall c f . (Data c, Data f) => (c -> f) :=+ [Annotate ann] -- ^ Add annotations to a field.
+    | AAnn ann (Annotate ann)
+    | AMany [Annotate ann]
     | AAtom Any
-    | ACtor Any [Annotate a]
-      deriving Typeable
+    | ACtor Any [Annotate ann]
 
-instance Data a => Data (Annotate a)
 
-(+=) :: Annotate a -> a -> Annotate a
+-- | Add an annotation to a value.
+(+=) :: Annotate ann -> ann -> Annotate ann
 (+=) = flip AAnn
 
+-- | Collapse many annotated values in to one.
 many_ :: [Annotate a] -> Annotate a
 many_ = AMany
 
-atom :: Data a => a -> Annotate b
+-- | Lift a pure value to an annotation.
+atom :: Data val => val -> Annotate ann
 atom = AAtom . Any
 
+-- | Create a constructor/record. The first argument should be
+--   the type of field, the second should be a list of fields constructed
+--   originally defined by '(:=)' or '(:=+)'
+--
+--   This operation is not type safe, and may raise an exception at runtime
+--   if any field has the wrong type or label.
 record :: Data a => a -> [Annotate b] -> Annotate b
 record a b = ACtor (Any a) b
 
+-- | Capture the annotations from an annotated value.
 capture_ :: Show a => Annotate a -> Capture a
 capture_ (AAnn a x) = Ann a (capture_ x)
 capture_ (AMany xs) = Many (map capture_ xs)
