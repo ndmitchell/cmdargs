@@ -4,6 +4,8 @@ module System.Console.CmdArgs.Test.Implicit.Maker where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
 
+import System.Console.CmdArgs.Annotate hiding ((&=)) -- FIXME: Move the relevant bits to CmdArgs
+
 data Method = Debug | Release | Profile
               deriving (Data,Typeable,Show,Eq)
 
@@ -33,8 +35,29 @@ build = Build
 
 mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= program "maker" &= summary "Maker v1.0"
 
+mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" += program "maker" += summary "Maker v1.0"
+  where
+    threads_ = threads := def += help "Number of threads to use" += name "j" += typ "NUM"
+
+    wipe = record Wipe{} [] += help "Clean all build objects"
+
+    test_ = record Test{}
+        [threads_
+        ,extra := def += typ "ANY" += args
+        ] += help "Run the test suite"
+
+    build = record Build{}
+        [threads_ 
+        ,enum_ method
+            [atom Release += help "Release build"
+            ,atom Debug += help "Debug build"
+            ,atom Profile += help "Profile build"]
+        ,files := def += args
+        ] += help "Build the project" += auto
+
+
 test = do
-    let Tester{(===),fails} = tester "Maker" mode
+    let Tester{(===),fails} = testers "Maker" [mode,mode_]
     [] === build
     ["build","foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile"] === build{files=["foo"],method=Profile}
