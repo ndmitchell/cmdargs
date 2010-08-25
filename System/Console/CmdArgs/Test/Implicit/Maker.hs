@@ -4,8 +4,6 @@ module System.Console.CmdArgs.Test.Implicit.Maker where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
 
-import System.Console.CmdArgs.Annotate hiding ((&=)) -- FIXME: Move the relevant bits to CmdArgs
-
 data Method = Debug | Release | Profile
               deriving (Data,Typeable,Show,Eq)
 

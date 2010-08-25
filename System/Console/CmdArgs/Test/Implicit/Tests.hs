@@ -6,7 +6,7 @@ module System.Console.CmdArgs.Test.Implicit.Tests where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
-import System.Console.CmdArgs.Annotate hiding ((&=))
+
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >> test11
 demos = zipWith f [1..]

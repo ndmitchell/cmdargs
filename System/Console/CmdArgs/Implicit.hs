@@ -46,12 +46,15 @@
 -}
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines
-    cmdArgs, cmdArgsMode, cmdArgsRun, cmdArgsApply, CmdArgs(..),
+    cmdArgs, cmdArgsMode, cmdArgsRun, cmdArgs_, cmdArgsMode_, cmdArgsApply, CmdArgs(..),
     -- * Constructing command lines
     -- | Attributes can work on a flag (inside a field), on a mode (outside the record),
     --   or on all modes (outside the 'modes' call).
-    (&=), modes, enum, enum_, modes_, cmdArgsMode_,
     module System.Console.CmdArgs.Implicit.UI,
+    -- ** Impure
+    (&=), modes, enum,
+    -- ** Pure
+    (+=), record, atom, Annotate((:=)), enum_, modes_,
     -- * Re-exported for convenience
     -- | Provides a few opaque types (for writing type signatures),
     --   verbosity control, default values with 'def' and the
@@ -67,7 +70,8 @@ import Data.Generics.Any
 import System.Exit
 import System.Console.CmdArgs.Explicit(Mode,processArgs,remap)
 import System.Console.CmdArgs.Implicit.Ann
-import qualified System.Console.CmdArgs.Annotate as A
+import System.Console.CmdArgs.Annotate hiding ((&=))
+import qualified System.Console.CmdArgs.Annotate as A((&=))
 import System.Console.CmdArgs.Implicit.Step1
 import System.Console.CmdArgs.Implicit.Step2
 import System.Console.CmdArgs.Implicit.Step3
@@ -76,27 +80,37 @@ import System.Console.CmdArgs.Verbosity
 import System.Console.CmdArgs.Default
 
 
--- | Take annotated records and run the corresponding command line.
+-- | Take impurely annotated records and run the corresponding command line.
 --   Shortcut for @'cmdArgsRun' . 'cmdArgsMode'@.
 cmdArgs :: Data a => a -> IO a
 cmdArgs = cmdArgsRun . cmdArgsMode
 
 
-cmdArgsMode_ :: Data a => A.Annotate Ann -> Mode (CmdArgs a)
-cmdArgsMode_ = remap embed proj . step3 . step2 . step1 . A.capture_
+-- | Take purely annotated records and run the corresponding command line.
+--   Shortcut for @'cmdArgsRun' . 'cmdArgsMode_'@.
+cmdArgs_ :: Data a => Annotate Ann -> IO a
+cmdArgs_ = cmdArgsRun . cmdArgsMode_
+
+
+cmdArgsCapture :: Data a => Capture Ann -> Mode (CmdArgs a)
+cmdArgsCapture = remap embed proj . step3 . step2 . step1
     where embed = fmap fromAny
           proj x = (fmap Any x, embed)
 
 
--- | Take annotated records and turn them in to a 'Mode' value, that can
+-- | Take impurely annotated records and turn them in to a 'Mode' value, that can
 --   make use of the "System.Console.CmdArgs.Explicit" functions (i.e. 'process').
 --
 --   Annotated records are impure, and will only contain annotations on
 --   their first use. The result of this function is pure, and can be reused.
 cmdArgsMode :: Data a => a -> Mode (CmdArgs a)
-cmdArgsMode = remap embed proj . step3 . step2 . step1 . A.capture
-    where embed = fmap fromAny
-          proj x = (fmap Any x, embed)
+cmdArgsMode = cmdArgsCapture . capture
+
+
+-- | Take purely annotated records and turn them in to a 'Mode' value, that can
+--   make use of the "System.Console.CmdArgs.Explicit" functions (i.e. 'process').
+cmdArgsMode_ :: Data a => Annotate Ann -> Mode (CmdArgs a)
+cmdArgsMode_ = cmdArgsCapture . capture_
 
 
 -- | Run a Mode structure. This function reads the command line arguments
@@ -143,8 +157,8 @@ cmdArgsApply CmdArgs{..}
 --
 -- > data Modes = Mode1 | Mode2 | Mode3 deriving Data
 -- > cmdArgs $ modes [Mode1,Mode2,Mode3]
-modes :: Data a => [a] -> a
-modes = A.many
+modes :: Data val => [val] -> val
+modes = many
 
 -- | Flag: \"I want several different flags to set this one field to different values.\"
 --
@@ -156,21 +170,21 @@ modes = A.many
 -- > cmdArgs $ Mode {state = enum [On &= help "Turn on",Off &= help "Turn off"]}
 -- >   --on   Turn on
 -- >   --off  Turn off
-enum :: Data a => [a] -> a
-enum = A.many
+enum :: Data val => [val] -> val
+enum = many
 
 
 -- | Add an annotation to a value. Note that if the value is evaluated
 --   more than once the annotation will only be available the first time.
 {-# INLINE (&=) #-}
-(&=) :: Data a => a -> Ann -> a
+(&=) :: Data val => val -> Ann -> val
 (&=) = (A.&=)
 
 
-enum_ :: (Data c, Data f) => (c -> f) -> [A.Annotate Ann] -> A.Annotate Ann
-enum_ = (A.:=+)
+enum_ :: (Data c, Data f) => (c -> f) -> [Annotate Ann] -> Annotate Ann
+enum_ = (:=+)
 
-modes_ :: [A.Annotate Ann] -> A.Annotate Ann
-modes_ = A.many_
+modes_ :: [Annotate Ann] -> Annotate Ann
+modes_ = many_
 
 
