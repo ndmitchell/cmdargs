@@ -6,6 +6,7 @@ module System.Console.CmdArgs.Test.Implicit.Tests where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
+import System.Console.CmdArgs.Annotate hiding ((&=))
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >> test11
 demos = zipWith f [1..]
@@ -140,9 +141,12 @@ data Test8 = Test8 {test8a :: Int, test8b :: Int, test8c :: Int}
              deriving (Eq,Show,Data,Typeable)
 
 mode8 = cmdArgsMode $ modes [Test8 1 (2 &= groupname "More flags") 3 &= groupname "Mode1", Test81, Test82 &= groupname "Mode2"]
+mode8_ = cmdArgsMode_ $ modes_ [record Test8{} [atom (1::Int), atom (2::Int) += groupname "More flags", atom (3::Int)] += groupname "Mode1"
+                               ,record Test81{} []
+                               ,record Test82{} [] += groupname "Mode2"]
 
 test8 = do
-    let Tester{..} = tester "Test8" mode8
+    let Tester{..} = testers "Test8" [mode8,mode8_]
     isHelp ["-?"] ["Flags:","  --test8a=INT","More flags:","  --test8b=INT"]
     fails []
     ["test8","--test8a=18"] === Test8 18 2 3
@@ -154,9 +158,10 @@ data Test9 = Test91 {foo :: XYZ}
              deriving (Eq,Show,Data,Typeable)
 
 mode9 = cmdArgsMode $ modes [Test91 {foo = enum [X &= help "pick X (default)", Y &= help "pick Y"] &= opt "Y"} &= auto, Test92{}]
+mode9_ = cmdArgsMode_ $ modes_ [record Test91{} [enum_ foo [atom X += help "pick X (default)", atom Y += help "pick Y"]] += auto, record Test92{} []]
 
 test9 = do
-    let Tester{..} = tester "Test9" mode9
+    let Tester{..} = testers "Test9" [mode9,mode9_]
     [] === Test91 X
     ["test91","-x"] === Test91 X
     ["test91","-y"] === Test91 Y
@@ -187,8 +192,12 @@ test11A = Test11A { test111 = def &= argPos 0 }
 test11B = Test11B { test111 = def &= argPos 0 }
 mode11 = cmdArgsMode $ modes [test11A, test11B]
 
+mode11_ = cmdArgsMode_ $ modes_
+    [record Test11A{} [test111 := def += argPos 0]
+    ,record Test11B{} [test111 := def += argPos 0]]
+
 test11 = do
-    let Tester{..} = tester "Test11" mode11
+    let Tester{..} = testers "Test11" [mode11,mode11_]
     fails []
     ["test11a","test"] === Test11A "test"
     ["test11b","test"] === Test11B "test"
