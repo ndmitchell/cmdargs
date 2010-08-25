@@ -4,7 +4,7 @@
 --   This module has two ways of writing annotations:
 --
 --   /Impure/: The impure method of writing annotations is susceptible to over-optimisation by GHC
---   (sometimes @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ will be required).
+--   - sometimes @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ will be required.
 --
 --   /Pure/: The pure method is more verbose, and lacks some type safety.
 --
@@ -177,7 +177,7 @@ id_ x = const_ (\() -> ()) x
 
 -- | This type represents an annotated value. The type of the underlying value is not specified.
 data Annotate ann
-    = forall c f . (Data c, Data f) => (c -> f) := f -- ^ Construct a field.
+    = forall c f . (Data c, Data f) => (c -> f) := f -- ^ Construct a field, @fieldname := value@.
     | forall c f . (Data c, Data f) => (c -> f) :=+ [Annotate ann] -- ^ Add annotations to a field.
     | AAnn ann (Annotate ann)
     | AMany [Annotate ann]
@@ -199,7 +199,7 @@ atom = AAtom . Any
 
 -- | Create a constructor/record. The first argument should be
 --   the type of field, the second should be a list of fields constructed
---   originally defined by '(:=)' or '(:=+)'
+--   originally defined by @:=@ or @:=+@.
 --
 --   This operation is not type safe, and may raise an exception at runtime
 --   if any field has the wrong type or label.
