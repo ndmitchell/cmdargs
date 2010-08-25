@@ -22,7 +22,9 @@ readTupleType x | "(" `isPrefixOf` x && ")" `isSuffixOf` x && all (== ',') y = J
 ---------------------------------------------------------------------
 -- BASIC TYPES
 
+-- | Any value, with a Data dictionary.
 data Any = forall a . Data a => Any a
+
 type AnyT t = Any
 
 instance Show Any where
