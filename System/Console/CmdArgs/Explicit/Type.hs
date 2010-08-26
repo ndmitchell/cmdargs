@@ -123,7 +123,15 @@ data Flag a = Flag
     ,flagHelp :: Help -- ^ The help message associated with this flag.
     }
 
--- | An unnamed argument.
+-- | An unnamed argument. Anything not starting with @-@ is considered an argument,
+--   apart from @\"-\"@ which is considered to be the argument @\"-\"@, and any arguments
+--   following @\"--\"@. For example:
+--
+-- > programname arg1 -j - --foo arg3 -- -arg4 --arg5=1 arg6
+--
+--   Would have the arguments:
+--
+-- > ["arg1","-","arg3","-arg4","--arg5=1","arg6"]
 data Arg a = Arg
     {argValue :: Update a -- ^ A way of processing the argument.
     ,argType :: FlagHelp -- ^ The type of data for the argument, i.e. FILE\/DIR\/EXT

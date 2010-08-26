@@ -70,4 +70,10 @@ test = do
     ["test","foo"] === test_{extra=["foo"]}
     ["test","foo","-j3"] === test_{extra=["foo"],threads=3}
     fails ["test","foo","-baz","-j3","--what=1"]
-
+    ["test","foo","--","-baz","-j3","--what=1"] === test_{extra=["foo","-baz","-j3","--what=1"]}
+    ["test","--","foo","-baz","-j3","--what=1"] === test_{extra=["foo","-baz","-j3","--what=1"]}
+    ["--"] === build
+    ["test","--"] === test_
+    ["test","-j3","--","foo","-baz","-j3","--what=1"] === test_{extra=["foo","-baz","-j3","--what=1"],threads=3}
+    ["test","-"] === test_{extra=["-"]}
+    ["build","-"] === build{files=["-"]}

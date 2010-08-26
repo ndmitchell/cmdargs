@@ -58,6 +58,11 @@ data S a = S
     ,errs :: [String]
     }
 
+stop :: S a -> Maybe (Either String a)
+stop s | not $ null $ errs s = Just $ Left $ last $ errs s
+       | null $ args s = Just $ Right $ val s
+       | otherwise = Nothing
+
 err :: S a -> String -> S a
 err s x = s{errs=x:errs s}
 
@@ -69,10 +74,7 @@ upd s f = case f $ val s of
 
 processFlags :: Mode a -> a -> [String] -> Either String a
 processFlags mode val_ args_ = f $ S val_ args_ []
-    where
-        f s | not $ null $ errs s = Left $ last $ errs s
-            | null $ args s = Right $ val s
-            | otherwise = f (processFlag mode s)
+    where f s = fromMaybe (f $ processFlag mode s) $ stop s
 
 
 pickFlags long mode = [(filter (\x -> (length x > 1) == long) $ flagNames flag,(flagInfo flag,flag)) | flag <- modeFlags mode]
@@ -114,14 +116,19 @@ processFlag mode s_@S{args=('-':x:xs):ys} | x /= '-' =
         s = s_{args=ys}
 
 
-processFlag mode s_ =
+processFlag mode s_@S{args="--":ys} = f s_{args=ys}
+    where f s | isJust $ stop s = s
+              | otherwise = f $ processArg mode s
+
+processFlag mode s = processArg mode s
+
+processArg mode s_@S{args=x:ys} =
     case modeArgs mode of
         Nothing -> err s $ "Unhandled argument, none expected: " ++ x
         Just arg -> case argValue arg x (val s) of
             Left e -> err s $ "Unhandled argument, " ++ e ++ ": " ++ x
             Right v -> s{val=v}
     where
-        x:ys = if head (args s_) == "--" then tail (args s_) else args s_
         s = s_{args=ys}
 
 
