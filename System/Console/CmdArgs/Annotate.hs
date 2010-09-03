@@ -21,13 +21,14 @@
 -- > Capture (Ann "top") (Ctor (Foo 12 1) [Value 12, Many [Ann "inner" (Value 1), Value 2]]
 module System.Console.CmdArgs.Annotate(
     -- * Capture framework
-    Capture(..), Any(..), fromCapture,
+    Capture(..), Any(..), fromCapture, defaultMissing,
     -- * Impure
     capture, many, (&=),
     -- * Pure
     capture_, many_, (+=), atom, record, Annotate((:=),(:=+))
     ) where
 
+import Control.Monad.State
 import Data.Data(Data,Typeable)
 import Data.List
 import Data.Maybe
@@ -65,6 +66,31 @@ fromCapture (Value x) = x
 fromCapture (Missing x) = x
 fromCapture (Ctor x _) = x
 
+
+-- | Remove all Missing values by using any previous instances as default values
+defaultMissing :: Capture ann -> Capture ann
+defaultMissing x = evalState (f Nothing Nothing x) []
+    where
+        f ctor field (Many xs) = fmap Many $ mapM (f ctor field) xs
+        f ctor field (Ann a x) = fmap (Ann a) $ f ctor field x
+        f ctor field (Value x) = return $ Value x
+        f (Just ctor) (Just field) (Missing x) = do
+            s <- get
+            return $ head $
+                [x2 | (ctor2,field2,x2) <- s, typeOf ctor == typeOf ctor2, field == field2] ++
+                err ("missing value encountered, no field for " ++ field ++ " (of type " ++ show x ++ ")")
+        f _ _ (Missing x) = err $ "missing value encountered, but not as a field (of type " ++ show x ++ ")"
+        f _ _ (Ctor x xs) | length (fields x) == length xs = do
+            ys <- sequence $ zipWith (g x) (fields x) xs
+            return $ Ctor (recompose x $ map fromCapture ys) ys
+        f _ _ (Ctor x xs) = fmap (Ctor x) $ mapM (f Nothing Nothing) xs
+
+        g ctor field x = do
+            y <- f (Just ctor) (Just field) x
+            modify ((ctor,field,y):)
+            return y
+
+        err x = error $ "System.Console.CmdArgs.Annotate.defaultMissing, " ++ x
 
 ---------------------------------------------------------------------
 -- IMPURE BIT
@@ -106,9 +132,9 @@ ref = unsafePerformIO $ newIORef []
 
 push = modifyIORef ref (Left id :)
 pop = do x:xs <- readIORef ref; writeIORef ref xs; return x
-modify f = modifyIORef ref $ \x -> case x of Left g : rest -> f g : rest ; _ -> error "Internal error in Capture"
-add f = modify $ \x -> Left $ x . f
-set x = modify $ \f -> Right $ f x
+change f = modifyIORef ref $ \x -> case x of Left g : rest -> f g : rest ; _ -> error "Internal error in Capture"
+add f = change $ \x -> Left $ x . f
+set x = change $ \f -> Right $ f x
 
 
 -- | Collapse multiple values in to one.
