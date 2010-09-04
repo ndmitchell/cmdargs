@@ -64,6 +64,11 @@ instance Default HelpFormat where def = HelpFormatDefault
 instance Show (Mode a) where
     show = show . helpTextDefault
 
+instance Show (Flag a) where
+    show = show . helpFlag
+
+instance Show (Arg a) where
+    show = show . argType
 
 -- | Generate a help message from a mode.
 helpText :: HelpFormat -> Mode a -> [Text]
