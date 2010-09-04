@@ -72,9 +72,9 @@ import System.Console.CmdArgs.Explicit(Mode,processArgs,remap)
 import System.Console.CmdArgs.Implicit.Ann
 import System.Console.CmdArgs.Annotate hiding ((&=))
 import qualified System.Console.CmdArgs.Annotate as A((&=))
-import System.Console.CmdArgs.Implicit.Step1
-import System.Console.CmdArgs.Implicit.Step2
-import System.Console.CmdArgs.Implicit.Step3
+import System.Console.CmdArgs.Implicit.Type
+import System.Console.CmdArgs.Implicit.Local
+import System.Console.CmdArgs.Implicit.Global
 import System.Console.CmdArgs.Implicit.UI
 import System.Console.CmdArgs.Verbosity
 import System.Console.CmdArgs.Default
@@ -93,7 +93,7 @@ cmdArgs_ = cmdArgsRun . cmdArgsMode_
 
 
 cmdArgsCapture :: Data a => Capture Ann -> Mode (CmdArgs a)
-cmdArgsCapture = remap embed proj . step3 . step2 . step1
+cmdArgsCapture = remap embed proj . global . local
     where embed = fmap fromAny
           proj x = (fmap Any x, embed)
 

@@ -58,9 +58,9 @@ library
         System.Console.CmdArgs.Explicit.Type
         System.Console.CmdArgs.Implicit.Ann
         System.Console.CmdArgs.Implicit.Read
-        System.Console.CmdArgs.Implicit.Step1
-        System.Console.CmdArgs.Implicit.Step2
-        System.Console.CmdArgs.Implicit.Step3
+        System.Console.CmdArgs.Implicit.Local
+        System.Console.CmdArgs.Implicit.Global
+        System.Console.CmdArgs.Implicit.Type
         System.Console.CmdArgs.Implicit.UI
 
 executable cmdargs

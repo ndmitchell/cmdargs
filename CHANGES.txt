@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Rewrite the translation of annotation to explicit modes
     Treat anything after -- as an argument
     Add a pure annotation mechanism
     Introduce System.Console.CmdArgs.Annotate
