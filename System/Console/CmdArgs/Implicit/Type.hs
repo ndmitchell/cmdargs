@@ -9,7 +9,6 @@ module System.Console.CmdArgs.Implicit.Type(
 
 import System.Console.CmdArgs.Verbosity
 
-import Control.Monad
 import Data.Data
 import Data.Maybe
 
