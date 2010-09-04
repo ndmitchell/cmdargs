@@ -168,20 +168,29 @@ checkMode x =
 ---------------------------------------------------------------------
 -- REMAP
 
--- | Change the underlying type of a 'Mode' structure.
-remap :: (a -> b) -- ^ Embed the mode
-      -> (b -> (a, a -> b)) -- ^ Extract the mode and give a way of re-embedding
-      -> Mode a -> Mode b
-remap f g x = x
-    {modeGroupModes = fmap (remap f g) $ modeGroupModes x
-    ,modeValue = f $ modeValue x
-    ,modeCheck = \v -> let (a,b) = g v in fmap b $ modeCheck x a
-    ,modeArgs = fmap remapArg $ modeArgs x
-    ,modeGroupFlags = fmap remapFlag $ modeGroupFlags x}
-    where
-        remapUpdate upd = \s v -> let (a,b) = g v in fmap b $ upd s a
-        remapFlag x = x{flagValue = remapUpdate $ flagValue x}
-        remapArg x = x{argValue = remapUpdate $ argValue x}
+class Remap m where
+    remap :: (a -> b) -- ^ Embed a value
+          -> (b -> (a, a -> b)) -- ^ Extract the mode and give a way of re-embedding
+          -> m a -> m b
+
+remap2 :: Remap m => (a -> b) -> (b -> a) -> m a -> m b
+remap2 f g = remap f (\x -> (g x, f))
+
+instance Remap Mode where
+    remap f g x = x
+        {modeGroupModes = fmap (remap f g) $ modeGroupModes x
+        ,modeValue = f $ modeValue x
+        ,modeCheck = \v -> let (a,b) = g v in fmap b $ modeCheck x a
+        ,modeArgs = fmap (remap f g) $ modeArgs x
+        ,modeGroupFlags = fmap (remap f g) $ modeGroupFlags x}
+
+instance Remap Flag where
+    remap f g x = x{flagValue = remapUpdate f g $ flagValue x}
+
+instance Remap Arg where
+    remap f g x = x{argValue = remapUpdate f g $ argValue x}
+
+remapUpdate f g upd = \s v -> let (a,b) = g v in fmap b $ upd s a
 
 
 ---------------------------------------------------------------------
