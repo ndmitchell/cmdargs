@@ -1,5 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, NamedFieldPuns #-}
-{-# OPTIONS_GHC -fno-cse #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
+{-# OPTIONS_GHC -fno-cse -fno-warn-unused-binds #-}
 module System.Console.CmdArgs.Test.Implicit.Maker where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
@@ -55,8 +55,12 @@ mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" 
 
 
 test = do
-    let Tester{(===),fails} = testers "Maker" [mode,mode_]
+    let Tester{..} = testers "Maker" [mode,mode_]
     [] === build
+    isHelp ["-?=one"] ["Common flags:"]
+    isHelpNot ["-?=one"] ["  -d --debug  Debug build"]
+    isHelp ["-?=all"] ["maker [build] [OPTIONS] [ITEM]"]
+    isHelp ["build","-?=one"] ["maker [build] [OPTIONS] [ITEM]"]
     ["build","foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile","--release"] === build{files=["foo"],method=Release}

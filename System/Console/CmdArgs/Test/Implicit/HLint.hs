@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveDataTypeable, NamedFieldPuns #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 module System.Console.CmdArgs.Test.Implicit.HLint where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
@@ -42,20 +43,22 @@ hlint = HLint
     } &=
     verbosity &=
     help "Suggest improvements to Haskell source code" &=
-    summary "HLint v0.0.0, (C) Neil Mitchell 2006-2010" &=
+    summary "HLint v0.0.0, (C) Neil Mitchell" &=
     details ["Hlint gives hints on how to improve Haskell code",""
             ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
 mode = cmdArgsMode hlint
 
 test = do
-    let Tester{(===),fails,isVerbosity} = tester "HLint" mode
+    let Tester{..} = tester "HLint" mode
     [] === hlint
     fails ["-ch"]
     isVerbosity ["--color","--quiet"] Quiet
     isVerbosity ["--color","--verbose"] Loud
     isVerbosity ["--color","--quiet","--verbose"] Loud
     isVerbosity [] Normal
+    isHelp ["-?"] ["HLint v0.0.0, (C) Neil Mitchell"]
+    isHelp ["--help"] ["  hlint src --report"]
     ["--colo"] === hlint{color=True}
     ["--colour","--colour=false"] === hlint
     ["--colour=true"] === hlint{color=True}
