@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 
 module System.Console.CmdArgs.Explicit.Type where
 
@@ -63,6 +64,10 @@ toGroup x = Group x [] []
 ---------------------------------------------------------------------
 -- TYPES
 
+showRecord x ys = x ++ " {" ++ intercalate ", " ys ++ "}"
+a *= b = a ++ " = " ++ show b
+
+
 -- | A mode. Each mode has three main features:
 --
 --   * A list of submodes ('modeGroupModes')
@@ -103,7 +108,7 @@ data FlagInfo
     | FlagOpt String      -- ^ Optional argument
     | FlagOptRare String  -- ^ Optional argument that requires an = before the value
     | FlagNone            -- ^ No argument
-      deriving (Eq,Ord)
+      deriving (Eq,Ord,Show)
 
 -- | Extract the value from inside a 'FlagOpt' or 'FlagOptRare', or raises an error.
 fromFlagOpt :: FlagInfo -> String
@@ -123,6 +128,7 @@ data Flag a = Flag
     ,flagHelp :: Help -- ^ The help message associated with this flag.
     }
 
+
 -- | An unnamed argument. Anything not starting with @-@ is considered an argument,
 --   apart from @\"-\"@ which is considered to be the argument @\"-\"@, and any arguments
 --   following @\"--\"@. For example:
@@ -136,6 +142,7 @@ data Arg a = Arg
     {argValue :: Update a -- ^ A way of processing the argument.
     ,argType :: FlagHelp -- ^ The type of data for the argument, i.e. FILE\/DIR\/EXT
     }
+
 
 ---------------------------------------------------------------------
 -- CHECK FLAGS
