@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 
 module Main where
 

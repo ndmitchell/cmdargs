@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards #-}
+{-# LANGUAGE PatternGuards #-}
 
 module System.Console.CmdArgs.Implicit.Global(global) where
 

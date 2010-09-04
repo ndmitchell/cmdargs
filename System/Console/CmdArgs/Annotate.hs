@@ -28,6 +28,7 @@ module System.Console.CmdArgs.Annotate(
     capture_, many_, (+=), atom, record, Annotate((:=),(:=+))
     ) where
 
+import Control.Monad
 import Control.Monad.State
 import Data.Data(Data,Typeable)
 import Data.List
@@ -81,7 +82,7 @@ defaultMissing x = evalState (f Nothing Nothing x) []
                 err ("missing value encountered, no field for " ++ field ++ " (of type " ++ show x ++ ")")
         f _ _ (Missing x) = err $ "missing value encountered, but not as a field (of type " ++ show x ++ ")"
         f _ _ (Ctor x xs) | length (fields x) == length xs = do
-            ys <- sequence $ zipWith (g x) (fields x) xs
+            ys <- zipWithM (g x) (fields x) xs
             return $ Ctor (recompose x $ map fromCapture ys) ys
         f _ _ (Ctor x xs) = fmap (Ctor x) $ mapM (f Nothing Nothing) xs
 

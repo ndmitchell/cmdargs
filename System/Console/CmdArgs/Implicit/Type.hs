@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards, DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 -- | The underlying CmdArgs type.
 module System.Console.CmdArgs.Implicit.Type(

@@ -1,4 +1,3 @@
-{-# LANGUAGE RecordWildCards #-}
 
 module System.Console.CmdArgs.Explicit.Type where
 

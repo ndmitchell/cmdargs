@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, ViewPatterns, PatternGuards #-}
+{-# LANGUAGE PatternGuards #-}
 {-# OPTIONS_GHC -fno-warn-overlapping-patterns #-}
 
 -- | This module takes the result of Capture, and deals with all the local

@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 {-|
     This module describes the attributes that can be specified on flags and modes.
 
@@ -6,7 +5,6 @@
 
     > data Sample = Sample {hello :: String}
 -}
-
 module System.Console.CmdArgs.Implicit.UI where
 
 import System.Console.CmdArgs.Implicit.Ann

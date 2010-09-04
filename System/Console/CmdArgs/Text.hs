@@ -1,4 +1,3 @@
-{-# LANGUAGE PatternGuards #-}
 
 -- | A module to represent text with very basic formatting. Values are of
 --   type ['Text'] and shown with 'showText'.
