@@ -145,7 +145,7 @@ flagAnn (Help a) x@Flag_{} = withFlagFlag x $ \x -> x{flagHelp=a}
 flagAnn (FlagArgPos a) x = toArg x $ Just a
 flagAnn FlagArgs x = toArg x Nothing
 flagAnn Explicit x@Flag_{} = x{flagExplicit=True}
-flagAnn (FlagOptional a) x@Flag_{flagEnum=Nothing} = withFlagFlag x $ \x -> x{flagInfo=FlagOpt a}
+flagAnn (FlagOptional a) x@Flag_{flagEnum=Nothing,flagFlag=Flag{flagInfo=FlagReq}} = withFlagFlag x $ \x -> x{flagInfo=FlagOpt a}
 flagAnn (FlagOptional a) x@Arg_{} = x{flagArgOpt=Just a}
 flagAnn (Name a) x@Flag_{} = withFlagFlag x $ \x -> x{flagNames = a : flagNames x}
 flagAnn (GroupName a) x@Flag_{} = x{flagGroup=Just a}
