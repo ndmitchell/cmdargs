@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Raise errors if annotations are placed in invalid places
     Rewrite the translation of annotation to explicit modes
     Treat anything after -- as an argument
     Add a pure annotation mechanism
