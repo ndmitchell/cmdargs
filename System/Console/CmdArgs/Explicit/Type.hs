@@ -148,17 +148,17 @@ data Arg a = Arg
 
 -- | Check that a mode is well formed.
 checkMode :: Mode a -> Maybe String
-checkMode x =
-    (checkNames "modes" $ concatMap modeNames $ modeModes x) `mplus`
-    msum (map checkMode $ modeModes x) `mplus`
-    (checkGroup $ modeGroupModes x) `mplus`
-    (checkGroup $ modeGroupFlags x) `mplus`
-    (checkNames "flag names" $ concatMap flagNames $ modeFlags x)
+checkMode x = msum
+    [checkNames "modes" $ concatMap modeNames $ modeModes x
+    ,msum $ map checkMode $ modeModes x
+    ,checkGroup $ modeGroupModes x
+    ,checkGroup $ modeGroupFlags x
+    ,checkNames "flag names" $ concatMap flagNames $ modeFlags x]
     where
         checkGroup :: Group a -> Maybe String
-        checkGroup x =
-            (check "Empty group name" $ all (not . null . fst) $ groupNamed x) `mplus`
-            (check "Empty group contents" $ all (not . null . snd) $ groupNamed x)
+        checkGroup x = msum
+            [check "Empty group name" $ all (not . null . fst) $ groupNamed x
+            ,check "Empty group contents" $ all (not . null . snd) $ groupNamed x]
 
         checkNames :: String -> [Name] -> Maybe String
         checkNames msg xs = check "Empty names" (all (not . null) xs) `mplus` do
