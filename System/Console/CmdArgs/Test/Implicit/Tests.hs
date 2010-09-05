@@ -42,6 +42,7 @@ test1 = do
     ["--maybebool=off"] === def1{maybeBool=Just False}
     ["--listbool","--listbool=true","--listbool=false"] === def1{listBool=[True,True,False]}
     fails ["--listbool=fred"]
+    invalid $ \_ -> def1{listBool = def &= opt "yes"}
 
 
 -- from bug #230
@@ -157,7 +158,7 @@ data Test9 = Test91 {foo :: XYZ}
            | Test92 {foo :: XYZ}
              deriving (Eq,Show,Data,Typeable)
 
-mode9 = cmdArgsMode $ modes [Test91 {foo = enum [X &= help "pick X (default)", Y &= help "pick Y"] &= opt "Y"} &= auto, Test92{}]
+mode9 = cmdArgsMode $ modes [Test91 {foo = enum [X &= help "pick X (default)", Y &= help "pick Y"]} &= auto, Test92{}]
 mode9_ = cmdArgsMode_ $ modes_ [record Test91{} [enum_ foo [atom X += help "pick X (default)", atom Y += help "pick Y"]] += auto, record Test92{} []]
 
 test9 = do
@@ -169,6 +170,7 @@ test9 = do
     ["test92","-x"] === Test92 X
     ["test92","-y"] === Test92 Y
     ["test92"] === Test92 X
+    invalid $ \_ -> modes [Test91 {foo = enum [X &= help "pick X (default)"] &= opt "X"}]
 
 -- share common fields in the help message
 data Test10 = Test101 {food :: Int}

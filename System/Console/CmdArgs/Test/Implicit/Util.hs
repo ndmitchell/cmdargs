@@ -5,12 +5,21 @@ module System.Console.CmdArgs.Test.Implicit.Util where
 import System.Console.CmdArgs.Implicit
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Test.Util
+import Control.Exception
 import Data.Char
 import Data.List
 import Data.Maybe
 
 toDemo :: (Typeable a, Show a) => Mode (CmdArgs a) -> Mode Demo
 toDemo = newDemo $ \x -> cmdArgsApply x >>= print
+
+
+invalid :: Data a => (() -> a) -> IO ()
+invalid a = do
+    res <- try $ evaluate $ length $ show $ cmdArgsMode $ a ()
+    case res of
+        Left (ErrorCall _) -> success
+        Right _ -> failure "Expected exception" []
 
 
 data Tester a = Tester
