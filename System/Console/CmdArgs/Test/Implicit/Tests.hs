@@ -72,6 +72,7 @@ test3 = do
     ["a","1"] === Test3 [1] ["foo"] ["a"]
     ["a","1","c"] === Test3 [1] ["c"] ["a"]
     ["a","1","c","d"] === Test3 [1] ["c"] ["a","d"]
+    invalid $ \_ -> Test3 def def (def &= help "help" &= args)
 
 
 -- from bug #222
