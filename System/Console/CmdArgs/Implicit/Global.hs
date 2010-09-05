@@ -121,7 +121,13 @@ assignGroups p = assignCommon $ p{progModes = map (\m -> m{modeFlags_ = f Nothin
 
 
 assignCommon :: Prog_ -> Prog_
-assignCommon x = x
+assignCommon p =
+    p{progModes = [m{modeFlags_ =
+        [if isFlag_ f && show (flagFlag f) `elem` com then f{flagGroup = Just commonGroup} else f | f <- modeFlags_ m]}
+    | m <- progModes p]}
+    where
+        com = map head $ filter ((== length (progModes p)) . length) $ group $ sort
+              [show $ flagFlag f | m <- progModes p, f@Flag_{flagGroup=Nothing} <- modeFlags_ m]
 
 
 commonGroup = "Common flags"

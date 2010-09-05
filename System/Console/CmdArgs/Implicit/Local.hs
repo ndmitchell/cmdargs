@@ -5,7 +5,7 @@
 --   constraints.
 module System.Console.CmdArgs.Implicit.Local(
     local, err,
-    Prog_(..), progSumm, Mode_(..), Flag_(..)
+    Prog_(..), progSumm, Mode_(..), Flag_(..), isFlag_
     ) where
 
 import System.Console.CmdArgs.Implicit.Ann
@@ -58,6 +58,9 @@ data Flag_
       deriving Show
 instance Default Flag_ where
     def = Flag_ "" undefined def def def
+
+isFlag_ Flag_{} = True
+isFlag_ _ = False
 
 withMode x f = x{modeMode = f $ modeMode x}
 withFlagArg x f = x{flagArg_ = f $ flagArg_ x}

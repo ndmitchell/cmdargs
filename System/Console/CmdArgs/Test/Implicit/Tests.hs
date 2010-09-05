@@ -181,11 +181,10 @@ mode10 = cmdArgsMode $ modes [Test101 def, Test102 def def]
 
 test10 = do
     let Tester{..} = tester "Test10" mode10
-    -- FIXME: isHelp ["-?=one"] ["  -f --food=INT"]
+    isHelp ["-?=one"] ["  -f --food=INT"]
     isHelpNot ["-?=one"] ["  -b --bard=INT"]
 
 -- test for GHC over-optimising
-
 data Test11 = Test11A {test111 :: String}
             | Test11B {test111 :: String}
               deriving (Eq,Show,Data,Typeable)
