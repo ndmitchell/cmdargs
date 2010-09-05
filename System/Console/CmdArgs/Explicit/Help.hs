@@ -120,7 +120,7 @@ helpTextMode x@Mode{modeGroupFlags=flags,modeGroupModes=modes} = (pre,suf)
               [Line $ "  " ++ modeHelp x | not $ null $ modeHelp x]
         suf = space
                   ([Line "Flags:" | mixedGroup flags] ++
-                   (helpGroup helpFlag $ modeGroupFlags x)) ++
+                   helpGroup helpFlag (modeGroupFlags x)) ++
               space (map Line $ modeHelpSuffix x)
 
 

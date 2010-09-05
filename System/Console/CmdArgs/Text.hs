@@ -96,7 +96,7 @@ showWrap width xs = unlines $ concatMap f xs
         f (Line x) = map (a++) $ wrap1 (width - length a) b
             where (a,b) = span isSpace x
 
-        f (Cols xs) = (concat $ zipWith pad ys xs ++ [z1]) : map (replicate n ' '++) zs
+        f (Cols xs) = concat (zipWith pad ys xs ++ [z1]) : map (replicate n ' '++) zs
             where ys = fromJust $ lookup (length xs) cs
                   n = sum ys + length (takeWhile isSpace $ last xs)
                   z1:zs = wrap1 (width - n) (last xs)

@@ -22,7 +22,7 @@ data Test1
       deriving (Show,Eq,Data,Typeable)
 
 def1 = Test1 def def def (def &= args) def def def
-mode1 = cmdArgsMode $ def1
+mode1 = cmdArgsMode def1
 
 test1 = do
     let Tester{..} = tester "Test1" mode1
