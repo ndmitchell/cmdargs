@@ -138,6 +138,7 @@ modeAnn (ModeHelpSuffix a) x = withMode x $ \x -> x{modeHelpSuffix=a}
 modeAnn ModeDefault x = x{modeDefault=True}
 modeAnn (GroupName a) x = x{modeGroup=Just a}
 modeAnn Explicit x = x{modeExplicit=True}
+modeAnn (Name a) x = withMode x $ \x -> x{modeNames=a:modeNames x}
 modeAnn a x = err "mode" $ show a
 
 

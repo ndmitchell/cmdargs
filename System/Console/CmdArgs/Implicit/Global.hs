@@ -144,7 +144,6 @@ groupUncommonDelete x = let a = fst $ groupSplitCommon x in Group [] [] [(common
 ---------------------------------------------------------------------
 -- ADD EXTRA PIECES
 
-
 extraFlags :: Prog_ -> Prog_
 extraFlags p = p{progModes = map f $ progModes p}
     where f m = m{modeFlags_ = modeFlags_ m ++ map (\x -> def{flagFlag=x, flagExplicit=True, flagGroup=grp}) flags}
@@ -178,7 +177,7 @@ changeHelp m upd = m{modeGroupFlags = fmap f $ modeGroupFlags m}
 assignNames :: Prog_ -> Prog_
 assignNames x = x{progModes = map f $ namesOn fromMode toMode $ progModes x}
     where
-        fromMode x = Names (modeNames $ modeMode x) [asName $ ctor $ cmdArgsValue $ modeValue $ modeMode x]
+        fromMode x = Names (modeNames $ modeMode x) [asName $ ctor $ cmdArgsValue $ modeValue $ modeMode x | not $ modeExplicit x]
         toMode xs x = x{modeMode = (modeMode x){modeNames=["["++head xs++"]" | modeDefault x] ++ xs}}
 
         fromFlagLong x = Names (flagNames $ flagFlag x) [asName $ fromMaybe (flagField x) (flagEnum x) | not $ flagExplicit x]

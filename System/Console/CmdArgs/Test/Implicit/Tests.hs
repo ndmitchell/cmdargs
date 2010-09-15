@@ -8,10 +8,11 @@ import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 
 
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >> test11
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
+       test11 >> test12
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
-        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11]
+        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -203,3 +204,24 @@ test11 = do
     fails []
     ["test11a","test"] === Test11A "test"
     ["test11b","test"] === Test11B "test"
+
+
+-- #351, check you can add name annotations to modes
+data Test12 = Test12A | Test12B deriving (Eq,Show,Data,Typeable)
+
+mode12 = cmdArgsMode $ modes [Test12A &= name "check", Test12B]
+mode12_ = cmdArgsMode $ modes [Test12A &= name "check" &= explicit, Test12B]
+
+test12 = do
+    let Tester{..} = tester "Test12" mode12
+    fails []
+    ["test12a"] === Test12A
+    ["check"] === Test12A
+    ["test12b"] === Test12B
+    fails ["t"]
+    let Tester{..} = tester "Test12" mode12_
+    fails []
+    fails ["test12a"]
+    ["check"] === Test12A
+    ["test12b"] === Test12B
+    ["t"] === Test12B

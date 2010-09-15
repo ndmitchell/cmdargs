@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #351, name/explicit attributes on mode were broken (regression)
 0.4
     #342, display common fields only once
     Raise errors if annotations are placed in invalid places
