@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #350, make top-level help appear properly
 0.5
     #351, name/explicit attributes on mode were broken (regression)
 0.4

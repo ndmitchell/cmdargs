@@ -61,6 +61,7 @@ test = do
     isHelpNot ["-?=one"] ["  -d --debug  Debug build"]
     isHelp ["-?=all"] ["maker [build] [OPTIONS] [ITEM]"]
     isHelp ["build","-?=one"] ["maker [build] [OPTIONS] [ITEM]"]
+    isHelp ["-?=one"] ["  Build helper program"]
     ["build","foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile"] === build{files=["foo"],method=Profile}
     ["foo","--profile","--release"] === build{files=["foo"],method=Release}

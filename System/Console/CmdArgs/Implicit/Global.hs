@@ -26,7 +26,8 @@ global x = setHelp x $ collapse $ assignGroups $ assignNames $ extraFlags x
 collapse :: Prog_ -> Mode (CmdArgs Any)
 collapse x | length ms == 1 = (head ms){modeNames=[progProgram x]}
            | length auto > 1 = err "prog" "Multiple automatic modes"
-           | otherwise = (head $ map zeroMode auto ++ map emptyMode ms){modeNames=[progProgram x], modeGroupModes = toGroup ms}
+           | otherwise = (head $ map zeroMode auto ++ map emptyMode ms)
+                {modeNames=[progProgram x], modeGroupModes = toGroup ms, modeHelp = progHelp x}
     where
         ms = map collapseMode $ progModes x
         auto = [m | (m,True) <- zip ms $ map modeDefault $ progModes x]
