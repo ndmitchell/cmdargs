@@ -16,7 +16,7 @@
     
     * The help message: 'help', 'typ', 'details', 'summary', 'program', 'groupname'
     
-    * Flag behaviour: 'opt', 'enum', 'verbosity'
+    * Flag behaviour: 'opt', 'enum', 'verbosity', 'ignore'
     
     * Flag name assignment: 'name', 'explicit'
     

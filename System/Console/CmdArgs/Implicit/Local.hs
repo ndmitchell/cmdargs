@@ -79,19 +79,21 @@ local = prog_ . defaultMissing
 
 prog_ :: Capture Ann -> Prog_
 prog_ (Ann a b) = progAnn a $ prog_ b
-prog_ (Many xs) = def{progModes=map mode_ xs, progProgram=prog}
+prog_ (Many xs) = def{progModes=concatMap mode_ xs, progProgram=prog}
     where prog = map toLower $ typeShell $ fromCapture $ head xs
 prog_ x@Ctor{} = prog_ $ Many [x]
 prog_ x = err "program" $ show x
 
 
-mode_ :: Capture Ann -> Mode_
-mode_ (Ann a b) = modeAnn a $ mode_ b
-mode_ o@(Ctor x ys) = withMode def{modeFlags_=concat $ zipWith flag_ (fields x) ys} $ \x -> x{modeValue=embed $ fromCapture o}
+mode_ :: Capture Ann -> [Mode_]
+mode_ (Ann Ignore _) = []
+mode_ (Ann a b) = map (modeAnn a) $ mode_ b
+mode_ o@(Ctor x ys) = [withMode def{modeFlags_=concat $ zipWith flag_ (fields x) ys} $ \x -> x{modeValue=embed $ fromCapture o}]
 mode_ x = err "mode" $ show x
 
 
 flag_ :: String -> Capture Ann -> [Flag_]
+flag_ name (Ann Ignore _) = []
 flag_ name (Ann a b) = map (flagAnn a) $ flag_ name b
 flag_ name (Value x) = [def{flagField=name, flagFlag = remap embed reembed $ value_ name x}]
 flag_ name x@Ctor{} = flag_ name $ Value $ fromCapture x

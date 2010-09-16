@@ -9,10 +9,11 @@ import System.Console.CmdArgs.Test.Implicit.Util
 
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12
+       test11 >> test12 >> test13
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
-        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12]
+        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
+        ,toDemo mode13]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -225,3 +226,19 @@ test12 = do
     ["check"] === Test12A
     ["test12b"] === Test12B
     ["t"] === Test12B
+
+
+-- the ignore annotation
+data Test13 = Test13A {foo13 :: Int, bar13 :: Either Int Int}
+            | Test13B {foo13 :: Int}
+            | Test13C {foo13 :: Int}
+              deriving (Eq,Show,Data,Typeable)
+
+mode13 = cmdArgsMode $ modes [Test13A 1 (Left 1 &= ignore), Test13B 1 &= ignore, Test13C{}]
+
+test13 = do
+    let Tester{..} = tester "Test13" mode13
+    fails ["test13b"]
+    fails ["test13a --bar13=1"]
+    ["test13a","--foo13=13"] === Test13A 13 (Left 1)
+    ["test13c","--foo13=13"] === Test13C 13

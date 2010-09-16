@@ -152,6 +152,16 @@ explicit :: Ann
 explicit = Explicit
 
 
+-- | Flag/Mode: \"Ignore this field, don't let the user set it.\"
+--
+--   A mode or field is not dealt with by CmdArgs.
+--
+-- > {hello = def, extra = def &= ignore}
+-- >   --hello=VALUE
+ignore :: Ann
+ignore = Ignore
+
+
 -- | Modes: \"My program needs verbosity flags.\"
 --
 --   Add @--verbose@ and @--quiet@ flags.
