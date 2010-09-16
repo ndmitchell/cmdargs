@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
-{-# OPTIONS_GHC -fno-cse -fno-warn-unused-binds #-}
+{-# OPTIONS_GHC -fno-cse -fno-warn-unused-binds -fno-warn-missing-fields #-}
 module System.Console.CmdArgs.Test.Implicit.Maker where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Test.Implicit.Util
