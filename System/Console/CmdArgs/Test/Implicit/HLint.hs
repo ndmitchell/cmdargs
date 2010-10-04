@@ -9,7 +9,7 @@ data HLint = HLint
     {report :: [FilePath]
     ,hint :: [FilePath]
     ,color :: Bool
-    ,ignore :: [String]
+    ,ignore_ :: [String]
     ,show_ :: Bool
     ,extension :: [String]
     ,language :: [String]
@@ -28,7 +28,7 @@ hlint = HLint
     {report = def &= opt "report.html" &= typFile &= help "Generate a report in HTML"
     ,hint = def &= typFile &= help "Hint/ignore file to use"
     ,color = def &= name "c" &= name "colour" &= help "Color the output (requires ANSI terminal)"
-    ,ignore = def &= typ "MESSAGE" &= help "Ignore a particular hint"
+    ,ignore_ = def &= typ "MESSAGE" &= help "Ignore a particular hint"
     ,show_ = def &= help "Show all ignored ideas"
     ,extension = def &= typ "EXT" &= help "File extensions to search (defaults to hs and lhs)"
     ,language = def &= name "X" &= typ "LANG" &= help "Language extension (Arrows, NoCPP)"

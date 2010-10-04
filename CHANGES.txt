@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Build on GHC 6.10, don't rely on record name disambiguation
 0.6
     Add ignore annotation for modes and flags
     #350, make top-level help appear properly
