@@ -9,11 +9,11 @@ import System.Console.CmdArgs.Test.Implicit.Util
 
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12 >> test13
+       test11 >> test12 >> test13 >> test14
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
-        ,toDemo mode13]
+        ,toDemo mode13, toDemo mode14]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -242,3 +242,14 @@ test13 = do
     fails ["test13a --bar13=1"]
     ["test13a","--foo13=13"] === Test13A 13 (Left 1)
     ["test13c","--foo13=13"] === Test13C 13
+
+-- check a list becomes modes not an enum
+data Test14 = Test14A | Test14B | Test14C deriving (Eq,Show,Data,Typeable)
+
+mode14 = cmdArgsMode $ modes [Test14A, Test14B, Test14C]
+
+test14 = do
+    let Tester{..} = tester "Test14" mode14
+    fails []
+    ["test14a"] === Test14A
+    fails ["--test14a"]
