@@ -31,9 +31,9 @@ build = Build
     ,files = def &= args
     } &= help "Build the project" &= auto
 
-mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= program "maker" &= summary "Maker v1.0"
+mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= program "maker" &= summary "Maker v1.0\nMake it"
 
-mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" += program "maker" += summary "Maker v1.0"
+mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" += program "maker" += summary "Maker v1.0\nMake it"
   where
     threads_ = threads := def += help "Number of threads to use" += name "j" += typ "NUM"
 
@@ -57,6 +57,7 @@ mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" 
 test = do
     let Tester{..} = testers "Maker" [mode,mode_]
     [] === build
+    isHelp ["--help"] ["Maker v1.0","Make it"]
     isHelp ["-?=one"] ["Common flags:"]
     isHelpNot ["-?=one"] ["  -d --debug  Debug build"]
     isHelp ["-?=all"] ["maker [build] [OPTIONS] [ITEM]"]

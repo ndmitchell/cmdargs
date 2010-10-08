@@ -22,14 +22,14 @@ import Data.Maybe
 
 data Prog_ = Prog_
     {progModes :: [Mode_]
-    ,progSummary :: Maybe String
+    ,progSummary :: Maybe [String]
     ,progProgram :: String
     ,progHelp :: String -- only for multiple mode programs
     ,progVerbosity :: Bool
     } deriving Show
 instance Default Prog_ where
     def = Prog_ def def def def def
-progSumm x = fromMaybe ("The " ++ progProgram x ++ " program") $ progSummary x
+progSumm x = fromMaybe ["The " ++ progProgram x ++ " program"] $ progSummary x
 
 data Mode_ = Mode_
     {modeFlags_ :: [Flag_]
@@ -126,7 +126,7 @@ value_ name x
 -- CAPTURE THE ANNOTATIONS
 
 progAnn :: Ann -> Prog_ -> Prog_
-progAnn (ProgSummary a) x = x{progSummary=Just a}
+progAnn (ProgSummary a) x = x{progSummary=Just $ lines a}
 progAnn (ProgProgram a) x = x{progProgram=a}
 progAnn ProgVerbosity x = x{progVerbosity=True}
 progAnn (Help a) x | length (progModes x) > 1 = x{progHelp=a}

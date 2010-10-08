@@ -150,7 +150,7 @@ extraFlags p = p{progModes = map f $ progModes p}
     where f m = m{modeFlags_ = modeFlags_ m ++ map (\x -> def{flagFlag=x, flagExplicit=True, flagGroup=grp}) flags}
           grp = if length (progModes p) > 1 then Just commonGroup else Nothing
           flags = flagHelpFormat undefined : flagVersion vers : if progVerbosity p then flagsVerbosity verb else []
-          vers x = x{cmdArgsVersion = Just $ progSumm p}
+          vers x = x{cmdArgsVersion = Just $ unlines $ progSumm p}
           verb v x = x{cmdArgsVerbosity = Just v}
 
 
@@ -161,7 +161,7 @@ setHelp p = mapModes0 add ""
         mapModes1 f pre m = m{modeGroupModes = fmap (mapModes0 f (pre ++ head (modeNames m) ++ " ")) $ modeGroupModes m}
 
         add pre m = changeHelp m $ \hlp txt x -> x{cmdArgsHelp=Just $ showText txt $ msg hlp}
-            where msg hlp = Line (progSumm p) : Line "" : helpText hlp (prepare m{modeNames = map (pre++) $ modeNames m})
+            where msg hlp = map Line (progSumm p) ++ Line "" : helpText hlp (prepare m{modeNames = map (pre++) $ modeNames m})
 
         prepare = mapModes1 (\_ m -> m{modeGroupFlags = groupCommonHide $ modeGroupFlags m}) ""
 

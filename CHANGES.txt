@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Support multiline summary using \n escape codes
 0.6.1
     Build on GHC 6.10, don't rely on record name disambiguation
 0.6
