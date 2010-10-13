@@ -167,3 +167,21 @@ ignore = Ignore
 --   Add @--verbose@ and @--quiet@ flags.
 verbosity :: Ann
 verbosity = ProgVerbosity
+
+
+-- | Modes: \"Customise the help argument.\"
+--
+--   Add extra options to a help argument, such as 'help', 'name', 'ignore' or 'explicit'.
+--
+-- > Sample{..} &= helpArg [name "h"]
+helpArg :: [Ann] -> Ann
+helpArg = ProgHelpArg
+
+
+-- | Modes: \"Customise the version argument.\"
+--
+--   Add extra options to a version argument, such as 'help', 'name', 'ignore' or 'explicit'.
+--
+-- > Sample{..} &= helpArg [name "h"]
+versionArg :: [Ann] -> Ann
+versionArg = ProgVersionArg

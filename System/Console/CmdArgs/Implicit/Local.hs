@@ -5,7 +5,7 @@
 --   constraints.
 module System.Console.CmdArgs.Implicit.Local(
     local, err,
-    Prog_(..), progSumm, Mode_(..), Flag_(..), isFlag_
+    Prog_(..), progSumm, Builtin_(..), Mode_(..), Flag_(..), isFlag_
     ) where
 
 import System.Console.CmdArgs.Implicit.Ann
@@ -26,10 +26,20 @@ data Prog_ = Prog_
     ,progProgram :: String
     ,progHelp :: String -- only for multiple mode programs
     ,progVerbosity :: Bool
+    ,progHelpArg :: Maybe Builtin_
+    ,progVersionArg :: Maybe Builtin_
     } deriving Show
 instance Default Prog_ where
-    def = Prog_ def def def def def
+    def = Prog_ def def def def def (Just def) (Just def)
 progSumm x = fromMaybe ["The " ++ progProgram x ++ " program"] $ progSummary x
+
+data Builtin_ = Builtin_
+    {builtinNames :: [String]
+    ,builtinExplicit :: Bool
+    ,builtinHelp :: Maybe String
+    } deriving Show
+instance Default Builtin_ where
+    def = Builtin_ def def def
 
 data Mode_ = Mode_
     {modeFlags_ :: [Flag_]
@@ -130,8 +140,19 @@ progAnn (ProgSummary a) x = x{progSummary=Just $ lines a}
 progAnn (ProgProgram a) x = x{progProgram=a}
 progAnn ProgVerbosity x = x{progVerbosity=True}
 progAnn (Help a) x | length (progModes x) > 1 = x{progHelp=a}
+progAnn (ProgHelpArg a) x = x{progHelpArg = foldl (flip builtinAnn) (progHelpArg x) a}
+progAnn (ProgVersionArg a) x = x{progVersionArg = foldl (flip builtinAnn) (progVersionArg x) a}
 progAnn a x | length (progModes x) == 1 = x{progModes = map (modeAnn a) $ progModes x}
 progAnn a x = err "program" $ show a
+
+
+builtinAnn :: Ann -> Maybe Builtin_ -> Maybe Builtin_
+builtinAnn _ Nothing = Nothing
+builtinAnn Ignore _ = Nothing
+builtinAnn Explicit (Just x) = Just x{builtinExplicit=True}
+builtinAnn (Name a) (Just x) = Just x{builtinNames=a : builtinNames x}
+builtinAnn (Help a) (Just x) = Just x{builtinHelp=Just a}
+builtinAnn a x = err "builtin" $ show a
 
 
 modeAnn :: Ann -> Mode_ -> Mode_

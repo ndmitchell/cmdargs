@@ -149,9 +149,18 @@ extraFlags :: Prog_ -> Prog_
 extraFlags p = p{progModes = map f $ progModes p}
     where f m = m{modeFlags_ = modeFlags_ m ++ map (\x -> def{flagFlag=x, flagExplicit=True, flagGroup=grp}) flags}
           grp = if length (progModes p) > 1 then Just commonGroup else Nothing
-          flags = flagHelpFormat undefined : flagVersion vers : if progVerbosity p then flagsVerbosity verb else []
+          flags = changeBuiltin (progHelpArg p) (flagHelpFormat $ error "flagHelpFormat undefined") ++
+                  changeBuiltin (progVersionArg p) (flagVersion vers) ++
+                  if progVerbosity p then flagsVerbosity verb else []
           vers x = x{cmdArgsVersion = Just $ unlines $ progSumm p}
           verb v x = x{cmdArgsVerbosity = Just v}
+
+
+changeBuiltin :: Maybe Builtin_ -> Flag a -> [Flag a]
+changeBuiltin Nothing _ = []
+changeBuiltin (Just (Builtin_ names explicit help)) x =[x
+    {flagNames = names ++ if explicit then [] else flagNames x
+    ,flagHelp = fromMaybe (flagHelp x) help}]
 
 
 setHelp :: Prog_ -> Mode (CmdArgs Any) -> Mode (CmdArgs Any)
@@ -160,16 +169,16 @@ setHelp p = mapModes0 add ""
         mapModes0 f pre m = f pre $ mapModes1 f pre m
         mapModes1 f pre m = m{modeGroupModes = fmap (mapModes0 f (pre ++ head (modeNames m) ++ " ")) $ modeGroupModes m}
 
-        add pre m = changeHelp m $ \hlp txt x -> x{cmdArgsHelp=Just $ showText txt $ msg hlp}
+        add pre m = changeHelp p m $ \hlp txt x -> x{cmdArgsHelp=Just $ showText txt $ msg hlp}
             where msg hlp = map Line (progSumm p) ++ Line "" : helpText hlp (prepare m{modeNames = map (pre++) $ modeNames m})
 
         prepare = mapModes1 (\_ m -> m{modeGroupFlags = groupCommonHide $ modeGroupFlags m}) ""
 
 
-changeHelp :: Mode a -> (HelpFormat -> TextFormat -> a -> a) -> Mode a
-changeHelp m upd = m{modeGroupFlags = fmap f $ modeGroupFlags m}
-    where hlp = flagHelpFormat upd
-          f flg = if flagNames hlp == flagNames flg then hlp else flg
+changeHelp :: Prog_ -> Mode a -> (HelpFormat -> TextFormat -> a -> a) -> Mode a
+changeHelp p m upd = m{modeGroupFlags = fmap f $ modeGroupFlags m}
+    where hlp = changeBuiltin (progHelpArg p) $ flagHelpFormat upd
+          f flg = if concatMap flagNames hlp == flagNames flg then head hlp else flg
 
 
 ---------------------------------------------------------------------

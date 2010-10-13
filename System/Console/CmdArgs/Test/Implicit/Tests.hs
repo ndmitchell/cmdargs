@@ -9,11 +9,11 @@ import System.Console.CmdArgs.Test.Implicit.Util
 
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12 >> test13 >> test14
+       test11 >> test12 >> test13 >> test14 >> test15
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
-        ,toDemo mode13, toDemo mode14]
+        ,toDemo mode13, toDemo mode14, toDemo mode15]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -253,3 +253,19 @@ test14 = do
     fails []
     ["test14a"] === Test14A
     fails ["--test14a"]
+
+-- custom help flags
+data Test15 = Test15 {test15a :: Bool} deriving (Eq,Show,Data,Typeable)
+
+mode15 = cmdArgsMode $ Test15 (False &= name "help")
+         &= helpArg [name "h", name "nohelp", explicit, help "whatever"] &= versionArg [ignore]
+
+test15 = do
+    let Tester{..} = tester "Test15" mode15
+    invalid $ \_ -> Test15 (False &= name "help")
+    ["--help"] === Test15 True
+    ["-t"] === Test15 True
+    fails ["-?"]
+    isHelp ["--nohelp"] ["  -h --nohelp  whatever"]
+    isHelp ["-h"] []
+    fails ["--version"]

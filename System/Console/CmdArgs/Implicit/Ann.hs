@@ -23,4 +23,6 @@ data Ann
     | ProgSummary String
     | ProgProgram String
     | ProgVerbosity
+    | ProgHelpArg [Ann]
+    | ProgVersionArg [Ann]
       deriving (Eq,Ord,Show,Data,Typeable)
