@@ -40,7 +40,7 @@ data Mode_ = Mode_
     } deriving Show
 instance Default Mode_ where
     def = Mode_ [] m def def def
-        where m = Mode (toGroup []) [] undefined Right "" [] Nothing (toGroup [])
+        where m = Mode (toGroup []) [] (error "Mode_ undefined") Right "" [] Nothing (toGroup [])
 
 data Flag_
     = Flag_
@@ -57,7 +57,7 @@ data Flag_
         }
       deriving Show
 instance Default Flag_ where
-    def = Flag_ "" undefined def def def
+    def = Flag_ "" (error "Flag_ undefined") def def def
 
 isFlag_ Flag_{} = True
 isFlag_ _ = False
