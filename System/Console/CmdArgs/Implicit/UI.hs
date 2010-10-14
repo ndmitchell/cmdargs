@@ -173,7 +173,7 @@ verbosity = ProgVerbosity
 --
 --   Add extra options to a help argument, such as 'help', 'name', 'ignore' or 'explicit'.
 --
--- > Sample{..} &= helpArg [name "h"]
+-- > Sample{..} &= helpArg [explicit, name "h"]
 helpArg :: [Ann] -> Ann
 helpArg = ProgHelpArg
 
@@ -182,6 +182,6 @@ helpArg = ProgHelpArg
 --
 --   Add extra options to a version argument, such as 'help', 'name', 'ignore' or 'explicit'.
 --
--- > Sample{..} &= helpArg [name "h"]
+-- > Sample{..} &= versionArg [ignore]
 versionArg :: [Ann] -> Ann
 versionArg = ProgVersionArg
