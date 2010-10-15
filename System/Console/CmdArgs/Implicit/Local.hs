@@ -25,7 +25,7 @@ data Prog_ = Prog_
     ,progSummary :: Maybe [String]
     ,progProgram :: String
     ,progHelp :: String -- only for multiple mode programs
-    ,progVerbosity :: Bool
+    ,progVerbosityArgs :: (Maybe Builtin_, Maybe Builtin_)
     ,progHelpArg :: Maybe Builtin_
     ,progVersionArg :: Maybe Builtin_
     } deriving Show
@@ -138,13 +138,16 @@ value_ name x
 progAnn :: Ann -> Prog_ -> Prog_
 progAnn (ProgSummary a) x = x{progSummary=Just $ lines a}
 progAnn (ProgProgram a) x = x{progProgram=a}
-progAnn ProgVerbosity x = x{progVerbosity=True}
+progAnn ProgVerbosity x = x{progVerbosityArgs=let f sel = Just $ fromMaybe def $ sel $ progVerbosityArgs x in (f fst, f snd)}
 progAnn (Help a) x | length (progModes x) > 1 = x{progHelp=a}
-progAnn (ProgHelpArg a) x = x{progHelpArg = foldl (flip builtinAnn) (progHelpArg x) a}
-progAnn (ProgVersionArg a) x = x{progVersionArg = foldl (flip builtinAnn) (progVersionArg x) a}
+progAnn (ProgHelpArg a) x = x{progHelpArg = builtinAnns (progHelpArg x) a}
+progAnn (ProgVersionArg a) x = x{progVersionArg = builtinAnns (progVersionArg x) a}
+progAnn (ProgVerbosityArgs a b) x = x{progVerbosityArgs=(builtinAnns (Just $ fromMaybe def $ fst $ progVerbosityArgs x) a, builtinAnns (Just $ fromMaybe def $ snd $ progVerbosityArgs x) b)}
 progAnn a x | length (progModes x) == 1 = x{progModes = map (modeAnn a) $ progModes x}
 progAnn a x = err "program" $ show a
 
+
+builtinAnns = foldl (flip builtinAnn)
 
 builtinAnn :: Ann -> Maybe Builtin_ -> Maybe Builtin_
 builtinAnn _ Nothing = Nothing

@@ -259,6 +259,7 @@ data Test15 = Test15 {test15a :: Bool} deriving (Eq,Show,Data,Typeable)
 
 mode15 = cmdArgsMode $ Test15 (False &= name "help")
          &= helpArg [name "h", name "nohelp", explicit, help "whatever"] &= versionArg [ignore]
+         &= verbosityArgs [ignore] [explicit,name "silent"]
 
 test15 = do
     let Tester{..} = tester "Test15" mode15
@@ -269,3 +270,6 @@ test15 = do
     isHelp ["--nohelp"] ["  -h --nohelp  whatever"]
     isHelp ["-h"] []
     fails ["--version"]
+    fails ["--verbose"]
+    fails ["--quiet"]
+    isVerbosity ["--help","--silent"] Quiet

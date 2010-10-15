@@ -151,7 +151,9 @@ extraFlags p = p{progModes = map f $ progModes p}
           grp = if length (progModes p) > 1 then Just commonGroup else Nothing
           flags = changeBuiltin (progHelpArg p) (flagHelpFormat $ error "flagHelpFormat undefined") ++
                   changeBuiltin (progVersionArg p) (flagVersion vers) ++
-                  if progVerbosity p then flagsVerbosity verb else []
+                  changeBuiltin (fst $ progVerbosityArgs p) loud ++
+                  changeBuiltin (snd $ progVerbosityArgs p) quiet
+          [loud,quiet] = flagsVerbosity verb
           vers x = x{cmdArgsVersion = Just $ unlines $ progSumm p}
           verb v x = x{cmdArgsVerbosity = Just v}
 

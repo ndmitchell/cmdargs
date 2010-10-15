@@ -185,3 +185,13 @@ helpArg = ProgHelpArg
 -- > Sample{..} &= versionArg [ignore]
 versionArg :: [Ann] -> Ann
 versionArg = ProgVersionArg
+
+-- | Modes: \"Customise the verbosity arguments.\"
+--
+--   Add extra options to a verbosity arguments (@--verbose@ and @--quiet@),
+--   such as 'help', 'name', 'ignore' or 'explicit'. The verbose options come
+--   first, followed by the quiet options.
+--
+-- > Sample{..} &= verbosityArgs [ignore] [name "silent", explicit]
+verbosityArgs :: [Ann] -> [Ann] -> Ann
+verbosityArgs = ProgVerbosityArgs

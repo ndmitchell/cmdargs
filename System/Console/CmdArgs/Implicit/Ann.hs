@@ -25,4 +25,5 @@ data Ann
     | ProgVerbosity
     | ProgHelpArg [Ann]
     | ProgVersionArg [Ann]
+    | ProgVerbosityArgs [Ann] [Ann]
       deriving (Eq,Ord,Show,Data,Typeable)
