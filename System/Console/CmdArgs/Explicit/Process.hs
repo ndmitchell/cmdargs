@@ -7,6 +7,7 @@ import Data.List
 import Data.Maybe
 import System.Environment
 import System.Exit
+import System.IO
 
 
 -- | Process the flags obtained by @getArgs@ with a mode. Displays
@@ -16,7 +17,7 @@ processArgs :: Mode a -> IO a
 processArgs m = do
     xs <- getArgs
     case process m xs of
-        Left x -> do putStrLn x; exitFailure
+        Left x -> do hPutStrLn stderr x; exitFailure
         Right x -> return x
 
 
