@@ -5,27 +5,27 @@
 
 :{
 :def hpc const $ return $ unlines
-    [":!(if not exist .hpc mkdir .hpc) && ghc --make Main -w -odir .hpc -hidir .hpc -o .hpc/cmdargs -fhpc"
-    ,":!del cmdargs.tix"
-    ,":!.hpc\\cmdargs --test"
-    ,":!hpc.exe markup cmdargs.tix --destdir=.hpc"
-    ,":!hpc.exe report cmdargs.tix"
-    ,":!del cmdargs.tix"
-    ,":!start .hpc\\hpc_index_fun.html"]
+     [":!(if not exist .hpc mkdir .hpc) && ghc --make Main -w -odir .hpc -hidir .hpc -o .hpc/cmdargs -fhpc"
+     ,":!del cmdargs.tix"
+     ,":!.hpc\\cmdargs --test"
+     ,":!hpc.exe markup cmdargs.tix --destdir=.hpc"
+     ,":!hpc.exe report cmdargs.tix"
+     ,":!del cmdargs.tix"
+     ,":!start .hpc\\hpc_index_fun.html"]
 :}
 
 :{
 :def docs \x -> return $ unlines $
-    [":!cabal configure"
-    ,":!cabal haddock"] ++
-    [":!start dist\\doc\\html\\cmdargs\\index.html" | null x]
+     [":!cabal configure"
+     ,":!cabal haddock"] ++
+     [":!start dist\\doc\\html\\cmdargs\\index.html" | null x]
 :}
 
 :{
 :def extra const $
-    let msg = [":test       - run the test suit"
-              ,":hpc        - run and produce a program coverage report"
-              ,":docs       - generate documentation"]
-    in putStr (unlines msg) >> return []
+     let msg = [":test       - run the test suit"
+               ,":hpc        - run and produce a program coverage report"
+               ,":docs       - generate documentation"]
+     in putStr (unlines msg) >> return []
 :}
 
