@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.6.2
     Build on GHC 7.0 RC2, add an extra type signature
     Add verbosityArgs to customise the verbose/quiet flags
     Add helpArg/versionArg flags to customise those flags
