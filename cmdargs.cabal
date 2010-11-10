@@ -38,7 +38,9 @@ flag testprog
     description: Build the test program
 
 library
-    build-depends: base == 4.*, transformers == 0.2.*, filepath
+    build-depends:
+        base == 4.*,
+        transformers == 0.2.*
 
     exposed-modules:
         System.Console.CmdArgs
