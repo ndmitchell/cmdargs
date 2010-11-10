@@ -89,11 +89,13 @@ compose0 (Any x) c = Any $ fromConstrB err y `asTypeOf` x
 recompose :: Any -> [Any] -> Any
 recompose (Any x) cs | null s = Any $ res `asTypeOf` x
                      | otherwise = err
-    where (res,s) = flip runState cs $ flip fromConstrM (D.toConstr x) $ do
-                        cs <- get
-                        if null cs then err else do
-                            put $ tail cs
-                            return $ fromAny $ head cs
+    where (res,s) = runState (fromConstrM field $ D.toConstr x) cs
+
+          field :: Data d => State [Any] d
+          field = do cs <- get
+                     if null cs then err else do
+                         put $ tail cs
+                         return $ fromAny $ head cs
 
           err = error $ "Data.Generics.Any.recompose: Incorrect number of children to recompose, " ++
                         ctor (Any x) ++ " :: " ++ show (Any x) ++ ", expected " ++ show (arity $ Any x) ++
