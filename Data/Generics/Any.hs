@@ -2,7 +2,7 @@
 
 module Data.Generics.Any where
 
-import Control.Monad.State
+import Control.Monad.Trans.State
 import qualified Data.Data as D
 import Data.Data hiding (toConstr, typeOf, dataTypeOf, isAlgType)
 import Data.List

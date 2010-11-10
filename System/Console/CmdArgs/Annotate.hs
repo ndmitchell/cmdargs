@@ -29,7 +29,7 @@ module System.Console.CmdArgs.Annotate(
     ) where
 
 import Control.Monad
-import Control.Monad.State
+import Control.Monad.Trans.State
 import Data.Data(Data,Typeable)
 import Data.List
 import Data.Maybe
