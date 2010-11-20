@@ -1,4 +1,4 @@
-
+{-# LANGUAGE PatternGuards #-}
 module System.Console.CmdArgs.Implicit.Read(isReadBool, toReadContainer, reader, addContainer, readHelp) where
 
 import Data.Generics.Any
@@ -93,6 +93,7 @@ readAtom ty s = case ty of
 
 readEnum:: String -> [(String,a)] -> Either String a
 readEnum a xs | null ys = Left $ "Could not read, expected one of: " ++ unwords (map fst xs)
+              | Just (_,el) <- find (\x -> a == fst x) ys = Right el
               | length ys > 1 = Left $ "Ambiguous read, could be any of: " ++ unwords (map fst ys)
               | otherwise = Right $ snd $ head ys
     where ys = filter (\x -> a `isPrefixOf` fst x) xs
