@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.6.4
     Don't fail with ambiguous enum if you exactly match a value
     Put errors on stderr
     Eliminate the filepath dependence
