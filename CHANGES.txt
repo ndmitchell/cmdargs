@@ -1,8 +1,8 @@
 Changelog for CmdArgs
 
-0.6.4
     Don't fail with ambiguous enum if you exactly match a value
     Put errors on stderr
+0.6.4
     Eliminate the filepath dependence
 0.6.3
     Switch mtl for transformers
