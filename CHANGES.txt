@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #392, support helpArgs [groupname "something"]
 0.6.5
     Don't fail with ambiguous enum if you exactly match a value
     Put errors on stderr

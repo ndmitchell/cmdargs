@@ -147,12 +147,13 @@ groupUncommonDelete x = let a = fst $ groupSplitCommon x in Group [] [] [(common
 
 extraFlags :: Prog_ -> Prog_
 extraFlags p = p{progModes = map f $ progModes p}
-    where f m = m{modeFlags_ = modeFlags_ m ++ map (\x -> def{flagFlag=x, flagExplicit=True, flagGroup=grp}) flags}
+    where f m = m{modeFlags_ = modeFlags_ m ++ flags}
           grp = if length (progModes p) > 1 then Just commonGroup else Nothing
-          flags = changeBuiltin (progHelpArg p) (flagHelpFormat $ error "flagHelpFormat undefined") ++
-                  changeBuiltin (progVersionArg p) (flagVersion vers) ++
-                  changeBuiltin (fst $ progVerbosityArgs p) loud ++
-                  changeBuiltin (snd $ progVerbosityArgs p) quiet
+          wrap x = def{flagFlag=x, flagExplicit=True, flagGroup=grp}
+          flags = changeBuiltin_ (progHelpArg p) (wrap $ flagHelpFormat $ error "flagHelpFormat undefined") ++
+                  changeBuiltin_ (progVersionArg p) (wrap $ flagVersion vers) ++
+                  changeBuiltin_ (fst $ progVerbosityArgs p) (wrap loud) ++
+                  changeBuiltin_ (snd $ progVerbosityArgs p) (wrap quiet)
           [loud,quiet] = flagsVerbosity verb
           vers x = x{cmdArgsVersion = Just $ unlines $ progSumm p}
           verb v x = x{cmdArgsVerbosity = Just v}
@@ -160,9 +161,14 @@ extraFlags p = p{progModes = map f $ progModes p}
 
 changeBuiltin :: Maybe Builtin_ -> Flag a -> [Flag a]
 changeBuiltin Nothing _ = []
-changeBuiltin (Just (Builtin_ names explicit help)) x =[x
+changeBuiltin (Just (Builtin_ names explicit help _)) x = [x
     {flagNames = names ++ if explicit then [] else flagNames x
     ,flagHelp = fromMaybe (flagHelp x) help}]
+
+changeBuiltin_ :: Maybe Builtin_ -> Flag_ -> [Flag_]
+changeBuiltin_ Nothing _ = []
+changeBuiltin_ (Just b) x = [x{flagFlag=y, flagGroup = builtinGroup b `mplus` flagGroup x}
+    | y <- changeBuiltin (Just b) $ flagFlag x]
 
 
 setHelp :: Prog_ -> Mode (CmdArgs Any) -> Mode (CmdArgs Any)

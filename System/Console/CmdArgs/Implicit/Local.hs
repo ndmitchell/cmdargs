@@ -37,9 +37,10 @@ data Builtin_ = Builtin_
     {builtinNames :: [String]
     ,builtinExplicit :: Bool
     ,builtinHelp :: Maybe String
+    ,builtinGroup :: Maybe String
     } deriving Show
 instance Default Builtin_ where
-    def = Builtin_ def def def
+    def = Builtin_ def def def def
 
 data Mode_ = Mode_
     {modeFlags_ :: [Flag_]
@@ -155,6 +156,7 @@ builtinAnn Ignore _ = Nothing
 builtinAnn Explicit (Just x) = Just x{builtinExplicit=True}
 builtinAnn (Name a) (Just x) = Just x{builtinNames=a : builtinNames x}
 builtinAnn (Help a) (Just x) = Just x{builtinHelp=Just a}
+builtinAnn (GroupName a) (Just x) = Just x{builtinGroup=Just a}
 builtinAnn a x = err "builtin" $ show a
 
 
