@@ -143,8 +143,8 @@ cmdArgsRun m = cmdArgsApply =<< processArgs m
 --     it will set the verbosity (see 'setVerbosity').
 cmdArgsApply :: CmdArgs a -> IO a
 cmdArgsApply CmdArgs{..}
-    | Just x <- cmdArgsHelp = do putStrLn x; exitSuccess
-    | Just x <- cmdArgsVersion = do putStrLn x; exitSuccess
+    | Just x <- cmdArgsHelp = do putStr x; exitSuccess
+    | Just x <- cmdArgsVersion = do putStr x; exitSuccess
     | otherwise = do
         maybe (return ()) setVerbosity cmdArgsVerbosity
         return cmdArgsValue
