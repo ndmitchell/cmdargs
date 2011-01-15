@@ -17,8 +17,8 @@ import Data.Maybe
 --   @--version@, @--quiet@ and @--verbose@.
 data CmdArgs a = CmdArgs
     {cmdArgsValue :: a -- ^ The underlying value being wrapped.
-    ,cmdArgsHelp :: Maybe String -- ^ @Just@ if @--help@ is given, then gives the help message for display.
-    ,cmdArgsVersion :: Maybe String -- ^ @Just@ if @--version@ is given, then gives the version message for display.
+    ,cmdArgsHelp :: Maybe String -- ^ @Just@ if @--help@ is given, then gives the help message for display, including a trailing newline.
+    ,cmdArgsVersion :: Maybe String -- ^ @Just@ if @--version@ is given, then gives the version message for display, including a trailing newline.
     ,cmdArgsVerbosity :: Maybe Verbosity -- ^ @Just@ if @--quiet@ or @--verbose@ is given, then gives the verbosity to use.
     ,cmdArgsPrivate :: CmdArgsPrivate -- ^ Private: Only exported due to Haddock limitations.
     }
