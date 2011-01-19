@@ -82,12 +82,18 @@ import System.Console.CmdArgs.Default
 
 -- | Take impurely annotated records and run the corresponding command line.
 --   Shortcut for @'cmdArgsRun' . 'cmdArgsMode'@.
+--
+--   To use 'cmdArgs' with custom command line arguments see
+--   'System.Environment.withArgs'.
 cmdArgs :: Data a => a -> IO a
 cmdArgs = cmdArgsRun . cmdArgsMode
 
 
 -- | Take purely annotated records and run the corresponding command line.
 --   Shortcut for @'cmdArgsRun' . 'cmdArgsMode_'@.
+--
+--   To use 'cmdArgs_' with custom command line arguments see
+--   'System.Environment.withArgs'.
 cmdArgs_ :: Data a => Annotate Ann -> IO a
 cmdArgs_ = cmdArgsRun . cmdArgsMode_
 
