@@ -7,10 +7,9 @@
     @data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)@
 
     @sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\"}@
-    @         '&=' summary \"Sample v1\"@
+    @         '&=' 'summary' \"Sample v1\"@
 
     @main = print =<< 'cmdArgs' sample@
-
 
     Attributes are used to control a number of behaviours:
     
@@ -43,6 +42,23 @@
     Even using this scheme, sometimes GHC's optimisations may share values who
     have the same annotation. To disable sharing you may need to specify
     @\{\-\# OPTIONS_GHC -fno-cse \#\-\}@ in the module you define the flags.
+
+    /Pure annotations/: Alternatively, you may use pure annotations, which are
+    referentially transparent, but less type safe and more verbose. The initial
+    example may be written as:
+
+    @sample = 'record' Sample{} [hello := 'def' '+=' 'help' \"World argument\" '+=' 'opt' \"world\"]@
+    @         '+=' 'summary' \"Sample v1\"@
+
+    @main = print =<< (cmdArgs_ sample :: IO Sample)@
+
+    All the examples are written using impure annotations. To convert to pure
+    annotations follow the rules:
+    
+    > Ctor {field1 = value1 &= ann1, field2 = value2} &= ann2 ==> record Ctor{} [field1 := value1 += ann1, field2 := value2] += ann2
+    > Ctor (value1 &= ann1) value2 &= ann2 ==> record Ctor{} [atom value1 += ann1, atom value2] += ann2
+    > many [Ctor1{...}, Ctor2{...}] ==> many_ [record Ctor1{} [...], record Ctor2{} [...]]
+    > Ctor {field1 = enum [X &= ann, Y]} ==> record Ctor{} [field1 := enum_ [atom X += ann, atom Y]]
 -}
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines
@@ -187,10 +203,10 @@ enum = many
 (&=) = (A.&=)
 
 
+-- | Like 'enum', but using the pure annotations.
 enum_ :: (Data c, Data f) => (c -> f) -> [Annotate Ann] -> Annotate Ann
 enum_ = (:=+)
 
+-- | Like 'modes', but using the pure annotations.
 modes_ :: [Annotate Ann] -> Annotate Ann
 modes_ = many_
-
-
