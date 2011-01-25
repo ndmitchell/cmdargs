@@ -78,7 +78,7 @@ data Mode a = Mode
     {modeGroupModes :: Group (Mode a) -- ^ The available sub-modes
     ,modeNames :: [Name] -- ^ The names assigned to this mode (for the root mode, this name is used as the program name)
     ,modeValue :: a -- ^ Value to start with
-    ,modeCheck :: a -> Either String a -- ^ Check a mode is correct, after it has been constructed
+    ,modeCheck :: a -> Either String a -- ^ Check the value reprsented by a mode is correct, after applying all flags
     ,modeHelp :: Help -- ^ Help text
     ,modeHelpSuffix :: [String] -- ^ A longer help suffix displayed after a mode
     ,modeArgs :: Maybe (Arg a) -- ^ An unnamed argument
