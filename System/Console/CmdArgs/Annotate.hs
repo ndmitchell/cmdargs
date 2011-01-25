@@ -210,6 +210,7 @@ data Annotate ann
     | AMany [Annotate ann]
     | AAtom Any
     | ACtor Any [Annotate ann]
+      -- specifically DOES NOT derive Data, to avoid people accidentally including it
 
 
 -- | Add an annotation to a value.
