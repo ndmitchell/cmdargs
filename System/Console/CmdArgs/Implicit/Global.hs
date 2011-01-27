@@ -19,7 +19,6 @@ import Data.Maybe
 global :: Prog_ -> Mode (CmdArgs Any)
 global x = setHelp x $ collapse $ assignGroups $ assignNames $ extraFlags x
 
-
 ---------------------------------------------------------------------
 -- COLLAPSE THE FLAGS/MODES UPWARDS
 
@@ -103,10 +102,6 @@ orderArgs args = (f 0 ord, listToMaybe rep)
             LT -> f i xs
             EQ -> x : f (i+1) xs
             GT -> take 1 rep ++ f (i+1) (x:xs)
-
-
-incArgsSeen x = x{cmdArgsPrivate = CmdArgsPrivate $ getArgsSeen x + 1}
-getArgsSeen CmdArgs{cmdArgsPrivate = CmdArgsPrivate i} = i
 
 
 ---------------------------------------------------------------------

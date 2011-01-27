@@ -4,7 +4,8 @@
 module System.Console.CmdArgs.Implicit.Type(
     -- cmdArgs_privateArgsSeen is exported, otherwise Haddock
     -- gets confused when using RecordWildCards
-    CmdArgs(..), CmdArgsPrivate(..), cmdArgsHasValue, embed, reembed
+    CmdArgs(..), cmdArgsHasValue, embed, reembed,
+    CmdArgsPrivate, incArgsSeen, getArgsSeen
     ) where
 
 import System.Console.CmdArgs.Verbosity
@@ -27,12 +28,6 @@ data CmdArgs a = CmdArgs
 cmdArgsHasValue :: CmdArgs a -> Bool
 cmdArgsHasValue x = isNothing (cmdArgsHelp x) && isNothing (cmdArgsVersion x)
 
-data CmdArgsPrivate = CmdArgsPrivate
-    Int -- ^ The number of arguments that have been seen
-    deriving (Data,Typeable)
-
-instance Show CmdArgsPrivate where show _ = "CmdArgsPrivate"
-
 instance Functor CmdArgs where
     fmap f x = x{cmdArgsValue = f $ cmdArgsValue x}
 
@@ -42,4 +37,14 @@ embed x = CmdArgs x Nothing Nothing Nothing (CmdArgsPrivate 0)
 
 reembed :: CmdArgs a -> (a, a -> CmdArgs a)
 reembed x = (cmdArgsValue x, \y -> x{cmdArgsValue=y})
+
+
+data CmdArgsPrivate = CmdArgsPrivate
+    Int -- ^ The number of arguments that have been seen
+    deriving (Data,Typeable)
+
+incArgsSeen x@CmdArgs{cmdArgsPrivate = CmdArgsPrivate i} = x{cmdArgsPrivate = CmdArgsPrivate (i+1)}
+getArgsSeen CmdArgs{cmdArgsPrivate = CmdArgsPrivate i} = i
+
+instance Show CmdArgsPrivate where show _ = "CmdArgsPrivate"
 
