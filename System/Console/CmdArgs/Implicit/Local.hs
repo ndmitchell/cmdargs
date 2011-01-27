@@ -50,8 +50,7 @@ data Mode_ = Mode_
     ,modeExplicit :: Bool
     } deriving Show
 instance Default Mode_ where
-    def = Mode_ [] m def def def
-        where m = Mode (toGroup []) [] (error "Mode_ undefined") Right "" [] Nothing (toGroup [])
+    def = Mode_ [] (modeEmpty $ error "Mode_ undefined") def def def
 
 data Flag_
     = Flag_

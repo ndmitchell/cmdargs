@@ -202,14 +202,19 @@ remapUpdate f g upd = \s v -> let (a,b) = g v in fmap b $ upd s a
 ---------------------------------------------------------------------
 -- MODE/MODES CREATORS
 
+-- | Create an empty mode specifying only 'modeValue'. All other fields will usually be populated
+--   using record updates.
+modeEmpty :: a -> Mode a
+modeEmpty x = Mode mempty [] x Right "" [] Nothing mempty
+
 -- | Create a mode with a name, an initial value, some help text, a way of processing arguments
 --   and a list of flags.
 mode :: Name -> a -> Help -> Arg a -> [Flag a] -> Mode a
-mode name value help arg flags = Mode (toGroup []) [name] value Right help [] (Just arg) $ toGroup flags
+mode name value help arg flags = (modeEmpty value){modeNames=[name], modeHelp=help, modeArgs=Just arg, modeGroupFlags=toGroup flags}
 
 -- | Create a list of modes, with a program name, an initial value, some help text and the child modes.
 modes :: String -> a -> Help -> [Mode a] -> Mode a
-modes name value help xs = Mode (toGroup xs) [name] value Right help [] Nothing $ toGroup []
+modes name value help xs = (modeEmpty value){modeNames=[name], modeHelp=help, modeGroupModes=toGroup xs}
 
 
 ---------------------------------------------------------------------
