@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Add modeReform to Mode
     Add modeEmpty, to construct blank Mode values
     Improve the documentation surrounding pure annotations.
 0.6.7

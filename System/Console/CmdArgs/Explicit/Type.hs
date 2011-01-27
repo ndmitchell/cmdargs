@@ -79,6 +79,7 @@ data Mode a = Mode
     ,modeNames :: [Name] -- ^ The names assigned to this mode (for the root mode, this name is used as the program name)
     ,modeValue :: a -- ^ Value to start with
     ,modeCheck :: a -> Either String a -- ^ Check the value reprsented by a mode is correct, after applying all flags
+    ,modeReform :: a -> Maybe [String] -- ^ Given a value, try to generate the input arguments.
     ,modeHelp :: Help -- ^ Help text
     ,modeHelpSuffix :: [String] -- ^ A longer help suffix displayed after a mode
     ,modeArgs :: Maybe (Arg a) -- ^ An unnamed argument
@@ -187,6 +188,7 @@ instance Remap Mode where
         {modeGroupModes = fmap (remap f g) $ modeGroupModes x
         ,modeValue = f $ modeValue x
         ,modeCheck = \v -> let (a,b) = g v in fmap b $ modeCheck x a
+        ,modeReform = modeReform x . fst . g
         ,modeArgs = fmap (remap f g) $ modeArgs x
         ,modeGroupFlags = fmap (remap f g) $ modeGroupFlags x}
 
@@ -205,7 +207,7 @@ remapUpdate f g upd = \s v -> let (a,b) = g v in fmap b $ upd s a
 -- | Create an empty mode specifying only 'modeValue'. All other fields will usually be populated
 --   using record updates.
 modeEmpty :: a -> Mode a
-modeEmpty x = Mode mempty [] x Right "" [] Nothing mempty
+modeEmpty x = Mode mempty [] x Right (const Nothing) "" [] Nothing mempty
 
 -- | Create a mode with a name, an initial value, some help text, a way of processing arguments
 --   and a list of flags.
