@@ -23,7 +23,7 @@ data CmdArgs a = CmdArgs
     ,cmdArgsVerbosity :: Maybe Verbosity -- ^ @Just@ if @--quiet@ or @--verbose@ is given, then gives the verbosity to use.
     ,cmdArgsPrivate :: CmdArgsPrivate -- ^ Private: Only exported due to Haddock limitations.
     }
-    deriving (Show,Data,Typeable)
+    deriving (Show,Eq,Ord,Data,Typeable)
 
 cmdArgsHasValue :: CmdArgs a -> Bool
 cmdArgsHasValue x = isNothing (cmdArgsHelp x) && isNothing (cmdArgsVersion x)
@@ -41,10 +41,9 @@ reembed x = (cmdArgsValue x, \y -> x{cmdArgsValue=y})
 
 data CmdArgsPrivate = CmdArgsPrivate
     Int -- ^ The number of arguments that have been seen
-    deriving (Data,Typeable)
+    deriving (Eq,Ord,Data,Typeable)
 
 incArgsSeen x@CmdArgs{cmdArgsPrivate = CmdArgsPrivate i} = x{cmdArgsPrivate = CmdArgsPrivate (i+1)}
 getArgsSeen CmdArgs{cmdArgsPrivate = CmdArgsPrivate i} = i
 
 instance Show CmdArgsPrivate where show _ = "CmdArgsPrivate"
-
