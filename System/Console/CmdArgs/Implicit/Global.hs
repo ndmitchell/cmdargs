@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE PatternGuards, RecordWildCards #-}
 
 module System.Console.CmdArgs.Implicit.Global(global) where
 
@@ -158,9 +158,9 @@ extraFlags p = p{progModes = map f $ progModes p}
 
 changeBuiltin :: Maybe Builtin_ -> Flag a -> [Flag a]
 changeBuiltin Nothing _ = []
-changeBuiltin (Just (Builtin_ names explicit help _)) x = [x
-    {flagNames = names ++ if explicit then [] else flagNames x
-    ,flagHelp = fromMaybe (flagHelp x) help}]
+changeBuiltin (Just Builtin_{..}) x = [x
+    {flagNames = builtinNames ++ if builtinExplicit then [] else flagNames x
+    ,flagHelp = fromMaybe (flagHelp x) builtinHelp}]
 
 changeBuiltin_ :: Maybe Builtin_ -> Flag_ -> [Flag_]
 changeBuiltin_ Nothing _ = []
