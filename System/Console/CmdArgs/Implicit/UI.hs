@@ -193,7 +193,7 @@ helpArg = ProgHelpArg
 
 -- | Modes: \"Customise the version argument.\"
 --
---   Add extra options to a version argument, such as 'help', 'name', 'ignore' or 'explicit'.
+--   Add extra options to a version argument, such as 'help', 'name', 'ignore', 'summary' or 'explicit'.
 --
 -- > Sample{..} &= versionArg [ignore]
 versionArg :: [Ann] -> Ann

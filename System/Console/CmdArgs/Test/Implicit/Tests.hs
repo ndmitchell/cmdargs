@@ -228,13 +228,15 @@ test12 = do
     ["t"] === Test12B
 
 
--- the ignore annotation
+-- the ignore annotation and versionArg [summary]
 data Test13 = Test13A {foo13 :: Int, bar13 :: Either Int Int}
             | Test13B {foo13 :: Int}
             | Test13C {foo13 :: Int}
               deriving (Eq,Show,Data,Typeable)
 
 mode13 = cmdArgsMode $ modes [Test13A 1 (Left 1 &= ignore), Test13B 1 &= ignore, Test13C{}]
+                       &= versionArg [summary "Version text here"]
+                       &= summary "Help text here"
 
 test13 = do
     let Tester{..} = tester "Test13" mode13
@@ -242,6 +244,8 @@ test13 = do
     fails ["test13a --bar13=1"]
     ["test13a","--foo13=13"] === Test13A 13 (Left 1)
     ["test13c","--foo13=13"] === Test13C 13
+    isHelp ["--help"] ["Help text here"]
+    isVersion ["--version"] "Version text here"
 
 -- check a list becomes modes not an enum
 data Test14 = Test14A | Test14B | Test14C deriving (Eq,Show,Data,Typeable)

@@ -5,7 +5,8 @@
 --   constraints.
 module System.Console.CmdArgs.Implicit.Local(
     local, err,
-    Prog_(..), progSumm, Builtin_(..), Mode_(..), Flag_(..), isFlag_
+    Prog_(..), Builtin_(..), Mode_(..), Flag_(..), isFlag_,
+    progHelpOutput, progVersionOutput
     ) where
 
 import System.Console.CmdArgs.Implicit.Ann
@@ -15,6 +16,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Annotate
 import System.Console.CmdArgs.Default
 
+import Control.Monad
 import Data.Char
 import Data.Generics.Any
 import Data.Maybe
@@ -31,16 +33,23 @@ data Prog_ = Prog_
     } deriving Show
 instance Default Prog_ where
     def = Prog_ def def def def def (Just def) (Just def)
-progSumm x = fromMaybe ["The " ++ progProgram x ++ " program"] $ progSummary x
+
+progOutput f x = fromMaybe ["The " ++ progProgram x ++ " program"] $
+    (builtinSummary =<< f x) `mplus` progSummary x
+
+progHelpOutput = progOutput progHelpArg
+progVersionOutput = progOutput progVersionArg
+
 
 data Builtin_ = Builtin_
     {builtinNames :: [String]
     ,builtinExplicit :: Bool
     ,builtinHelp :: Maybe String
     ,builtinGroup :: Maybe String
+    ,builtinSummary :: Maybe [String]
     } deriving Show
 instance Default Builtin_ where
-    def = Builtin_ def def def def
+    def = Builtin_ def def def def def
 
 data Mode_ = Mode_
     {modeFlags_ :: [Flag_]
@@ -156,6 +165,7 @@ builtinAnn Explicit (Just x) = Just x{builtinExplicit=True}
 builtinAnn (Name a) (Just x) = Just x{builtinNames=a : builtinNames x}
 builtinAnn (Help a) (Just x) = Just x{builtinHelp=Just a}
 builtinAnn (GroupName a) (Just x) = Just x{builtinGroup=Just a}
+builtinAnn (ProgSummary a) (Just x) = Just x{builtinSummary=Just $ lines a}
 builtinAnn a x = err "builtin" $ show a
 
 
