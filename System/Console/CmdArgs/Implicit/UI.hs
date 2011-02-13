@@ -11,13 +11,26 @@ import System.Console.CmdArgs.Implicit.Ann
 import Data.Typeable
 
 
--- | Flag: \"I want users to be able to omit the value for this flag.\"
+-- | Flag: \"I want users to be able to omit the value associated with this flag.\"
 --
 --   Make the value of a flag optional. If @--flag@ is given, it will
 --   be treated as @--flag=/this_argument/@.
 --
 -- > {hello = def &= opt "foo"}
 -- >   -h --hello[=VALUE]    (default=foo)
+--
+--   Note that all flags in CmdArgs are optional, and if omitted will use their default value.
+--   Those annotated with @opt@ also allow the flag to be present without an associated value.
+--   As an example:
+--
+-- > {hello = "DEFAULT" &= opt "OPTIONAL"}
+--
+-- > $ main
+-- > {hello = "DEFAULT"}
+-- > $ main --hello
+-- > {hello = "OPTIONAL"}
+-- > $ main --hello=VALUE
+-- > {hello = "VALUE"}
 opt :: (Show a, Typeable a) => a -> Ann
 opt x = FlagOptional $ case cast x of
     Just y -> y
