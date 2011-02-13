@@ -45,28 +45,42 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity
     where
         failed msg args xs = failure msg $ ("Name","Implicit "++name):("Args",show args):xs
 
-        (===) args v = case process m args of
+        f args cont = case process m args of
+            Left x -> cont $ Left x
+            Right x -> cont $ Right x
+{-
+            o@(Right x)
+                | x2 == Right x -> cont $ Right x
+                | otherwise -> do
+                    failed "Reform failed" args [("Reformed",show args2),("Expected",show o),("Got",show x2)]
+                    error "failure!"
+                    cont $ Right x
+                where args2 = cmdArgsReform m x
+                      x2 = process m args2
+-}
+
+        (===) args v = f args $ \x -> case x of
             Left x -> failed "Failed when should have succeeded" args [("Error",x)]
             Right x | cmdArgsValue x /= v -> failed "Wrong parse" args [("Expected",show v),("Got",show x)]
                     | otherwise -> success
 
-        fails args = case process m args of
+        fails args = f args $ \x -> case x of
             Left x -> success
-            Right x -> failed "Succeeded when should have failed" args [("Result",show x)]
+            Right x -> failed "Succeeded 52 should have failed" args [("Result",show x)]
 
-        isHelp args want = case process m args of
+        isHelp args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsHelp x, match want (lines got) -> success
             _ -> failed "Failed on isHelp" args []
 
-        isHelpNot args want = case process m args of
+        isHelpNot args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsHelp x, not $ match want (lines got) -> success
             _ -> failed "Failed on isHelpNot" args []
 
-        isVersion args want = case process m args of
+        isVersion args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsVersion x, match [want] [got] -> success
             _ -> failed "Failed on isVersion" args []
 
-        isVerbosity args v = case process m args of
+        isVerbosity args v = f args $ \x -> case x of
             Right x | fromMaybe Normal (cmdArgsVerbosity x) == v -> success
             _ -> failed "Failed on isVerbosity" args []
 

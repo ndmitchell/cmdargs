@@ -3,6 +3,7 @@
 module System.Console.CmdArgs.Implicit.Global(global) where
 
 import System.Console.CmdArgs.Implicit.Local
+import System.Console.CmdArgs.Implicit.Reform
 import System.Console.CmdArgs.Implicit.Type
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
@@ -17,7 +18,8 @@ import Data.Maybe
 
 
 global :: Prog_ -> Mode (CmdArgs Any)
-global x = setHelp x $ collapse $ assignGroups $ assignNames $ extraFlags x
+global x = setReform (reform y) $ setHelp y $ collapse $ assignGroups y
+    where y = assignNames $ extraFlags x
 
 ---------------------------------------------------------------------
 -- COLLAPSE THE FLAGS/MODES UPWARDS
@@ -182,6 +184,10 @@ changeHelp :: Prog_ -> Mode a -> (HelpFormat -> TextFormat -> a -> a) -> Mode a
 changeHelp p m upd = m{modeGroupFlags = fmap f $ modeGroupFlags m}
     where hlp = changeBuiltin (progHelpArg p) $ flagHelpFormat upd
           f flg = if concatMap flagNames hlp == flagNames flg then head hlp else flg
+
+
+setReform :: (a -> Maybe [String]) -> Mode a -> Mode a
+setReform f m = m{modeReform = f, modeGroupModes = fmap (setReform f) $ modeGroupModes m}
 
 
 ---------------------------------------------------------------------

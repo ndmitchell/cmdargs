@@ -25,7 +25,7 @@ data Prog_ = Prog_
     ,progSummary :: Maybe [String]
     ,progProgram :: String
     ,progHelp :: String -- only for multiple mode programs
-    ,progVerbosityArgs :: (Maybe Builtin_, Maybe Builtin_)
+    ,progVerbosityArgs :: (Maybe Builtin_, Maybe Builtin_) -- (verbose, quiet)
     ,progHelpArg :: Maybe Builtin_
     ,progVersionArg :: Maybe Builtin_
     } deriving Show
