@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.6.8
     Allow versionArgs [summary] to override --version
     Improve the documentation surrounding opt
     Add modeReform to Mode
