@@ -11,7 +11,7 @@ module System.Console.CmdArgs.Implicit.Local(
 
 import System.Console.CmdArgs.Implicit.Ann
 import System.Console.CmdArgs.Implicit.Type
-import System.Console.CmdArgs.Implicit.Read
+import System.Console.CmdArgs.Implicit.Reader
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Annotate
 import System.Console.CmdArgs.Default
