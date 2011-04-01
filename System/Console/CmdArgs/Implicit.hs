@@ -6,8 +6,10 @@
 
     @data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)@
 
-    @sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\"}@
-    @         '&=' 'summary' \"Sample v1\"@
+@
+sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\"}
+         '&=' 'summary' \"Sample v1\"
+@
 
     @main = print =<< 'cmdArgs' sample@
 
