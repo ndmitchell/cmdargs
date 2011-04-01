@@ -1,4 +1,7 @@
 {-# LANGUAGE PatternGuards #-}
+
+-- | FIXME: toReadContainer seems redundant? Shouldn't reader be entirely enough?
+--          The whole API exported by this seems a little confused
 module System.Console.CmdArgs.Implicit.Read(isReadBool, toReadContainer, reader, addContainer, readHelp) where
 
 import Data.Generics.Any
