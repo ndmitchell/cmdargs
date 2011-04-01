@@ -9,11 +9,11 @@ import System.Console.CmdArgs.Test.Implicit.Util
 
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12 >> test13 >> test14 >> test15
+       test11 >> test12 >> test13 >> test14 >> test15 >> test16
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
-        ,toDemo mode13, toDemo mode14, toDemo mode15]
+        ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
@@ -278,3 +278,15 @@ test15 = do
     fails ["--verbose"]
     fails ["--quiet"]
     isVerbosity ["--help","--silent"] Quiet
+
+-- check newtype support
+newtype MyInt = MyInt Int deriving (Eq,Show,Data,Typeable)
+
+data Test16 = Test16 {test16a :: MyInt} deriving (Eq,Show,Data,Typeable)
+
+mode16 = cmdArgsMode $ Test16 (MyInt 12)
+
+test16 = do
+    let Tester{..} = tester "Test16" mode16
+    [] === Test16 (MyInt 12)
+    ["--test=5"] === Test16 (MyInt 5)

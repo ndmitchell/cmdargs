@@ -16,6 +16,7 @@ data ReadContainer
     = ReadList ReadAtom
     | ReadMaybe ReadAtom
     | ReadAtom ReadAtom
+    | ReadNewtype ReadAtom
 
 data ReadAtom
     = ReadBool
@@ -35,13 +36,16 @@ fromReadContainer :: ReadContainer -> ReadAtom
 fromReadContainer (ReadList x) = x
 fromReadContainer (ReadMaybe x) = x
 fromReadContainer (ReadAtom x) = x
+fromReadContainer (ReadNewtype x) = x
 
 
 toReadContainer :: Any -> Maybe ReadContainer
 toReadContainer x = case typeShell x of
         "[]" | typeName x /= "[Char]" -> fmap ReadList $ toReadAtom $ A.fromList x
         "Maybe" -> fmap ReadMaybe $ toReadAtom $ A.fromMaybe x
-        _ -> fmap ReadAtom $ toReadAtom x
+        _ | Just y <- toReadAtom x -> Just $ ReadAtom y
+          | [xx] <- children x, length (ctors x) == 1, Just y <- toReadAtom xx -> Just $ ReadNewtype y
+          | otherwise -> Nothing
 
 
 toReadAtom :: Any -> Maybe ReadAtom
@@ -75,6 +79,7 @@ addContainer :: ReadContainer -> Any -> Any -> Any
 addContainer (ReadAtom _) _ x = x
 addContainer (ReadMaybe _) o x = A.just_ o x
 addContainer (ReadList _) o x = A.append o $ A.cons x $ A.nil_ o
+addContainer (ReadNewtype _) o x = recompose o [x]
 
 
 -- | The Any will be the type as ReadAtom
