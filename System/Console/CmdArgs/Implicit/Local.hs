@@ -130,14 +130,15 @@ enum_ name x = errFlag name $ show x
 value_ :: String -> Any -> Flag Any
 value_ name x
     | isNothing mty = errFlag name $ show x
-    | isReadBool ty =
-        let upd b x = setField (name,addContainer ty (getField name x) (Any b)) x
+    | readerBool ty =
+        let f (Right x) = x
+            upd b x = setField (name, f $ readerRead ty (getField name x) $ show b) x
         in flagBool [] upd ""
     | otherwise =
-        let upd s x = fmap (\c -> setField (name,c) x) $ reader ty s $ getField name x
-        in flagReq [] upd (readHelp ty) ""
+        let upd s x = fmap (\c -> setField (name,c) x) $ readerRead ty (getField name x) s
+        in flagReq [] upd (readerHelp ty) ""
     where
-        mty = toReadContainer x
+        mty = reader x
         ty = fromJust mty
 
 
