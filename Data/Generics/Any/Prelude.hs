@@ -25,12 +25,16 @@ just_ w x = compose w "Just" [x]
 nil_ :: AnyT [a] -> AnyT [a]
 nil_ w = compose w "[]" []
 
+list_ :: AnyT [a] -> AnyT a -> AnyT [a]
+list_ w x = cons x $ nil_ w
+
 append :: AnyT [a] -> AnyT [a] -> AnyT [a]
 append x y | typeOf x == typeOf y = f x y
     where f x y | null x = y
                 | otherwise = cons (head x) (f (tail x) y)
 
 
+isString x = typeName x == "[Char]"
 isList x = typeShell x == "[]"
 isMaybe x = typeShell x == "Maybe"
 isTuple x = isJust $ readTupleType $ typeShell x
