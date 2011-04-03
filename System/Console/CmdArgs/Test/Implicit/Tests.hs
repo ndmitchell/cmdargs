@@ -282,11 +282,13 @@ test15 = do
 -- check newtype support
 newtype MyInt = MyInt Int deriving (Eq,Show,Data,Typeable)
 
-data Test16 = Test16 {test16a :: MyInt} deriving (Eq,Show,Data,Typeable)
+data Test16 = Test16 {test16a :: MyInt, test16b :: [MyInt]} deriving (Eq,Show,Data,Typeable)
 
-mode16 = cmdArgsMode $ Test16 (MyInt 12)
+mode16 = cmdArgsMode $ Test16 (MyInt 12) []
 
 test16 = do
     let Tester{..} = tester "Test16" mode16
-    [] === Test16 (MyInt 12)
-    ["--test=5"] === Test16 (MyInt 5)
+    [] === Test16 (MyInt 12) []
+    fails ["--test16a"]
+    ["--test16a=5"] === Test16 (MyInt 5) []
+    ["--test16b=5","--test16b=82"] === Test16 (MyInt 12) [MyInt 5, MyInt 82]
