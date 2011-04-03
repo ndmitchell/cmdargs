@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               cmdargs
-version:            0.6.8
+version:            0.6.9
 license:            BSD3
 license-file:       LICENSE
 category:           Console

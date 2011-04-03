@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.6.9
     #422, support newtype value as the underlying type
 0.6.8
     Allow versionArgs [summary] to override --version
