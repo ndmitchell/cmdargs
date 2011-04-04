@@ -1,4 +1,4 @@
-{-# LANGUAGE PatternGuards, RecordWildCards #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module System.Console.CmdArgs.Implicit.Reform(reform) where
 
