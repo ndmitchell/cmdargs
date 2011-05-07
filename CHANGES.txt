@@ -1,5 +1,8 @@
 Changelog for CmdArgs
 
+0.7
+    No changes, just a version bump to allow requiring the GHC fix
+0.6.10
     Change the annotate module to cope better with GHC's CSE
 0.6.9
     #422, support newtype value as the underlying type
