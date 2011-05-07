@@ -189,14 +189,10 @@ force x@(Any xx) = do
 (&=) :: (Data val, Data ann) => val -> ann -> val
 (&=) x y = addAnn (id_ x) (id_ y)
 
-
-{-# NOINLINE const_ #-}
-const_ :: a -> b -> b
-const_ f x = x
-
 {-# INLINE id_ #-}
 id_ :: a -> a
-id_ x = const_ (\() -> ()) x
+id_ x = case unit of () -> x
+    where unit = reverse "" `seq` ()
 
 
 ---------------------------------------------------------------------
