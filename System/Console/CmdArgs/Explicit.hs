@@ -20,11 +20,11 @@
     And this can be invoked by:
 
   > main = do
-  >     x <- processArgs arguments
+  >     xs <- processArgs arguments
   >     if ("help","") `elem` xs then
   >         print $ helpText def arguments
   >      else
-  >         print x
+  >         print xs
 
     /Groups/: The 'Group' structure allows flags/modes to be grouped for the purpose of
     displaying help. When processing command lines, the group structure is ignored.
