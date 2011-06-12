@@ -37,6 +37,15 @@
     enter a mode, simply give sub-modes, and leave 'modeArgs' as @Nothing@. Alternatively, if
     you want one sub-mode to be selected by default, place all it's flags both in the sub-mode
     and the outer mode.
+
+    /Parsing rules/: Command lines are parsed as per most GNU programs. Short arguments single
+    letter flags start with @-@, longer flags start with @--@, and everything else is considered
+    an argument. Anything after @--@ alone is considered to be an argument. For example:
+
+  > -f --flag argument1 -- --argument2
+
+    This command line passes one single letter flag (@f@), one longer flag (@flag@) and two arguments
+    (@argument1@ and @--argument2@).
 -}
 module System.Console.CmdArgs.Explicit(
     -- * Running command lines
