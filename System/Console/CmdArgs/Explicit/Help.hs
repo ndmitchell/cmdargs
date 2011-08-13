@@ -116,7 +116,7 @@ helpTextMode x@Mode{modeGroupFlags=flags,modeGroupModes=modes} = (pre,suf)
         pre = [Line $ unwords $ take 1 (modeNames x) ++
                   ["[COMMAND] ..." | notNullGroup modes] ++
                   ["[OPTIONS]" | not $ null $ fromGroup flags] ++
-                  map argType (maybeToList $ modeArgs x)] ++
+                  helpArgs (modeArgs x)] ++
               [Line $ "  " ++ modeHelp x | not $ null $ modeHelp x]
         suf = space
                   ([Line "Flags:" | mixedGroup flags] ++
@@ -127,6 +127,12 @@ helpTextMode x@Mode{modeGroupFlags=flags,modeGroupModes=modes} = (pre,suf)
 helpGroup :: (a -> [Text]) -> Group a -> [Text]
 helpGroup f xs = concatMap f (groupUnnamed xs) ++ concatMap g (groupNamed xs)
     where g (a,b) = Line (a ++ ":") : concatMap f b
+
+
+helpArgs :: ([Arg a], Maybe (Arg a)) -> [String]
+helpArgs (ys,y) = [['['|r] ++ argType x ++ [']'|r] | (i,x) <- zip [0..] xs, let r = req > i]
+    where xs = ys ++ maybeToList y
+          req = maximum $ 0 : [i | (i,x) <- zip [1..] xs, argRequire x]
 
 
 helpFlag :: Flag a -> [Text]

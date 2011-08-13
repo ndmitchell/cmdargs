@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Make modeArgs take a list of arguments as well
 0.7
     No changes, just a version bump to allow requiring the GHC fix
 0.6.10

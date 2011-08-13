@@ -82,7 +82,7 @@ data Mode a = Mode
     ,modeReform :: a -> Maybe [String] -- ^ Given a value, try to generate the input arguments.
     ,modeHelp :: Help -- ^ Help text
     ,modeHelpSuffix :: [String] -- ^ A longer help suffix displayed after a mode
-    ,modeArgs :: Maybe (Arg a) -- ^ An unnamed argument
+    ,modeArgs :: ([Arg a], Maybe (Arg a)) -- ^ The unnamed arguments, a series of arguments, followed optionally by one for all remaining slots
     ,modeGroupFlags :: Group (Flag a) -- ^ Groups of flags
     }
 
@@ -141,6 +141,7 @@ data Flag a = Flag
 data Arg a = Arg
     {argValue :: Update a -- ^ A way of processing the argument.
     ,argType :: FlagHelp -- ^ The type of data for the argument, i.e. FILE\/DIR\/EXT
+    ,argRequire :: Bool -- ^ Is at least one of these arguments required, the command line will fail if none are set
     }
 
 
@@ -189,7 +190,7 @@ instance Remap Mode where
         ,modeValue = f $ modeValue x
         ,modeCheck = \v -> let (a,b) = g v in fmap b $ modeCheck x a
         ,modeReform = modeReform x . fst . g
-        ,modeArgs = fmap (remap f g) $ modeArgs x
+        ,modeArgs = (fmap (remap f g) *** fmap (remap f g)) $ modeArgs x
         ,modeGroupFlags = fmap (remap f g) $ modeGroupFlags x}
 
 instance Remap Flag where
@@ -207,12 +208,12 @@ remapUpdate f g upd = \s v -> let (a,b) = g v in fmap b $ upd s a
 -- | Create an empty mode specifying only 'modeValue'. All other fields will usually be populated
 --   using record updates.
 modeEmpty :: a -> Mode a
-modeEmpty x = Mode mempty [] x Right (const Nothing) "" [] Nothing mempty
+modeEmpty x = Mode mempty [] x Right (const Nothing) "" [] ([],Nothing) mempty
 
 -- | Create a mode with a name, an initial value, some help text, a way of processing arguments
 --   and a list of flags.
 mode :: Name -> a -> Help -> Arg a -> [Flag a] -> Mode a
-mode name value help arg flags = (modeEmpty value){modeNames=[name], modeHelp=help, modeArgs=Just arg, modeGroupFlags=toGroup flags}
+mode name value help arg flags = (modeEmpty value){modeNames=[name], modeHelp=help, modeArgs=([],Just arg), modeGroupFlags=toGroup flags}
 
 -- | Create a list of modes, with a program name, an initial value, some help text and the child modes.
 modes :: String -> a -> Help -> [Mode a] -> Mode a
@@ -240,7 +241,7 @@ flagReq names upd typ help = Flag names FlagReq upd typ help
 
 -- | Create an argument flag, with an update function and the type of the argument.
 flagArg :: Update a -> FlagHelp -> Arg a
-flagArg upd typ = Arg upd typ
+flagArg upd typ = Arg upd typ False
 
 -- | Create a boolean flag, with a list of flag names, an update function and some help text.
 flagBool :: [Name] -> (Bool -> a -> a) -> Help -> Flag a

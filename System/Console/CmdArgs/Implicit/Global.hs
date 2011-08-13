@@ -9,6 +9,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 import System.Console.CmdArgs.Default
 
+import Control.Arrow
 import Control.Monad
 import Data.Char
 import Data.Function
@@ -39,13 +40,13 @@ emptyMode :: Mode (CmdArgs Any) -> Mode (CmdArgs Any)
 emptyMode x = x
     {modeCheck = \x -> if cmdArgsHasValue x then Left "No mode given and no default mode" else Right x
     ,modeGroupFlags = groupUncommonDelete $ modeGroupFlags x
-    ,modeArgs=Nothing, modeHelpSuffix=[]}
+    ,modeArgs=([],Nothing), modeHelpSuffix=[]}
 
 -- | A mode whose help hides all it's contents
 zeroMode :: Mode (CmdArgs Any) -> Mode (CmdArgs Any)
 zeroMode x = x
     {modeGroupFlags = groupUncommonHide $ modeGroupFlags x
-    ,modeArgs=fmap (\x -> x{argType=""}) $ modeArgs x
+    ,modeArgs = let zeroArg x = x{argType=""} in map zeroArg *** fmap zeroArg $ modeArgs x
     ,modeHelpSuffix=[]}
 
 
@@ -65,7 +66,7 @@ collapseFlags xs x = x{modeGroupFlags = Group (pick Nothing) [] [(g, pick $ Just
 
 collapseArgs :: [Flag_] -> Mode (CmdArgs Any) -> Mode (CmdArgs Any)
 collapseArgs [] x = x
-collapseArgs xs x = x{modeCheck=chk, modeArgs = Just $ flagArg upd hlp}
+collapseArgs xs x = x{modeCheck=chk, modeArgs = ([], Just $ flagArg upd hlp)}
     where
         argUpd = argValue . flagArg_
 

@@ -196,7 +196,7 @@ flagAnn a x = errFlag (head $ words $ show x) $ show a
 toArg :: Flag_ -> Maybe Int -> Flag_
 toArg (Flag_ fld x False Nothing Nothing) pos
     | null (flagNames x), null (flagHelp x), Just y <- opt $ flagInfo x
-    = Arg_ (Arg (flagValue x) (flagType x)) pos y
+    = Arg_ (Arg (flagValue x) (flagType x) (isNothing y)) pos y
     where
         opt FlagReq = Just Nothing
         opt (FlagOpt x) = Just (Just x)

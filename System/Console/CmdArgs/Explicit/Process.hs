@@ -1,4 +1,4 @@
-
+{-# LANGUAGE RecordWildCards #-}
 module System.Console.CmdArgs.Explicit.Process(process, processValue, processArgs) where
 
 import System.Console.CmdArgs.Explicit.Type
@@ -43,7 +43,7 @@ processMode m args =
         Ambiguous xs -> Left $ ambiguous "mode" a xs
         Found x -> processMode x as
         NotFound
-            | isNothing (modeArgs m) && args /= [] &&
+            | null (fst $ modeArgs m) && isNothing (snd $ modeArgs m) && args /= [] &&
               not (null $ modeModes m) && not ("-" `isPrefixOf` concat args)
                 -> Left $ missing "mode" $ concatMap modeNames $ modeModes m
             | otherwise -> either Left (modeCheck m) $ processFlags m (modeValue m) args
@@ -54,15 +54,19 @@ processMode m args =
 
 
 data S a = S
-    {val :: a
-    ,args :: [String]
-    ,errs :: [String]
+    {val :: a -- The value you are accumulating
+    ,args :: [String] -- The arguments you are processing through
+    ,argsCount :: Int -- The number of unnamed arguments you have seen
+    ,errs :: [String] -- The errors you have seen
     }
 
-stop :: S a -> Maybe (Either String a)
-stop s | not $ null $ errs s = Just $ Left $ last $ errs s
-       | null $ args s = Just $ Right $ val s
-       | otherwise = Nothing
+stop :: Mode a -> S a -> Maybe (Either String a)
+stop mode S{..}
+    | not $ null errs = Just $ Left $ last errs
+    | null args = Just $ if argsCount >= mn then Right val else
+        Left $ "Expected " ++ (if Just mn == mx then "exactly" else "at least") ++ show mn ++ " unnamed arguments, but got only " ++ show argsCount
+    | otherwise = Nothing
+    where (mn, mx) = argsRange mode
 
 err :: S a -> String -> S a
 err s x = s{errs=x:errs s}
@@ -74,8 +78,8 @@ upd s f = case f $ val s of
 
 
 processFlags :: Mode a -> a -> [String] -> Either String a
-processFlags mode val_ args_ = f $ S val_ args_ []
-    where f s = fromMaybe (f $ processFlag mode s) $ stop s
+processFlags mode val_ args_ = f $ S val_ args_ 0 []
+    where f s = fromMaybe (f $ processFlag mode s) $ stop mode s
 
 
 pickFlags long mode = [(filter (\x -> (length x > 1) == long) $ flagNames flag,(flagInfo flag,flag)) | flag <- modeFlags mode]
@@ -118,19 +122,30 @@ processFlag mode s_@S{args=('-':x:xs):ys} | x /= '-' =
 
 
 processFlag mode s_@S{args="--":ys} = f s_{args=ys}
-    where f s | isJust $ stop s = s
+    where f s | isJust $ stop mode s = s
               | otherwise = f $ processArg mode s
 
 processFlag mode s = processArg mode s
 
-processArg mode s_@S{args=x:ys} =
-    case modeArgs mode of
-        Nothing -> err s $ "Unhandled argument, none expected: " ++ x
-        Just arg -> case argValue arg x (val s) of
+processArg mode s_@S{args=x:ys, argsCount=count} = case argsPick mode count of
+    Nothing -> err s $ "Unhandled argument, " ++ str ++ " expected: " ++ x
+        where str = if count == 0 then "none" else "at most " ++ show count
+    Just arg -> case argValue arg x (val s) of
             Left e -> err s $ "Unhandled argument, " ++ e ++ ": " ++ x
             Right v -> s{val=v}
     where
-        s = s_{args=ys}
+        s = s_{args=ys, argsCount=count+1}
+
+
+-- find the minimum and maximum allowed number of arguments (Nothing=infinite)
+argsRange :: Mode a -> (Int, Maybe Int)
+argsRange Mode{modeArgs=(lst,end)} = (mn,mx)
+    where mn = length $ dropWhile (not . argRequire) $ reverse $ lst ++ maybeToList end
+          mx = if isJust end then Nothing else Just $ length lst
+
+
+argsPick :: Mode a -> Int -> Maybe (Arg a)
+argsPick Mode{modeArgs=(lst,end)} i = if i < length lst then Just $ lst !! i else end
 
 
 ---------------------------------------------------------------------

@@ -61,7 +61,7 @@ testFlags = do
 
 testModes = do
     let m = name "Modes" $ modes "" [] ""
-                [(mode "test" ["test"] "" undefined [flagNone ["bob"] ("bob":) ""]){modeArgs=Nothing}
+                [(mode "test" ["test"] "" undefined [flagNone ["bob"] ("bob":) ""]){modeArgs=([],Nothing)}
                 ,mode "dist" ["dist"] "" (flagArg (upd "") "") [flagNone ["bob"] ("bob":) "", flagReq ["bill"] (upd "bill") "" ""]]
     checkGood m [] []
     checkFail m ["--bob"]
