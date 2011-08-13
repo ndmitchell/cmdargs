@@ -69,7 +69,7 @@ reader_ x | isAlgType x && length xs > 1 && all ((==) 0 . arity . snd) xs
             where ys = filter (isPrefixOf s . fst) xs
 
 
-reader_ x | [c] <- ctors x, x <- compose0 x c = do
+reader_ x | isAlgType x, [c] <- ctors x, x <- compose0 x c = do
     let cs = children x
     rs <- mapM reader_ cs
     let n = sum $ map readerParts rs
