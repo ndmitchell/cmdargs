@@ -7,6 +7,7 @@ import qualified Data.Generics.Any.Prelude as A
 import System.Console.CmdArgs.Explicit
 import Data.Char
 import Data.List
+import Data.Maybe
 
 
 data Reader = Reader
@@ -35,14 +36,14 @@ reader_ x | typeName x == "Bool" = Just $ Reader "BOOL" True 1 $ const $ \s ->
     maybe (Left $ "Could not read as boolean, " ++ show s) (Right . Any) $ parseBool s
 
 
-reader_ x
-    | ty == "Int" = f "INT" (0::Int)
-    | ty == "Integer" = f "INT" (0::Integer)
-    | ty == "Float" = f "NUM" (0::Float)
-    | ty == "Double" = f "NUM" (0::Double)
+reader_ x | res:_ <- catMaybes
+    [f "INT" (0::Integer), f "NUM" (0::Float), f "NUM" (0::Double)
+    ,f "INT" (0::Int)
+    ] = Just res
     where
-        ty = typeName x
-        f hlp t = Just $ Reader hlp False 1 $ const $ \s -> case reads s of
+        ty = typeOf x
+        f hlp t | typeOf (Any t) /= ty = Nothing
+                | otherwise = Just $ Reader hlp False 1 $ const $ \s -> case reads s of
             [(x,"")] -> Right $ Any $ x `asTypeOf` t
             _ -> Left $ "Could not read as type " ++ show (typeOf $ Any t) ++ ", " ++ show s
 
