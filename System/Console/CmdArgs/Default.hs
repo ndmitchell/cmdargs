@@ -3,6 +3,8 @@
 --   To use the default value simply write 'def'.
 module System.Console.CmdArgs.Default where
 
+import Data.Int
+import Data.Word
 
 -- | Class for default values.
 class Default a where
@@ -17,6 +19,16 @@ instance Default Float where def = 0
 instance Default Double where def = 0
 instance Default [a] where def = []
 instance Default (Maybe a) where def = Nothing
+
+instance Default Int8 where def = 0
+instance Default Int16 where def = 0
+instance Default Int32 where def = 0
+instance Default Int64 where def = 0
+instance Default Word where def = 0
+instance Default Word8 where def = 0
+instance Default Word16 where def = 0
+instance Default Word32 where def = 0
+instance Default Word64 where def = 0
 
 -- EXPANDY: $(2\10 instance ($(1,$ Default a$)) => Default ($(1,$ a$)) where def = ($(1,$ def)))
 instance (Default a1,Default a2) => Default (a1,a2) where def = (def,def)
