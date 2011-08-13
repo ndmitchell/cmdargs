@@ -33,6 +33,10 @@ stability:          Beta
 extra-source-files:
     cmdargs.htm
 
+source-repository head
+    type:     darcs
+    location: http://community.haskell.org/~ndm/darcs/cmdargs/
+
 flag testprog
     default: True
     description: Build the test program
