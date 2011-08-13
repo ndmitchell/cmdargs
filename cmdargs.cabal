@@ -61,6 +61,7 @@ library
         Data.Generics.Any.Prelude
         System.Console.CmdArgs.Explicit.Help
         System.Console.CmdArgs.Explicit.Process
+        System.Console.CmdArgs.Explicit.SplitJoin
         System.Console.CmdArgs.Explicit.Type
         System.Console.CmdArgs.Implicit.Ann
         System.Console.CmdArgs.Implicit.Global
@@ -87,4 +88,5 @@ executable cmdargs
         System.Console.CmdArgs.Test.Implicit.Maker
         System.Console.CmdArgs.Test.Implicit.Tests
         System.Console.CmdArgs.Test.Implicit.Util
+        System.Console.CmdArgs.Test.SplitJoin
         System.Console.CmdArgs.Test.Util
