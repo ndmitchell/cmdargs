@@ -75,7 +75,7 @@ generateChunk ["code",x] = do
 
 
 recode :: [String] -> [String]
-recode = concatMap f . blanks . takeWhile (not . isPrefixOf "test")
+recode = concatMap f . blanks . takeWhile (/= "-- STOP MANUAL")
     where
         blanks ("":"":xs) = blanks ("":xs)
         blanks [""] = []
@@ -83,6 +83,7 @@ recode = concatMap f . blanks . takeWhile (not . isPrefixOf "test")
         blanks (x:xs) = x : blanks xs
 
         f x | x == "import System.Console.CmdArgs.Test.Implicit.Util" = []
+            | "{-# OPTIONS_GHC " `isPrefixOf` x = []
             | "{-# LANGUAGE " `isPrefixOf` x = ["{-# LANGUAGE DeriveDataTypeable #-}"]
             | "module System.Console.CmdArgs.Test.Implicit." `isPrefixOf` x = ["module " ++ drop 44 x]
         f x = [x]

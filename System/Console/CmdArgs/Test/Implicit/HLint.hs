@@ -49,6 +49,8 @@ hlint = HLint
 
 mode = cmdArgsMode hlint
 
+-- STOP MANUAL
+
 test = do
     let Tester{..} = tester "HLint" mode
     [] === hlint

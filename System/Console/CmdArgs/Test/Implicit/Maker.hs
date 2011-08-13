@@ -33,6 +33,8 @@ build = Build
 
 mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= program "maker" &= summary "Maker v1.0\nMake it"
 
+-- STOP MANUAL
+
 mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" += program "maker" += summary "Maker v1.0\nMake it"
   where
     threads_ = threads := def += help "Number of threads to use" += name "j" += typ "NUM"

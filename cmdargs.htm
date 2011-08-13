@@ -232,7 +232,7 @@ data HLint = HLint
     {report :: [FilePath]
     ,hint :: [FilePath]
     ,color :: Bool
-    ,ignore :: [String]
+    ,ignore_ :: [String]
     ,show_ :: Bool
     ,extension :: [String]
     ,language :: [String]
@@ -251,7 +251,7 @@ hlint = HLint
     {report = def &= opt "report.html" &= typFile &= help "Generate a report in HTML"
     ,hint = def &= typFile &= help "Hint/ignore file to use"
     ,color = def &= name "c" &= name "colour" &= help "Color the output (requires ANSI terminal)"
-    ,ignore = def &= typ "MESSAGE" &= help "Ignore a particular hint"
+    ,ignore_ = def &= typ "MESSAGE" &= help "Ignore a particular hint"
     ,show_ = def &= help "Show all ignored ideas"
     ,extension = def &= typ "EXT" &= help "File extensions to search (defaults to hs and lhs)"
     ,language = def &= name "X" &= typ "LANG" &= help "Language extension (Arrows, NoCPP)"
@@ -266,7 +266,7 @@ hlint = HLint
     } &=
     verbosity &=
     help "Suggest improvements to Haskell source code" &=
-    summary "HLint v0.0.0, (C) Neil Mitchell 2006-2010" &=
+    summary "HLint v0.0.0, (C) Neil Mitchell" &=
     details ["Hlint gives hints on how to improve Haskell code",""
             ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
@@ -275,18 +275,15 @@ mode = cmdArgsMode hlint
 <!-- END -->
 <!-- BEGIN help hlint -->
 <table class='cmdargs'>
-<tr><td colspan='3'>HLint v0.0.0, (C) Neil Mitchell 2006-2010</td></tr>
+<tr><td colspan='3'>HLint v0.0.0, (C) Neil Mitchell</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3'>hlint [OPTIONS] [FILES/DIRS]</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Suggest improvements to Haskell source code</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Suggest improvements to Haskell source code</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
-<tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
-<tr><td style='padding-left:2ex;'>-v</td><td style='padding-left:1ex;'>--verbose</td><td style='padding-left:2ex;'>Loud verbosity</td></tr>
-<tr><td style='padding-left:2ex;'>-q</td><td style='padding-left:1ex;'>--quiet</td><td style='padding-left:2ex;'>Quiet verbosity</td></tr>
-<tr><td style='padding-left:2ex;'>-r</td><td style='padding-left:1ex;'>--report[=FILE]</td><td style='padding-left:2ex;'>Generate a report in HTML (default=report.html)</td></tr>
+<tr><td colspan='3'>Common flags:</td></tr>
+<tr><td style='padding-left:2ex;'>-r</td><td style='padding-left:1ex;'>--report[=FILE]</td><td style='padding-left:2ex;'>Generate a report in HTML</td></tr>
 <tr><td style='padding-left:2ex;'>-h</td><td style='padding-left:1ex;'>--hint=FILE</td><td style='padding-left:2ex;'>Hint/ignore file to use</td></tr>
-<tr><td style='padding-left:2ex;'>-c</td><td style='padding-left:1ex;'>--color --colour</td><td style='padding-left:2ex;'>Color the output (requires ANSI terminal)</td></tr>
+<tr><td style='padding-left:2ex;'>-c</td><td style='padding-left:1ex;'>--colour --color</td><td style='padding-left:2ex;'>Color the output (requires ANSI terminal)</td></tr>
 <tr><td style='padding-left:2ex;'>-i</td><td style='padding-left:1ex;'>--ignore=MESSAGE</td><td style='padding-left:2ex;'>Ignore a particular hint</td></tr>
 <tr><td style='padding-left:2ex;'>-s</td><td style='padding-left:1ex;'>--show</td><td style='padding-left:2ex;'>Show all ignored ideas</td></tr>
 <tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--extension=EXT</td><td style='padding-left:2ex;'>File extensions to search (defaults to hs and lhs)</td></tr>
@@ -298,11 +295,15 @@ mode = cmdArgsMode hlint
 <tr><td style='padding-left:2ex;'>-d</td><td style='padding-left:1ex;'>--datadir=DIR</td><td style='padding-left:2ex;'>Override the data directory</td></tr>
 <tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--cpp-define=NAME[=VALUE]</td><td style='padding-left:2ex;'>CPP #define</td></tr>
 <tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--cpp-include=DIR</td><td style='padding-left:2ex;'>CPP include path</td></tr>
+<tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
+<tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
+<tr><td style='padding-left:2ex;'>-v</td><td style='padding-left:1ex;'>--verbose</td><td style='padding-left:2ex;'>Loud verbosity</td></tr>
+<tr><td style='padding-left:2ex;'>-q</td><td style='padding-left:1ex;'>--quiet</td><td style='padding-left:2ex;'>Quiet verbosity</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Hlint gives hints on how to improve Haskell code</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>&nbsp;</tr>
-<tr><td colspan='3' style='padding-left:1ex;'>To check all Haskell files in 'src' and generate a report type:</td></tr>
-<tr><td colspan='3' style='padding-left:3ex;'>hlint src --report</td></tr>
+<tr><td colspan='3'>Hlint gives hints on how to improve Haskell code</td></tr>
+<tr><td colspan='3'>&nbsp;</tr>
+<tr><td colspan='3'>To check all Haskell files in 'src' and generate a report type:</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>hlint src --report</td></tr>
 </table>
 <!-- END -->
 
@@ -347,23 +348,21 @@ mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences
 <table class='cmdargs'>
 <tr><td colspan='3'>Diffy v1.0</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>diffy [OPTIONS]</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Create and compare differences</td></tr>
+<tr><td colspan='3'>diffy [COMMAND] ... [OPTIONS]</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Create and compare differences</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Common flags</td></tr>
+<tr><td colspan='3'>Common flags:</td></tr>
+<tr><td style='padding-left:2ex;'>-o</td><td style='padding-left:1ex;'>--out=FILE</td><td style='padding-left:2ex;'>Output file</td></tr>
 <tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
 <tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3'>diffy create [OPTIONS]</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Create a fingerprint</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Create a fingerprint</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td style='padding-left:2ex;'>-s</td><td style='padding-left:1ex;'>--src=DIR</td><td style='padding-left:2ex;'>Source directory</td></tr>
-<tr><td style='padding-left:2ex;'>-o</td><td style='padding-left:1ex;'>--out=FILE</td><td style='padding-left:2ex;'>Output file</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3'>diffy diff [OPTIONS] OLDFILE NEWFILE</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Perform a diff</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td style='padding-left:2ex;'>-o</td><td style='padding-left:1ex;'>--out=FILE</td><td style='padding-left:2ex;'>Output file</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Perform a diff</td></tr>
 </table>
 <!-- END -->
 
@@ -397,21 +396,38 @@ data Maker
 threadsMsg x = x &= help "Number of threads to use" &= name "j" &= typ "NUM"
 
 wipe = Wipe &= help "Clean all build objects"
+
+test_ = Test
+    {threads = threadsMsg def
+    ,extra = def &= typ "ANY" &= args
+    } &= help "Run the test suite"
+
+build = Build
+    {threads = threadsMsg def
+    ,method = enum
+        [Release &= help "Release build"
+        ,Debug &= help "Debug build"
+        ,Profile &= help "Profile build"]
+    ,files = def &= args
+    } &= help "Build the project" &= auto
+
+mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= program "maker" &= summary "Maker v1.0\nMake it"
 </pre>
 <!-- END -->
 <!-- BEGIN help maker -->
 <table class='cmdargs'>
 <tr><td colspan='3'>Maker v1.0</td></tr>
+<tr><td colspan='3'>Make it</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>maker [OPTIONS] </td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Build helper program</td></tr>
+<tr><td colspan='3'>maker [COMMAND] ... [OPTIONS] </td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Build helper program</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Common flags</td></tr>
+<tr><td colspan='3'>Common flags:</td></tr>
 <tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
 <tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3'>maker [build] [OPTIONS] [ITEM]</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Build the project</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Build the project</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td style='padding-left:2ex;'>-j</td><td style='padding-left:1ex;'>--threads=NUM</td><td style='padding-left:2ex;'>Number of threads to use</td></tr>
 <tr><td style='padding-left:2ex;'>-r</td><td style='padding-left:1ex;'>--release</td><td style='padding-left:2ex;'>Release build</td></tr>
@@ -419,10 +435,10 @@ wipe = Wipe &= help "Clean all build objects"
 <tr><td style='padding-left:2ex;'>-p</td><td style='padding-left:1ex;'>--profile</td><td style='padding-left:2ex;'>Profile build</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3'>maker wipe [OPTIONS]</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Clean all build objects</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Clean all build objects</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td colspan='3'>maker test [OPTIONS] [ANY]</td></tr>
-<tr><td colspan='3' style='padding-left:1ex;'>Run the test suite</td></tr>
+<tr><td colspan='3' style='padding-left:2ex;'>Run the test suite</td></tr>
 <tr><td colspan='3'>&nbsp;</tr>
 <tr><td style='padding-left:2ex;'>-j</td><td style='padding-left:1ex;'>--threads=NUM</td><td style='padding-left:2ex;'>Number of threads to use</td></tr>
 </table>

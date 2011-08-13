@@ -22,6 +22,8 @@ diff = Diff
 
 mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
 
+-- STOP MANUAL
+
 test = do
     let Tester{..} = tester "Diffy" mode
     fails []
