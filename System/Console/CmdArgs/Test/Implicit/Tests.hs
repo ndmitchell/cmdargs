@@ -6,6 +6,7 @@ module System.Console.CmdArgs.Test.Implicit.Tests where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
+import Data.Int
 
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
@@ -20,10 +21,10 @@ demos = zipWith f [1..]
 -- from bug #256 and #231
 data Test1
     = Test1 {maybeInt :: Maybe Int, listDouble :: [Double], maybeStr :: Maybe String, float :: Float
-            ,bool :: Bool, maybeBool :: Maybe Bool, listBool :: [Bool]}
+            ,bool :: Bool, maybeBool :: Maybe Bool, listBool :: [Bool], int64 :: Int64}
       deriving (Show,Eq,Data,Typeable)
 
-def1 = Test1 def def def (def &= args) def def def
+def1 = Test1 def def def (def &= args) def def def def
 mode1 = cmdArgsMode def1
 
 test1 = do
@@ -43,6 +44,7 @@ test1 = do
     ["--maybebool"] === def1{maybeBool=Just True}
     ["--maybebool=off"] === def1{maybeBool=Just False}
     ["--listbool","--listbool=true","--listbool=false"] === def1{listBool=[True,True,False]}
+    ["--int64=12"] === def1{int64=12}
     fails ["--listbool=fred"]
     invalid $ \_ -> def1{listBool = def &= opt "yes"}
 

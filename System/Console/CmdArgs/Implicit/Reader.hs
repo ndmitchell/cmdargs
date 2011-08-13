@@ -6,6 +6,8 @@ import Data.Generics.Any
 import qualified Data.Generics.Any.Prelude as A
 import System.Console.CmdArgs.Explicit
 import Data.Char
+import Data.Int
+import Data.Word
 import Data.List
 import Data.Maybe
 
@@ -38,7 +40,8 @@ reader_ x | typeName x == "Bool" = Just $ Reader "BOOL" True 1 $ const $ \s ->
 
 reader_ x | res:_ <- catMaybes
     [f "INT" (0::Integer), f "NUM" (0::Float), f "NUM" (0::Double)
-    ,f "INT" (0::Int)
+    ,f "INT" (0::Int), f "INT" (0::Int8), f "INT" (0::Int16), f "INT" (0::Int32), f "INT" (0::Int64)
+    ,f "NAT" (0::Word), f "NAT" (0::Word8), f "NAT" (0::Word16), f "NAT" (0::Word32), f "NAT" (0::Word64)
     ] = Just res
     where
         ty = typeOf x
