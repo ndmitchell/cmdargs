@@ -9,11 +9,12 @@ import Control.Monad
 
 
 test = do
-    forM_ (take 0 tests) $ \(src,parsed) -> do
+    forM_ tests $ \(src,parsed) -> do
         let a = splitArgs src
-            b = joinArgs parsed
-        if a == parsed then return () else failure "splitArgs" [("Given",src),("Expected",show parsed),("Found",show a)] >> error "done"
-        if b == src then return () else failure "joinArgs" [("Given",show parsed),("Expected",src),("Found",b)]
+            b1 = joinArgs parsed
+            b2 = joinArgs $ splitArgs b1
+        if a == parsed then return () else failure "splitArgs" [("Given   ",src),("Expected",show parsed),("Found   ",show a)]
+        if b1 == b2 then return () else failure "joinArgs" [("Given   ",show parsed),("Expected",b1),("Found   ",b2)]
     success
 
 {-
@@ -140,8 +141,8 @@ tests =
     ,(,) "/b'a''d\"b\"   'c'b ba\\'b\" bb" ["/b'a''db","'c'b","ba\\'b bb"]
     ,(,) "b /\"ca\\cbac " ["b","/ca\\cbac "]
     ,(,) " \"\"/\"bcaa\"\"a' \\/bb \"a\\\"'\"" ["/bcaa\"a'","\\/bb","a\"'"]
-    ,(,) "\"c /''c\"\\badc/\\daa/\\ c\"a c\\ \\/cab \"b\"\\ ba\"\"/d/cd'a ad'c/ad\"' a\\d/d\\c\\'cdccd/\"a'/\"b///ac\"" ["c /''c\\badc/\\daa/\\","ca c\\ \\/cab b\\ba\"/d/cd'a","ad'c/ad' a\\d/d\\c\\'cdccd/a'/b///ac"]
+    ,(,) "\"c /''c\"\\badc/\\daa/\\ c\"a c\\ \\/cab \"b\"\\ ba\"\"/d/cd'a ad'c/ad\"' a\\d/d\\c\\'cdccd/\"a'/\"b///ac\"" ["c /''c\\badc/\\daa/\\","ca c\\ \\/cab b\\ ba\"/d/cd'a","ad'c/ad' a\\d/d\\c\\'cdccd/a'/b///ac"]
     ,(,) "/cbbd\"/b' /dd\"/c\\ca/'\"\\ cc  \\d\"aca/\"b caa\\d\\'\"b'b  dc\"cd\\'c\" 'd/ac\"cacc\"" ["/cbbd/b' /dd/c\\ca/'\\ cc  \\daca/b caa\\d\\'b'b","dccd\\'c","'d/accacc"]
     ,(,) "bc/bd\\ca\\bcacca\"\"\\c/\\ /\"\"a/\"c'//b'\\d/a/'ab/cbd/cacb//b \\d\"aac\\d'\"/" ["bc/bd\\ca\\bcacca\\c/\\","/a/c'//b'\\d/a/'ab/cbd/cacb//b \\daac\\d'/"]
-    ,(,) "bbac bdc/d\\\"/db\"dbdb\"a \" /\"/'a\\acacbcc c'//\\//b\"ca\"bcca c\\/aaa/c/bccbccaa  \"\" cdccc/bddcbc c''" ["bbac","bdc/d\"/dbdbdba"," //'a\\acacbcc","c'//\\//bcabcca","c\\/aaa","/c/bccbccaa","","cdccc/bddcbc","c''"]
+    ,(,) "bbac bdc/d\\\"/db\"dbdb\"a \" /\"/'a\\acacbcc c'//\\//b\"ca\"bcca c\\/aaa/c/bccbccaa  \"\" cdccc/bddcbc c''" ["bbac","bdc/d\"/dbdbdba"," //'a\\acacbcc","c'//\\//bcabcca","c\\/aaa/c/bccbccaa","","cdccc/bddcbc","c''"]
     ]
