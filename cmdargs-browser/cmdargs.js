@@ -1,10 +1,11 @@
 
 var bod =
-    "<form onsubmit='ok()'>" +
+    "<form onsubmit='clickOK()'>" +
     "Please enter command line arguments:<br/>" +
     "<input type='text' id='txt' autocomplete='off'><br/>" +
-    "<input type='submit' value='OK' />" +
-    "<input type='button' value='Cancel' onclick='cancel()' />" +
+    "<input type='submit' id='ok' value='OK' />" +
+    "<input type='button' value='Cancel' onclick='clickCancel()' />" +
+    "<div id='err' style='display:none;'><b>Error:</b> <span id='err-content'></span></div>" +
     "</form>";
 
 var unloading = false;
@@ -12,6 +13,8 @@ var unloading = false;
 $(function(){
     $("#body").replaceWith(bod);
     $("#txt").focus();
+    $("#txt").change(validate);
+    $("#txt").keyup(validate);
     $(window).unload(function(){
         if (!unloading) send("/cancel");
     });
@@ -30,17 +33,32 @@ function send(url, val) // String -> Optional String -> Maybe String
     return res;
 }
 
-
-function ok()
+function validate()
 {
-    send("/ok", $("#txt").val());
-    unloading = true;
-    window.close();
+    if (unloading) return;
+    var s = $("#txt").val();
+    var res = send("/check", $("#txt").val());
+    if (res == "") {
+        $("#err").hide();
+        $('#ok').removeAttr('disabled');
+    } else {
+        $("#err-content").text(res);
+        $("#err").show();
+        $('#ok').attr('disabled', 'disabled');
+    }
 }
 
-function cancel()
+function clickOK()
 {
-    send("/cancel");
     unloading = true;
+    send("/ok", $("#txt").val());
+    window.close();
+    return false;
+}
+
+function clickCancel()
+{
+    unloading = true;
+    send("/cancel");
     window.close();
 }

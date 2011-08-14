@@ -34,26 +34,28 @@ txtUnpack = Text.unpack
 main :: IO ()
 main = do
     wait <- newEmptyMVar
-    (mode, check) <- receive
-    thread <- forkIO $ run $ liftIO . talk mode wait
+    mc <- receive
+    thread <- forkIO $ run $ liftIO . talk mc wait
     res <- takeMVar wait
     killThread thread
     reply res
 
 
-talk :: Mode () -> MVar (Either String [String]) -> Request -> IO Response
-talk mode wait r = do
+talk :: (Mode (), Check) -> MVar (Either String [String]) -> Request -> IO Response
+talk (mode,check) wait r = do
     comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
-        ["res",x] -> return $ ResponseFile statusOK [headerContentType $ fromString $ mime $ takeExtension x] x Nothing
+        ["res",x] -> return $ ResponseFile statusOK [noCache, headerContentType $ fromString $ mime $ takeExtension x] x Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
-        [] -> return $ responseLBS statusOK [headerContentType $ fromString "text/html"] $ fromString $ contents mode
+        ["check"] -> return $ responseLBS statusOK [] $ fromString $ fromMaybe "" $ check 0 $ splitArgs $ fromMaybe "" argument
+        [] -> return $ responseLBS statusOK [noCache, headerContentType $ fromString "text/html"] $ fromString $ contents mode
         _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
     where
         path = map txtUnpack $ pathInfo r
         argument = fmap bsUnpack $ join $ lookup (fromString "arg") (queryString r)
         exit val = do putMVar wait val; return $ responseLBS statusOK [headerContentType $ fromString "text/plain"] $ fromString ""
+        noCache = headerCacheControl $ fromString "no-cache"
 
 
 mime ".png" = "image/png"
