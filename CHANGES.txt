@@ -2,6 +2,7 @@ Changelog for CmdArgs
 
     Add Helper interface, and initial cmdargs-browser code
     Add splitArgs/joinArgs
+0.8
     #450, redo the manual generator so Maker example is not cut off
     Support all the types in Data.Int/Data.Word
     Make modeArgs take a list of arguments as well
