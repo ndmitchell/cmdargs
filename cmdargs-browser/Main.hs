@@ -22,6 +22,7 @@ import System.FilePath
 import Data.Maybe
 import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Explicit
+import Paths_cmdargs_browser
 
 
 type LBString = LBS.ByteString
@@ -45,7 +46,9 @@ talk :: (Mode (), Check) -> MVar (Either String [String]) -> Request -> IO Respo
 talk (mode,check) wait r = do
     comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
-        ["res",x] -> return $ ResponseFile statusOK [noCache, headerContentType $ fromString $ mime $ takeExtension x] x Nothing
+        ["res",x] -> do
+            dir <- getDataDir
+            return $ ResponseFile statusOK [noCache, headerContentType $ fromString $ mime $ takeExtension x] (dir </> x) Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
         ["check"] -> return $ responseLBS statusOK [] $ fromString $ fromMaybe "" $ check 0 $ splitArgs $ fromMaybe "" argument
