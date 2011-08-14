@@ -35,20 +35,20 @@ main :: IO ()
 main = do
     wait <- newEmptyMVar
     (mode, check) <- receive
-    thread <- forkIO $ run $ liftIO . talk wait
+    thread <- forkIO $ run $ liftIO . talk mode wait
     res <- takeMVar wait
     killThread thread
     reply res
 
 
-talk :: MVar (Either String [String]) -> Request -> IO Response
-talk wait r = do
+talk :: Mode () -> MVar (Either String [String]) -> Request -> IO Response
+talk mode wait r = do
     comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
         ["res",x] -> return $ ResponseFile statusOK [headerContentType $ fromString $ mime $ takeExtension x] x Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
-        [] -> return $ responseLBS statusOK [headerContentType $ fromString "text/html"] $ fromString $ contents
+        [] -> return $ responseLBS statusOK [headerContentType $ fromString "text/html"] $ fromString $ contents mode
         _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
     where
         path = map txtUnpack $ pathInfo r
@@ -64,11 +64,11 @@ mime ".htm" = "text/html"
 mime _ = "text/plain"
 
 
-contents = unlines
+contents mode = unlines
     ["<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
     ,"<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>"
     ,"<head>"
-    ,"<title>Command Line for Foo</title>"
+    ,"<title>" ++ prog ++ " arguments</title>"
     ,"<link type='image/png' rel='icon' href='/res/favicon.png' />"
     ,"<script src='/res/jquery-1.4.2.js'></script>"
     ,"<script src='/res/cmdargs.js'></script>"
@@ -79,3 +79,5 @@ contents = unlines
     ,"</body>"
     ,"</html>"
     ]
+    where
+        prog = head $ modeNames mode ++ ["program"]

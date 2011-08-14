@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards, TypeSynonymInstances, FlexibleInstances #-}
 
 -- | Module for implementing CmdArgs helpers, sending messages for remote argument entry.
 --   Most users should not need to use this module.
@@ -9,6 +10,7 @@ import System.Console.CmdArgs.Explicit.SplitJoin
 import System.Process
 import Data.Char
 import Data.List
+import Data.Maybe
 import System.Exit
 import System.IO
 
@@ -79,8 +81,120 @@ comment x = putStrLn $ "# " ++ x
 -- SERIALISE A MODE
 
 writeMode :: Mode a -> String
-writeMode _ = "Mode"
+writeMode = show . pack
 
 
 readMode :: String -> Mode ()
-readMode x = modeEmpty ()
+readMode = unpack . read
+
+
+data Pack = Ctor String [(String, Pack)]
+          | List [Pack]
+          | Char Char
+          | String String
+          | None -- ^ Never generated, only used for reading in bad cases
+            deriving (Show,Read)
+
+class Packer a where
+    pack :: a -> Pack
+    unpack :: Pack -> a
+
+a *= b = (a, pack b)
+ctor x (Ctor y xs) | x == y = xs
+ctor _ _ = []
+a =* b = unpack $ fromMaybe None $ lookup a b
+none x = error $ "CmdArgs.Helper, field not populated: " ++ x
+
+instance Packer a => Packer [a] where
+    pack xs = if length ys == length zs && not (null ys) then String zs else List ys
+        where ys = map pack xs
+              zs = [x | Char x <- ys]
+
+    unpack (String xs) = unpack $ List $ map Char xs
+    unpack (List xs) = map unpack xs
+    unpack _ = []
+
+instance Packer Char where
+    pack = Char
+    unpack (Char x) = x
+    unpack _ = ' '
+
+instance (Packer a, Packer b) => Packer (a,b) where
+    pack (a,b) = Ctor "(,)" ["fst" *= a, "snd" *= b]
+    unpack x = ("fst" =* y, "snd" =* y)
+        where y = ctor "(,)" x
+
+instance Packer a => Packer (Maybe a) where
+    pack Nothing = Ctor "Nothing" []
+    pack (Just x) = Ctor "Just" ["fromJust" *= x]
+    unpack x@(Ctor "Just" _) = Just $ "fromJust" =* ctor "Just" x
+    unpack _ = Nothing
+
+instance Packer Bool where
+    pack False = Ctor "False" []
+    pack True = Ctor "True" []
+    unpack (Ctor "True" _) = True
+    unpack _ = False
+
+instance Packer a => Packer (Group a) where
+    pack Group{..} = Ctor "Group"
+        ["groupUnnamed" *= groupUnnamed
+        ,"groupHidden" *= groupHidden
+        ,"groupNamed" *= groupNamed]
+    unpack x = let y = ctor "Group" x in Group
+        {groupUnnamed = "groupUnnamed" =* y
+        ,groupHidden = "groupHidden" =* y
+        ,groupNamed = "groupNamed" =* y}       
+
+instance Packer (Mode a) where
+    pack Mode{..} = Ctor "Mode"
+        ["modeGroupModes" *= modeGroupModes
+        ,"modeNames" *= modeNames
+        ,"modeHelp" *= modeHelp
+        ,"modeHelpSuffix" *= modeHelpSuffix
+        ,"modeArgs" *= modeArgs
+        ,"modeGroupFlags" *= modeGroupFlags]
+    unpack x = let y = ctor "Mode" x in Mode
+        {modeGroupModes = "modeGroupModes" =* y
+        ,modeNames = "modeNames" =* y
+        ,modeHelp = "modeHelp" =* y
+        ,modeHelpSuffix = "modeHelpSuffix" =* y
+        ,modeArgs = "modeArgs" =* y
+        ,modeGroupFlags = "modeGroupFlags" =* y
+        ,modeValue = none "modeValue"
+        ,modeCheck = none "modeCheck"
+        ,modeReform = none "modeReform"
+        }
+
+instance Packer (Flag a) where
+    pack Flag{..} = Ctor "Flag"
+        ["flagNames" *= flagNames
+        ,"flagInfo" *= flagInfo
+        ,"flagType" *= flagType
+        ,"flagHelp" *= flagHelp]
+    unpack x = let y = ctor "Flag" x in Flag
+        {flagNames = "flagNames" =* y
+        ,flagInfo = "flagInfo" =* y
+        ,flagType = "flagType" =* y
+        ,flagHelp = "flagHelp" =* y
+        ,flagValue = none "flagValue"}
+
+instance Packer (Arg a) where
+    pack Arg{..} = Ctor "Arg"
+        ["argType" *= argType
+        ,"argRequire" *= argRequire]
+    unpack x = let y = ctor "Arg" x in Arg
+        {argType = "argType" =* y
+        ,argRequire = "argRequire" =* y
+        ,argValue = none "argValue"}
+
+instance Packer FlagInfo where
+    pack FlagReq = Ctor "FlagReq" []
+    pack (FlagOpt x) = Ctor "FlagOpt" ["fromFlagOpt" *= x]
+    pack (FlagOptRare x) = Ctor "FlagOptRare" ["fromFlagOpt" *= x]
+    pack FlagNone = Ctor "FlagNone" []
+    unpack x@(Ctor name _) = case name of
+        "FlagReq" -> FlagReq
+        "FlagOpt" -> FlagOpt $ "fromFlagOpt" =* ctor name x
+        "FlagOptRare" -> FlagOpt $ "fromFlagOpt" =* ctor name x
+    unpack _ = FlagNone
