@@ -1,20 +1,11 @@
 
--- Useful references:
--- http://www.debian-administration.org/article/317/An_introduction_to_bash_completion_part_2
-
-module System.Console.CmdArgs.Explicit.Complete(completeBash) where
+-- | This module does command line completion
+module System.Console.CmdArgs.Explicit.Complete(complete) where
 
 import System.Console.CmdArgs.Explicit.Type
 
 
--- | Generate bash completion information. To run, do:
---   @source `program --help=bash`@
-completeBash :: Mode a -> String
-completeBash m = unlines
-    ["_" ++ prog ++ "()"
-    ,"{"
-    ,"   COMPREPLY=(todo)"
-    ,"}"
-    ,"complete -F _" ++ prog ++ " " ++ prog
-    ]
-    where prog = head $ modeNames m ++ ["unknown"]
+-- | Given a mode, a set of arguments that have already been entered, and the argument you are currently editing,
+--   return either a prefix of the flag and the filepath you are typing, or a list of commands you could type now.
+complete :: Mode a -> [String] -> Int -> Either (String, FilePath) [String]
+complete mode args i = Right []

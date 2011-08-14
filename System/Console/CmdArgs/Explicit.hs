@@ -57,13 +57,15 @@ module System.Console.CmdArgs.Explicit(
     -- * Displaying help
     module System.Console.CmdArgs.Explicit.Help,
     -- * Utilities for working with command line
-    module System.Console.CmdArgs.Explicit.SplitJoin
+    module System.Console.CmdArgs.Explicit.SplitJoin,
+    module System.Console.CmdArgs.Explicit.Complete
     ) where
 
 import System.Console.CmdArgs.Explicit.Type
 import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.Help
 import System.Console.CmdArgs.Explicit.SplitJoin
+import System.Console.CmdArgs.Explicit.Complete
 import System.Console.CmdArgs.Default
 import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Text
@@ -71,6 +73,7 @@ import System.Console.CmdArgs.Verbosity
 
 import Control.Monad
 import Data.Char
+import Data.Maybe
 import System.Environment
 import System.Exit
 import System.IO
@@ -82,20 +85,24 @@ import System.IO
 processArgs :: Mode a -> IO a
 processArgs m = do
     env <- getEnvironment
-    nam <- getProgName
-    let var = mplus (lookup ("CMDARGS_HELPER_" ++ show (map toUpper $ head $ modeNames m ++ [nam])) env)
-                    (lookup "CMDARGS_HELPER" env)
-    case var of
-        Nothing -> run =<< getArgs
-        Just cmd -> do
-            res <- execute cmd m []
-            case res of
-                Left err -> do
-                    hPutStrLn stderr $ "Error when running helper " ++ cmd
-                    hPutStrLn stderr err
-                    exitFailure               
-                Right args -> run args
-
+    case lookup "CMDARGS_COMPLETE" env of
+        Just x -> do
+            print $ complete m (maybe [] splitArgs $ lookup "CMDARGS_COMPLETE_ARGS" env) (maybe 0 read $ lookup "CMDARGS_COMPLETE_POS" env)
+            exitWith ExitSuccess
+        Nothing -> do
+            nam <- getProgName
+            let var = mplus (lookup ("CMDARGS_HELPER_" ++ show (map toUpper $ head $ modeNames m ++ [nam])) env)
+                            (lookup "CMDARGS_HELPER" env)
+            case var of
+                Nothing -> run =<< getArgs
+                Just cmd -> do
+                    res <- execute cmd m []
+                    case res of
+                        Left err -> do
+                            hPutStrLn stderr $ "Error when running helper " ++ cmd
+                            hPutStrLn stderr err
+                            exitFailure               
+                        Right args -> run args
     where
         run args = case process m args of
             Left x -> do hPutStrLn stderr x; exitFailure
