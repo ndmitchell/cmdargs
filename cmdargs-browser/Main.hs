@@ -35,23 +35,24 @@ main = do
     wait <- newEmptyMVar
     (mode, check) <- receive
     thread <- forkIO $ run $ liftIO . talk wait
-    takeMVar wait
+    res <- takeMVar wait
     killThread thread
-    reply $ Left "User hit cancel"
+    reply res
 
 
-talk :: MVar () -> Request -> IO Response
+talk :: MVar (Either String [String]) -> Request -> IO Response
 talk wait r = do
     comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
         ["res",x] -> return $ ResponseFile statusOK [headerContentType $ fromString $ mime $ takeExtension x] x Nothing
-        [x] | x `elem` ["ok","cancel"] -> exit
+        ["ok"] -> exit $ Right [fromMaybe "" argument]
+        ["cancel"] -> exit $ Left "User pressed cancel"
         [] -> return $ responseLBS statusOK [headerContentType $ fromString "text/html"] $ fromString $ contents
         _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
     where
         path = map txtUnpack $ pathInfo r
         argument = fmap bsUnpack $ join $ lookup (fromString "arg") (queryString r)
-        exit = do putMVar wait (); return $ responseLBS statusOK [headerContentType $ fromString "text/plain"] $ fromString ""
+        exit val = do putMVar wait val; return $ responseLBS statusOK [headerContentType $ fromString "text/plain"] $ fromString ""
 
 
 mime ".png" = "image/png"

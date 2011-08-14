@@ -2,8 +2,10 @@
 -- | Module for implementing CmdArgs helpers, sending messages for remote argument entry.
 --   Most users should not need to use this module.
 module System.Console.CmdArgs.Helper(Check, execute, receive, reply, comment) where
+-- Should really be under Explicit, but want to export it top-level as Helper
 
-import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Explicit.Type
+import System.Console.CmdArgs.Explicit.SplitJoin
 import System.Process
 import Data.Char
 import Data.List
