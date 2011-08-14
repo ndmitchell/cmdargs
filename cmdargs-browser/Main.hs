@@ -71,7 +71,7 @@ contents mode = unlines
     ,"<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>"
     ,"<head>"
     ,"<title>" ++ prog ++ " arguments</title>"
-    ,"<link type='image/png' rel='icon' href='/res/favicon.png' />"
+    ,"<link type='image/png' rel='icon' href='/res/cmdargs.png' />"
     ,"<script src='/res/jquery-1.4.2.js'></script>"
     ,"<script src='/res/cmdargs.js'></script>"
     ,"<link type='text/css' rel='stylesheet' href='res/cmdargs.css' />"
