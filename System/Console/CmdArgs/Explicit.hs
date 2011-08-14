@@ -1,4 +1,4 @@
-
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
     This module constructs command lines. You may either use the helper functions
     ('flagNone', 'flagOpt', 'mode' etc.) or construct the type directly. These
@@ -71,6 +71,7 @@ import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Text
 import System.Console.CmdArgs.Verbosity
 
+import Control.Exception
 import Control.Monad
 import Data.Char
 import Data.Maybe
@@ -87,7 +88,10 @@ processArgs m = do
     env <- getEnvironment
     case lookup "CMDARGS_COMPLETE" env of
         Just x -> do
-            print $ complete m (maybe [] splitArgs $ lookup "CMDARGS_COMPLETE_ARGS" env) (maybe 0 read $ lookup "CMDARGS_COMPLETE_POS" env)
+            args <- getArgs
+            n <- (return $! read x) `Control.Exception.catch`
+                \(e::SomeException) -> return $ length args - 1 -- by default, try completing the last arg entered
+            print $ complete m args n
             exitWith ExitSuccess
         Nothing -> do
             nam <- getProgName
