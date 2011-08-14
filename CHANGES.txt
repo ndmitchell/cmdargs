@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Make showHelp take an argument for the prefix bits
     Add Helper interface, and initial cmdargs-browser code
     Add splitArgs/joinArgs
 0.8

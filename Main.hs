@@ -36,7 +36,7 @@ main = do
     let ver = "CmdArgs demo program, (C) Neil Mitchell"
     case x of
         Version -> putStrLn ver
-        Help hlp txt -> putStrLn $ showText txt $ Line ver : Line "" : helpText hlp args
+        Help hlp txt -> putStrLn $ showText txt $ helpText [ver] hlp args
         Test -> test
         Generate -> generateManual
         Demo x -> runDemo x

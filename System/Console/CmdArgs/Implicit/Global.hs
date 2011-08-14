@@ -176,7 +176,7 @@ setHelp p = mapModes0 add ""
         mapModes1 f pre m = m{modeGroupModes = fmap (mapModes0 f (pre ++ head (modeNames m) ++ " ")) $ modeGroupModes m}
 
         add pre m = changeHelp p m $ \hlp txt x -> x{cmdArgsHelp=Just $ showText txt $ msg hlp}
-            where msg hlp = map Line (progHelpOutput p) ++ Line "" : helpText hlp (prepare m{modeNames = map (pre++) $ modeNames m})
+            where msg hlp = helpText (progHelpOutput p) hlp (prepare m{modeNames = map (pre++) $ modeNames m})
 
         prepare = mapModes1 (\_ m -> m{modeGroupFlags = groupCommonHide $ modeGroupFlags m}) ""
 

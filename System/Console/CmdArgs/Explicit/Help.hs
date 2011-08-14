@@ -45,6 +45,7 @@ programname [build] [OPTIONS] [FILES}
 module System.Console.CmdArgs.Explicit.Help(HelpFormat(..), helpText) where
 
 import System.Console.CmdArgs.Explicit.Type
+import System.Console.CmdArgs.Explicit.Complete
 import System.Console.CmdArgs.Text
 import System.Console.CmdArgs.Default
 import Data.List
@@ -56,6 +57,7 @@ data HelpFormat
     = HelpFormatDefault -- ^ Equivalent to 'HelpFormatAll' if there is not too much text, otherwise 'HelpFormatOne'.
     | HelpFormatOne -- ^ Display only the first mode.
     | HelpFormatAll -- ^ Display all modes.
+    | HelpFormatBash -- ^ Bash completion information
       deriving (Read,Show,Enum,Bounded,Eq,Ord)
 
 instance Default HelpFormat where def = HelpFormatDefault
@@ -71,10 +73,15 @@ instance Show (Arg a) where
     show = show . argType
 
 -- | Generate a help message from a mode.
-helpText :: HelpFormat -> Mode a -> [Text]
-helpText HelpFormatDefault = helpTextDefault
-helpText HelpFormatOne = helpTextOne
-helpText HelpFormatAll = helpTextAll
+helpText :: [String] -> HelpFormat -> Mode a -> [Text]
+helpText pre HelpFormatDefault x = helpPrefix pre ++ helpTextDefault x
+helpText pre HelpFormatOne x = helpPrefix pre ++ helpTextOne x
+helpText pre HelpFormatAll x = helpPrefix pre ++ helpTextAll x
+helpText pre HelpFormatBash x = map Line $ lines $ completeBash x
+
+
+helpPrefix :: [String] -> [Text]
+helpPrefix xs = map Line xs ++ [Line "" | not $ null xs]
 
 
 helpTextDefault x = if length all > 40 then one else all

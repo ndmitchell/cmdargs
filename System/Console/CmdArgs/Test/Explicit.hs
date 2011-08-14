@@ -8,7 +8,7 @@ import System.Console.CmdArgs.Test.Util
 
 demo = [newDemo act dem]
 
-act xs | ("help","") `elem` xs = print $ helpText def dem
+act xs | ("help","") `elem` xs = print $ helpText [] def dem
        | otherwise = print xs
 
 dem :: Mode [(String,String)]

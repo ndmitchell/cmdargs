@@ -57,15 +57,13 @@ module System.Console.CmdArgs.Explicit(
     -- * Displaying help
     module System.Console.CmdArgs.Explicit.Help,
     -- * Utilities for working with command line
-    module System.Console.CmdArgs.Explicit.SplitJoin,
-    module System.Console.CmdArgs.Explicit.Complete
+    module System.Console.CmdArgs.Explicit.SplitJoin
     ) where
 
 import System.Console.CmdArgs.Explicit.Type
 import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.Help
 import System.Console.CmdArgs.Explicit.SplitJoin
-import System.Console.CmdArgs.Explicit.Complete
 import System.Console.CmdArgs.Default
 import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Text
@@ -142,6 +140,7 @@ flagHelpFormat f = (flagOpt "" ["help","?"] upd "" "Display help message"){flagI
                     "def" -> Right (HelpFormatDefault,b)
                     "html" -> Right (a,HTML)
                     "text" -> Right (a,defaultWrap)
+                    "bash" -> Right (HelpFormatBash,Wrap 1000000)
                     _ | all isDigit x -> Right (a,Wrap $ read x)
                     _ -> Left "unrecognised help format, expected one of: all one def html text <NUMBER>"
 
