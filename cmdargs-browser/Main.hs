@@ -21,6 +21,7 @@ import System.IO
 import System.FilePath
 import Data.Maybe
 import System.Console.CmdArgs.Helper
+import System.Console.CmdArgs.Explicit
 
 
 type LBString = LBS.ByteString
@@ -45,7 +46,7 @@ talk wait r = do
     comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
         ["res",x] -> return $ ResponseFile statusOK [headerContentType $ fromString $ mime $ takeExtension x] x Nothing
-        ["ok"] -> exit $ Right [fromMaybe "" argument]
+        ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
         [] -> return $ responseLBS statusOK [headerContentType $ fromString "text/html"] $ fromString $ contents
         _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
