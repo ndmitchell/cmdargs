@@ -61,6 +61,7 @@ library
     other-modules:
         Data.Generics.Any
         Data.Generics.Any.Prelude
+        System.Console.CmdArgs.Explicit.Complete
         System.Console.CmdArgs.Explicit.Help
         System.Console.CmdArgs.Explicit.Process
         System.Console.CmdArgs.Explicit.SplitJoin

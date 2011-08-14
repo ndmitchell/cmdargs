@@ -57,13 +57,15 @@ module System.Console.CmdArgs.Explicit(
     -- * Displaying help
     module System.Console.CmdArgs.Explicit.Help,
     -- * Utilities for working with command line
-    module System.Console.CmdArgs.Explicit.SplitJoin
+    module System.Console.CmdArgs.Explicit.SplitJoin,
+    module System.Console.CmdArgs.Explicit.Complete
     ) where
 
 import System.Console.CmdArgs.Explicit.Type
 import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.Help
 import System.Console.CmdArgs.Explicit.SplitJoin
+import System.Console.CmdArgs.Explicit.Complete
 import System.Console.CmdArgs.Default
 import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Text
