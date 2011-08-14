@@ -1,18 +1,30 @@
 {-# LANGUAGE RecordWildCards, TypeSynonymInstances, FlexibleInstances #-}
 
--- | Module for implementing CmdArgs helpers, sending messages for remote argument entry.
---   Most users should not need to use this module.
+-- | Module for implementing CmdArgs helpers. A CmdArgs helper is an external program,
+--   that helps a user construct the command line arguments. To use a helper set the
+--   environment variable @$CMDARGS_HELPER@ (or @$CMDARGS_HELPER_/YOURPROGRAM/@) to
+--   one of:
+--
+-- * @echo /foo/@ will cause @/foo/@ to be used as the command arguments.
+--
+-- * @cmdargs-browser@ will cause a web browser to appear to help entering the arguments.
+--   For this command to work, you will need to install the @cmdargs-browser@ package:
+--   <http://hackage.haskell.org/package/cmdargs-browser>
 module System.Console.CmdArgs.Helper(Check, execute, receive, reply, comment) where
 -- Should really be under Explicit, but want to export it top-level as Helper
 
 import System.Console.CmdArgs.Explicit.Type
+import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.SplitJoin
 import System.Process
+import Control.Arrow
+import Control.Exception
 import Data.Char
 import Data.List
 import Data.Maybe
 import System.Exit
 import System.IO
+import System.IO.Unsafe
 
 
 -- | Run a remote command line entry
@@ -23,7 +35,7 @@ execute
     -> IO (Either String [String]) -- return either an error, or a list of flags to use
 execute cmd mode args
     | "echo" == takeWhile (not . isSpace) cmd = return $ Right $ splitArgs $ drop 4 cmd
-    | otherwise = do
+    | otherwise = withBuffering stdout NoBuffering $ do
         (Just hin, Just hout, _, _) <- createProcess (shell cmd){std_in=CreatePipe, std_out=CreatePipe}
         hSetBuffering hin LineBuffering
         hSetBuffering hout LineBuffering
@@ -35,7 +47,7 @@ execute cmd mode args
             if "Result " `isPrefixOf` x then
                 return $ read $ drop 7 x
              else if "Check " `isPrefixOf` x then do
-                hPutStrLn hout $ show $ uncurry (check mode) $ read $ drop 6 x
+                hPutStrLn hin $ show $ uncurry (check mode) $ read $ drop 6 x
                 loop hin hout
              else if "#" `isPrefixOf` x then do
                 putStrLn x
@@ -43,14 +55,22 @@ execute cmd mode args
              else
                 return $ Left $ "Unexpected message from program: " ++ show x
 
+withBuffering hndl mode act = bracket
+    (do old <- hGetBuffering hndl; hSetBuffering hndl mode; return old)
+    (hSetBuffering hndl)
+    (const act)
+
 
 -- | Type of function to check arguments, given a list of arguments, a number a positional arguments to skip,
 --   returns either Nothing (success) or Just an error message (failure).
-type Check = [String] -> Int -> IO (Maybe String)
+type Check = Int -> [String] -> Maybe String
 
 
-check :: Mode a -> [String] -> Int -> Maybe String
-check mode args skip = Nothing
+check :: Mode a -> Check
+check mode skip args = either Just (const Nothing) $ process (dropArgs skip mode) args
+    where
+        dropArgs i m = m{modeGroupModes = fmap (dropArgs i) $ modeGroupModes m
+                        ,modeArgs = (drop i *** id) $ modeArgs m}
 
 
 -- | Receive information, include a mode (where all functions are undefined),
@@ -60,8 +80,9 @@ receive = do
     mode <- fmap readMode getLine
     return (mode, check)
     where
-        check a b = do
+        check a b = unsafePerformIO $ do
             putStrLn $ "Check " ++ show (a,b)
+            hFlush stdout
             fmap read getLine
 
 
@@ -69,6 +90,7 @@ receive = do
 reply :: Either String [String] -> IO ()
 reply x = do
     putStrLn $ "Result " ++ show x
+    hFlush stdout
     exitWith ExitSuccess
 
 
