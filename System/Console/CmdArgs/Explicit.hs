@@ -60,7 +60,7 @@ module System.Console.CmdArgs.Explicit(
     module System.Console.CmdArgs.Explicit.SplitJoin
     ) where
 
-import System.Console.CmdArgs.Explicit.Type hiding (showRecord, (*=))
+import System.Console.CmdArgs.Explicit.Type
 import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.Help
 import System.Console.CmdArgs.Explicit.SplitJoin

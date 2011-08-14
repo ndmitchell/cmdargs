@@ -63,10 +63,6 @@ toGroup x = Group x [] []
 ---------------------------------------------------------------------
 -- TYPES
 
-showRecord x ys = x ++ " {" ++ intercalate ", " ys ++ "}"
-a *= b = a ++ " = " ++ show b
-
-
 -- | A mode. Each mode has three main features:
 --
 --   * A list of submodes ('modeGroupModes')
