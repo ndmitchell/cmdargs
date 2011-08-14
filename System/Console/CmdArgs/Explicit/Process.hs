@@ -1,33 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
-module System.Console.CmdArgs.Explicit.Process(process, processValue, processArgs) where
+module System.Console.CmdArgs.Explicit.Process(process) where
 
 import System.Console.CmdArgs.Explicit.Type
 import Control.Arrow
 import Data.List
 import Data.Maybe
-import System.Environment
-import System.Exit
-import System.IO
-
-
--- | Process the flags obtained by @getArgs@ with a mode. Displays
---   an error and exits with failure if the command line fails to parse, or returns
---   the associated value. Implemented in terms of 'process'.
-processArgs :: Mode a -> IO a
-processArgs m = do
-    xs <- getArgs
-    case process m xs of
-        Left x -> do hPutStrLn stderr x; exitFailure
-        Right x -> return x
-
-
--- | Process a list of flags (usually obtained from @getArgs@) with a mode. Displays
---   an error and exits with failure if the command line fails to parse, or returns
---   the associated value. Implemeneted in terms of 'process'.
-processValue :: Mode a -> [String] -> a
-processValue m xs = case process m xs of
-    Left x -> error x
-    Right x -> x
 
 
 -- | Process a list of flags (usually obtained from @getArgs@) with a mode. Returns
