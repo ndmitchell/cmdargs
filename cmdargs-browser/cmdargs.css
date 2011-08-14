@@ -1,0 +1,9 @@
+body {
+    font-family: sans-serif;
+}
+
+#txt {
+    border: 1px solid gray;
+    font-family: monospace;
+    width: 100%;
+}

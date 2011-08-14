@@ -1,0 +1,31 @@
+cabal-version:      >= 1.6
+build-type:         Simple
+name:               cmdargs-browser
+version:            0.1
+license:            BSD3
+license-file:       ../LICENSE
+category:           Console
+author:             Neil Mitchell <ndmitchell@gmail.com>
+maintainer:         Neil Mitchell <ndmitchell@gmail.com>
+copyright:          Neil Mitchell 2011
+synopsis:           Helper to enter cmdargs command lines via the Console
+description:
+    Used in conjunction with a cmdargs enabled program to enter flags.
+homepage:           http://community.haskell.org/~ndm/cmdargs/
+stability:          Beta
+
+executable cmdargs-browser
+    main-is: Main.hs
+    build-depends:
+        base == 4.*,
+        transformers == 0.2.*,
+        filepath,
+        text,
+        bytestring,
+        enumerator,
+        blaze-builder,
+        case-insensitive,
+        http-types,
+        wai,
+        wai-handler-launch,
+        cmdargs == 0.7.*
