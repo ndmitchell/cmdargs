@@ -49,8 +49,7 @@
 -}
 module System.Console.CmdArgs.Explicit(
     -- * Running command lines
-    module System.Console.CmdArgs.Explicit.Process,
-    processArgs, processValue,
+    process, processArgs, processValue,
     -- * Constructing command lines
     module System.Console.CmdArgs.Explicit.Type,
     flagHelpSimple, flagHelpFormat, flagVersion, flagsVerbosity,
