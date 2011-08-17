@@ -94,8 +94,8 @@ modeFlags = fromGroup . modeGroupFlags
 --
 --
 -- >              FlagReq     FlagOpt      FlagOptRare/FlagNone
--- > -xfoo        -x=foo      -x=foo       -x= -foo
--- > -x foo       -x=foo      -x foo       -x= foo
+-- > -xfoo        -x=foo      -x=foo       -x -foo
+-- > -x foo       -x=foo      -x foo       -x foo
 -- > -x=foo       -x=foo      -x=foo       -x=foo
 -- > --xx foo     --xx=foo    --xx foo     --xx foo
 -- > --xx=foo     --xx=foo    --xx=foo     --xx=foo
