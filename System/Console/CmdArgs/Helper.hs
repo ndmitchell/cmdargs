@@ -13,6 +13,18 @@
 module System.Console.CmdArgs.Helper(Check, execute, receive, reply, comment) where
 -- Should really be under Explicit, but want to export it top-level as Helper
 
+{-
+FIXME:
+
+should pass along a whole and valid CmdArgs Mode structure, with all functions present.
+Should rewrite it so in terms of an abstract type Value.
+
+Value should be a newtype'd Int, there should be a cache. Want to have:
+
+cmdargsStore :: CmdArgs a -> IO (String, String -> IO String) -- (value, ask questions from stdin)
+cmdargsLoad :: String -> (String -> String) -> CmdArgs Value -- given serialised, question asker, give me a value
+-}
+
 import System.Console.CmdArgs.Explicit.Type
 import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.SplitJoin
