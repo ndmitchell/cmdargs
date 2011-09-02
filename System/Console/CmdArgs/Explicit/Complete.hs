@@ -88,12 +88,12 @@ followArgs m = first
 
 expectArgFlagMode :: [Mode a] -> Maybe (Arg a) -> [Flag a] -> String -> [Complete]
 expectArgFlagMode mode arg flag x
-    | "-" `isPrefixOf` x = expectFlag flag x
+    | "-" `isPrefixOf` x = expectFlag flag x ++ [CompleteValue "-" | x == "-", isJust arg]
     | otherwise = expectMode mode x ++ expectArg arg x ++ expectFlag flag x
 
 expectArgFlag :: Maybe (Arg a) -> [Flag a] -> String -> [Complete]
 expectArgFlag arg flag x
-    | "-" `isPrefixOf` x = expectFlag flag x
+    | "-" `isPrefixOf` x = expectFlag flag x ++ [CompleteValue "-" | x == "-", isJust arg]
     | otherwise = expectArg arg x ++ expectFlag flag x
 
 expectMode :: [Mode a] -> String -> [Complete]
