@@ -33,6 +33,10 @@ testUnnamedOnly = do
     checkGood m ["fred","bob"] ["fred","bob"]
     checkGood m ["--","--test"] ["--test"]
     checkGood m [] []
+    checkComp m [] (0,0) []
+    checkComp m ["--"] (0,2) []
+    checkComp m ["bob"] (0,3) []
+    checkComp m ["-"] (0,1) [CompleteValue "-"]
 
 testFlags = do
     let m = name "Flags" $ mode "" [] "" (flagArg (upd "") "")
@@ -58,6 +62,14 @@ testFlags = do
     checkGood m ["-tm"] ["test","more"]
     checkGood m ["--col=red"] ["colorred"]
     checkGood m ["--col","red","-t"] ["colorred","test"]
+    checkComp m ["--tes"] (0,5) [CompleteValue "--test"]
+    checkComp m ["--color","--tes"] (1,5) []
+    checkComp m ["--more","--tes"] (1,5) [CompleteValue "--test"]
+    checkComp m ["--moo","--tes"] (1,5) [CompleteValue "--test"]
+    checkComp m ["--col"] (0,5) [CompleteValue "--color"]
+    checkComp m ["--bob"] (0,5) [CompleteValue "--bobby",CompleteValue "--bob"]
+    checkComp m ["-"] (0,1) $ map CompleteValue $ words "--test --more --color --bob -x -"
+    checkComp m ["--"] (0,2) $ map CompleteValue $ words "--test --more --color --bob --xxx"
 
 testModes = do
     let m = name "Modes" $ modes "" [] ""
@@ -91,3 +103,9 @@ checkGood (n,m) xs ys = case process m xs of
     Left err -> failure "Failed when should have succeeded" [("Name",n),("Args",show xs),("Error",err)]
     Right a | reverse a /= ys -> failure "Wrong parse" [("Name",n),("Args",show xs),("Wanted",show ys),("Got",show $ reverse a)]
     _ -> success
+
+checkComp :: (String,Mode [String]) -> [String] -> (Int,Int) -> [Complete] -> IO ()
+checkComp (n,m) xs ab want
+    | want == got = success
+    | otherwise = failure "Bad completions" [("Name",n),("Args",show xs),("Index",show ab),("Wanted",show want),("Got",show got)]
+    where got = complete m xs ab
