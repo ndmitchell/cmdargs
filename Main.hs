@@ -25,8 +25,8 @@ args = (modes "cmdargs" (Help def def) "CmdArgs demo program" ms){modeGroupFlags
     where
         flags = [flagHelpFormat $ \a b _ -> Help a b
                 ,flagVersion $ const Version
-                ,flagNone ["t","test"] (const Test) "Run the tests"
-                ,flagNone ["g","generate"] (const Generate) "Generate the manual"]
+                ,flagNone ["test","t"] (const Test) "Run the tests"
+                ,flagNone ["generate","g"] (const Generate) "Generate the manual"]
 
         ms = map (remap Demo (\(Demo x) -> (x,Demo))) demo
 
