@@ -70,9 +70,9 @@ import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Text
 import System.Console.CmdArgs.Verbosity
 
-import Control.Exception
 import Control.Monad
 import Data.Char
+import Data.Maybe
 import System.Environment
 import System.Exit
 import System.IO
@@ -87,9 +87,10 @@ processArgs m = do
     case lookup "CMDARGS_COMPLETE" env of
         Just x -> do
             args <- getArgs
-            n <- (return $! read x) `Control.Exception.catch`
-                \(e::SomeException) -> return $ length args - 1 -- by default, try completing the last arg entered
-            print $ complete m args n
+            let argInd = fromMaybe (length args - 1) $ readMay x
+                argPos = fromMaybe (if argInd >= 0 && argInd < length args then length (args !! argInd) else 0) $
+                         readMay =<< lookup "CMDARGS_COMPLETE_POS" env
+            print $ complete m args (argInd,argPos)
             exitWith ExitSuccess
         Nothing -> do
             nam <- getProgName
@@ -109,6 +110,12 @@ processArgs m = do
         run args = case process m args of
             Left x -> do hPutStrLn stderr x; exitFailure
             Right x -> return x
+
+
+readMay :: Read a => String -> Maybe a
+readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
+                [x] -> Just x
+                _ -> Nothing
 
 
 -- | Process a list of flags (usually obtained from @getArgs@) with a mode. Displays

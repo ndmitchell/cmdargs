@@ -23,16 +23,19 @@ prepend a (CompleteDir b c) = CompleteDir (a++b) c
 prepend a (CompleteValue b) = CompleteValue (a++b)
 
 
--- | Given a mode, a set of arguments that have already been entered, and the argument you are currently editing,
---   return a set of the commands you could type now, in preference order.
-complete :: Mode a -> [String] -> Int -> [Complete]
+-- | Given a current state, return the set of commands you could type now, in preference order.
+complete
+    :: Mode a -- ^ Mode specifying which arguments are allowed
+    -> [String] -- ^ Arguments the user has already typed
+    -> (Int,Int) -- ^ 0-based index of the argument they are currently on, and the position in that argument
+    -> [Complete]
 -- Roll forward looking at modes, and if you match a mode, enter it
 -- If the person just before is a flag without arg, look at how you can complete that arg
 -- If your prefix is a complete flag look how you can complete that flag
 -- If your prefix looks like a flag, look for legitimate flags
 -- Otherwise give a file/dir if they are arguments to this mode, and all flags
 -- If you haven't seen any args/flags then also autocomplete to any child modes
-complete mode_ args_ i = nub $ followArgs mode args now
+complete mode_ args_ (i,_) = nub $ followArgs mode args now
     where
         (seen,next) = splitAt i args_
         now = head $ next ++ [""]
