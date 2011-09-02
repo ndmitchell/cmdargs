@@ -78,9 +78,18 @@ import System.Exit
 import System.IO
 
 
--- | Process the flags obtained by @getArgs@ with a mode. Displays
+-- | Process the flags obtained by @'getArgs'@ with a mode. Displays
 --   an error and exits with failure if the command line fails to parse, or returns
---   the associated value. Implemented in terms of 'process'.
+--   the associated value. Implemented in terms of 'process'. This function makes
+--   use of the following environment variables:
+--
+-- * @$CMDARGS_COMPLETE@ - causes the program to produce completions using 'complete', then exit.
+--   Completions are based on the result of 'getArgs', the index of the current argument is taken
+--   from @$CMDARGS_COMPLETE@ (set it to @-@ to complete the last argument), and the index within
+--   that argument is taken from @$CMDARGS_COMPLETE_POS@ (if set).
+--
+-- * @$CMDARGS_HELPER@\/@$CMDARGS_HELPER_/PROG/@ - uses the helper mechanism for entering command
+--   line programs as described in "System.Console.CmdArgs.Helper".
 processArgs :: Mode a -> IO a
 processArgs m = do
     env <- getEnvironment
@@ -120,7 +129,9 @@ readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
 
 -- | Process a list of flags (usually obtained from @getArgs@) with a mode. Displays
 --   an error and exits with failure if the command line fails to parse, or returns
---   the associated value. Implemeneted in terms of 'process'.
+--   the associated value. Implemeneted in terms of 'process'. This function
+--   does not take account of any environment variables that may be set
+--   (see 'processArgs').
 processValue :: Mode a -> [String] -> a
 processValue m xs = case process m xs of
     Left x -> error x
