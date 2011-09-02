@@ -10,6 +10,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 import System.Console.CmdArgs.Default
 
+import Control.Monad
 import Data.List
 import Data.Maybe
 import System.IO
@@ -36,10 +37,22 @@ main = do
     let ver = "CmdArgs demo program, (C) Neil Mitchell"
     case x of
         Version -> putStrLn ver
-        Help hlp txt -> putStrLn $ showText txt $ helpText [ver] hlp args
+        Help hlp txt -> do
+            let xs = showText txt $ helpText [ver] hlp args
+            putStrLn xs
+            when (hlp == HelpFormatBash) $ do
+                writeFileBinary "cmdargs.bash_comp" xs
+                putStrLn "# Output written to cmdargs.bash_comp"
         Test -> test
         Generate -> generateManual
         Demo x -> runDemo x
+
+
+writeFileBinary :: FilePath -> String -> IO ()
+writeFileBinary file x = do
+    h <- openBinaryFile file WriteMode
+    hPutStr h x
+    hClose h
 
 
 ---------------------------------------------------------------------
