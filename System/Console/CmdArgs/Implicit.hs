@@ -60,7 +60,7 @@ sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\
     > Ctor {field1 = value1 &= ann1, field2 = value2} &= ann2 ==> record Ctor{} [field1 := value1 += ann1, field2 := value2] += ann2
     > Ctor (value1 &= ann1) value2 &= ann2 ==> record Ctor{} [atom value1 += ann1, atom value2] += ann2
     > many [Ctor1{...}, Ctor2{...}] ==> many_ [record Ctor1{} [...], record Ctor2{} [...]]
-    > Ctor {field1 = enum [X &= ann, Y]} ==> record Ctor{} [field1 := enum_ [atom X += ann, atom Y]]
+    > Ctor {field1 = enum [X &= ann, Y]} ==> record Ctor{} [enum_ field1 [atom X += ann, atom Y]]
 -}
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines

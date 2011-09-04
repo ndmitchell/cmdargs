@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #461, fix the translation for enum/enum_
     Make showHelp take an argument for the prefix bits
     Add Helper interface, and initial cmdargs-browser code
     Add splitArgs/joinArgs
