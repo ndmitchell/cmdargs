@@ -10,7 +10,12 @@
 -- * @cmdargs-browser@ will cause a web browser to appear to help entering the arguments.
 --   For this command to work, you will need to install the @cmdargs-browser@ package:
 --   <http://hackage.haskell.org/package/cmdargs-browser>
-module System.Console.CmdArgs.Helper(Value, execute, receive, reply, comment) where
+module System.Console.CmdArgs.Helper(
+    -- * Called by the main program
+    execute,
+    -- * Called by the helper program
+    Unknown, receive, reply, comment
+    ) where
 -- Should really be under Explicit, but want to export it top-level as Helper
 
 import System.Console.CmdArgs.Explicit.Type
@@ -32,11 +37,11 @@ hOut h x = do
     hFlush h
 
 
--- | Run a remote command line entry
+-- | Run a remote command line entry.
 execute
     :: String -- ^ Name of the command to run, e.g. @echo argument@, @cmdargs-browser@
     -> Mode a -- ^ Mode to run remotely
-    -> [String] -- ^ Initial set of command line flags (not supported by everything)
+    -> [String] -- ^ Initial set of command line flags (not supported by all helpers)
     -> IO (Either String [String]) -- return either an error, or a list of flags to use
 execute cmd mode args
     | "echo" == takeWhile (not . isSpace) cmd = return $ Right $ splitArgs $ drop 4 cmd
@@ -69,11 +74,16 @@ withBuffering hndl mode act = bracket
     (const act)
 
 
+-- | Unknown value, representing the values stored within the 'Mode' structure. While the values
+--   are not observable, they behave identically to the original values.
+newtype Unknown = Unknown {fromUnknown :: Value} -- wrap Value so the Pack instance doesn't leak
+
+
 -- | Receive information about the mode to display.
-receive :: IO (Mode Value)
+receive :: IO (Mode Unknown)
 receive = do
     m <- getLine
-    return $ loadMode m $ \msg -> unsafePerformIO $ do
+    return $ remap2 Unknown fromUnknown $ loadMode m $ \msg -> unsafePerformIO $ do
         hOut stdout $ "Send " ++ msg
         getLine
 
@@ -85,7 +95,7 @@ reply x = do
     exitWith ExitSuccess
 
 
--- | Send a comment to the person who invoked you, useful for debugging.
+-- | Send a comment which will be displayed on the calling console, mainly useful for debugging.
 comment :: String -> IO ()
 comment x = hOut stdout $ "# " ++ x
 
@@ -107,7 +117,6 @@ getIOMap (IOMap ref) i = do (_,xs) <- readIORef ref; return $ fromJust $ lookup 
 
 ---------------------------------------------------------------------
 -- SERIALISE A MODE
-
 
 newtype Value = Value Int
 
