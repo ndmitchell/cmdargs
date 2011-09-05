@@ -17,6 +17,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as Text
 import Control.Monad
+import Control.Arrow
 import System.IO
 import System.FilePath
 import Data.Maybe
@@ -42,8 +43,8 @@ main = do
     reply res
 
 
-talk :: (Mode (), Check) -> MVar (Either String [String]) -> Request -> IO Response
-talk (mode,check) wait r = do
+talk :: Mode a -> MVar (Either String [String]) -> Request -> IO Response
+talk mode wait r = do
     comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
         ["res",x] -> do
@@ -51,7 +52,7 @@ talk (mode,check) wait r = do
             return $ ResponseFile statusOK [noCache, headerContentType $ fromString $ mime $ takeExtension x] (dir </> x) Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
-        ["check"] -> return $ responseLBS statusOK [] $ fromString $ fromMaybe "" $ check 0 $ splitArgs $ fromMaybe "" argument
+        ["check"] -> return $ responseLBS statusOK [] $ fromString $ fromMaybe "" $ check mode 0 $ splitArgs $ fromMaybe "" argument
         [] -> return $ responseLBS statusOK [noCache, headerContentType $ fromString "text/html"] $ fromString $ contents mode
         _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
     where
@@ -59,6 +60,13 @@ talk (mode,check) wait r = do
         argument = fmap bsUnpack $ join $ lookup (fromString "arg") (queryString r)
         exit val = do putMVar wait val; return $ responseLBS statusOK [headerContentType $ fromString "text/plain"] $ fromString ""
         noCache = headerCacheControl $ fromString "no-cache"
+
+
+check :: Mode a -> Int -> [String] -> Maybe String
+check mode skip args = either Just (const Nothing) $ process (dropArgs skip mode) args
+    where
+        dropArgs i m = m{modeGroupModes = fmap (dropArgs i) $ modeGroupModes m
+                        ,modeArgs = (drop i *** id) $ modeArgs m}
 
 
 mime ".png" = "image/png"
