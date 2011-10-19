@@ -22,7 +22,7 @@
   > main = do
   >     xs <- processArgs arguments
   >     if ("help","") `elem` xs then
-  >         print $ helpText def arguments
+  >         print $ helpText HelpFormatDefault arguments
   >      else
   >         print xs
 
