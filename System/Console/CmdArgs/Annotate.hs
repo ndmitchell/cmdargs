@@ -228,7 +228,7 @@ atom = AAtom . Any
 --
 --   This operation is not type safe, and may raise an exception at runtime
 --   if any field has the wrong type or label.
-record :: Data a => a -> [Annotate b] -> Annotate b
+record :: Data a => a -> [Annotate ann] -> Annotate ann
 record a b = ACtor (Any a) b
 
 -- | Capture the annotations from an annotated value.
