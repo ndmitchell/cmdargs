@@ -206,6 +206,7 @@ data Annotate ann
     | AMany [Annotate ann]
     | AAtom Any
     | ACtor Any [Annotate ann]
+      deriving Typeable
       -- specifically DOES NOT derive Data, to avoid people accidentally including it
 
 
