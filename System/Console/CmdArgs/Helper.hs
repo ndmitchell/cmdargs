@@ -42,7 +42,7 @@ execute
     :: String -- ^ Name of the command to run, e.g. @echo argument@, @cmdargs-browser@
     -> Mode a -- ^ Mode to run remotely
     -> [String] -- ^ Initial set of command line flags (not supported by all helpers)
-    -> IO (Either String [String]) -- return either an error, or a list of flags to use
+    -> IO (Either String [String]) -- ^ Either an error message, or a list of flags to use
 execute cmd mode args
     | "echo" == takeWhile (not . isSpace) cmd = return $ Right $ splitArgs $ drop 4 cmd
     | otherwise = withBuffering stdout NoBuffering $ do
@@ -88,7 +88,7 @@ receive = do
         getLine
 
 
--- | Send a reply with either an error, or which messages to use. This function exits the helper program.
+-- | Send a reply with either an error, or a list of flags to use. This function exits the helper program.
 reply :: Either String [String] -> IO ()
 reply x = do
     hOut stdout $ "Result " ++ show x
