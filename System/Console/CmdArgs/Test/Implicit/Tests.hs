@@ -1,21 +1,13 @@
-{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards, TemplateHaskell, MagicHash #-}
 {-# OPTIONS_GHC -fno-warn-missing-fields -fno-warn-unused-binds #-}
 
-module System.Console.CmdArgs.Test.Implicit.Tests where
+module System.Console.CmdArgs.Test.Implicit.Tests(test, demos) where
 
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
+import System.Console.CmdArgs.Quote
 import Data.Int
-
-
-test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12 >> test13 >> test14 >> test15 >> test16
-demos = zipWith f [1..]
-        [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
-        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
-        ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16]
-    where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 
 -- from bug #256 and #231
@@ -27,8 +19,13 @@ data Test1
 def1 = Test1 def def def (def &= args) def def def def
 mode1 = cmdArgsMode def1
 
+$(cmdArgsQuote [d|
+    mode1_ = cmdArgsMode# def1_
+    def1_ = Test1 def def def (def &=# args) def def def def
+    |])
+
 test1 = do
-    let Tester{..} = tester "Test1" mode1
+    let Tester{..} = testers "Test1" [mode1,mode1_]
     [] === def1
     ["--maybeint=12"] === def1{maybeInt = Just 12}
     ["--maybeint=12","--maybeint=14"] === def1{maybeInt = Just 14}
@@ -69,8 +66,11 @@ data Test3 = Test3 {pos1_1 :: [Int], pos1_2 :: [String], pos1_rest :: [String]}
 
 mode3 = cmdArgsMode $ Test3 (def &= argPos 1) (def &= argPos 2 &= opt "foo") (def &= args)
 
+$(cmdArgsQuote [d| mode3_ = cmdArgsMode# $ Test3 (def &=# argPos 1) (def &=# argPos 2 &=# opt "foo") (def &=# args) |])
+
+
 test3 = do
-    let Tester{..} = tester "Test3" mode3
+    let Tester{..} = testers "Test3" [mode3,mode3_]
     fails []
     fails ["a"]
     ["a","1"] === Test3 [1] ["foo"] ["a"]
@@ -267,8 +267,14 @@ mode15 = cmdArgsMode $ Test15 (False &= name "help")
          &= helpArg [groupname "GROUP", name "h", name "nohelp", explicit, help "whatever"] &= versionArg [ignore]
          &= verbosityArgs [ignore] [explicit,name "silent"]
 
+$(cmdArgsQuote [d|
+    mode15_ = cmdArgsMode# $ Test15 (False &=# name "help")
+              &=# helpArg [groupname "GROUP", name "h", name "nohelp", explicit, help "whatever"] &=# versionArg [ignore]
+              &=# verbosityArgs [ignore] [explicit,name "silent"]
+    |])
+
 test15 = do
-    let Tester{..} = tester "Test15" mode15
+    let Tester{..} = testers "Test15" [mode15,mode15_]
     invalid $ \_ -> Test15 (False &= name "help")
     ["--help"] === Test15 True
     ["-t"] === Test15 True
@@ -294,3 +300,17 @@ test16 = do
     fails ["--test16a"]
     ["--test16a=5"] === Test16 (MyInt 5) []
     ["--test16b=5","--test16b=82"] === Test16 (MyInt 12) [MyInt 5, MyInt 82]
+
+
+-- For some reason, these must be at the end, otherwise the Template Haskell
+-- stage restriction kicks in.
+
+test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
+       test11 >> test12 >> test13 >> test14 >> test15 >> test16
+demos = zipWith f [1..]
+        [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
+        ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
+        ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16]
+    where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
+
+

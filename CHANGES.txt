@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #334, add a Quote module, to write pure in the impure syntax
     #482, fix the sample in Explicit, don't use def
     #461, fix the translation for enum/enum_
     Make showHelp take an argument for the prefix bits

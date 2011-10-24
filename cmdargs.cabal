@@ -41,11 +41,19 @@ flag testprog
     default: True
     description: Build the test program
 
+flag quotation
+    default: True
+    description: Build the Quote module
+
 library
     build-depends:
         base == 4.*,
         transformers == 0.2.*,
         process >= 1.0 && < 1.2
+
+    if flag(quotation)
+        build-depends: template-haskell
+        exposed-modules: System.Console.CmdArgs.Quote
 
     exposed-modules:
         System.Console.CmdArgs

@@ -61,6 +61,11 @@ sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\
     > Ctor (value1 &= ann1) value2 &= ann2 ==> record Ctor{} [atom value1 += ann1, atom value2] += ann2
     > modes [Ctor1{...}, Ctor2{...}] ==> modes_ [record Ctor1{} [...], record Ctor2{} [...]]
     > Ctor {field1 = enum [X &= ann, Y]} ==> record Ctor{} [enum_ field1 [atom X += ann, atom Y]]
+
+    If you are willing to use TemplateHaskell, you can write in the impure syntax,
+    but have your code automatically translated to the pure style. For more details see
+    "System.Console.CmdArgs.Quote".
+
 -}
 module System.Console.CmdArgs.Implicit(
     -- * Running command lines

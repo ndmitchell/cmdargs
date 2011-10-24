@@ -1,6 +1,7 @@
-{-# LANGUAGE DeriveDataTypeable, RecordWildCards #-}
+{-# LANGUAGE DeriveDataTypeable, RecordWildCards, TemplateHaskell, MagicHash #-}
 module System.Console.CmdArgs.Test.Implicit.Diffy where
 import System.Console.CmdArgs
+import System.Console.CmdArgs.Quote
 import System.Console.CmdArgs.Test.Implicit.Util
 
 data Diffy = Create {src :: Maybe FilePath, out :: FilePath}
@@ -22,10 +23,30 @@ diff = Diff
 
 mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
 
+
+$(cmdArgsQuote
+    [d|
+        outFlags_ x = x &=# help "Output file" &=# typFile
+
+        create_ = Create
+            {src = Nothing &=# help "Source directory" &=# typDir
+            ,out = outFlags_ "ls.txt"
+            } &=# help "Create a fingerprint"
+
+        diff_ = Diff
+            {old = "" &=# typ "OLDFILE" &=# argPos 0
+            ,new = "" &=# typ "NEWFILE" &=# argPos 1
+            ,out = outFlags_ "diff.txt"
+            } &=# help "Perform a diff"
+
+        mode_ = cmdArgsMode# $ modes# [create_,diff_] &=# help "Create and compare differences" &=# program "diffy" &=# summary "Diffy v1.0"
+    |])
+
+
 -- STOP MANUAL
 
 test = do
-    let Tester{..} = tester "Diffy" mode
+    let Tester{..} = testers "Diffy" [mode,mode_]
     fails []
     isHelp ["--help"] []
     isHelp ["create","--help"] []
