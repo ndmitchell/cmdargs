@@ -24,7 +24,7 @@ data ArgOrder a = Permute
 --
 --   * list of short option characters
 --
---   * list of long option strings (without "--", may not be 1 character long)
+--   * list of long option strings (without @\"--\"@, may not be 1 character long)
 --
 --   * argument descriptor
 --
