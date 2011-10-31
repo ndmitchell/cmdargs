@@ -70,7 +70,7 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity
 
         isHelp args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsHelp x, match want (lines got) -> success
-            _ -> failed "Failed on isHelp" args []
+            _ -> failed "Failed on isHelp" args [("Want",show want)]
 
         isHelpNot args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsHelp x, not $ match want (lines got) -> success
