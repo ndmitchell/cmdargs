@@ -39,7 +39,7 @@ hlint = HLint
     ,datadir = def &= typDir &= help "Override the data directory"
     ,cpp_define = def &= typ "NAME[=VALUE]" &= help "CPP #define"
     ,cpp_include = def &= typDir &= help "CPP include path"
-    ,files = def &= args &= typ "FILES/DIRS"
+    ,files = def &= args &= typ "FILE/DIR"
     } &=
     verbosity &=
     help "Suggest improvements to Haskell source code" &=
@@ -72,5 +72,4 @@ test = do
     ["--cpp-define=val","x"] === hlint{cpp_define=["val"],files=["x"]}
     fails ["--cpp-define"]
     ["--cpp-define","val","x","y"] === hlint{cpp_define=["val"],files=["x","y"]}
-
-
+    completion ["T"] (0,1) [CompleteFile "" "T", CompleteDir "" "T"]
