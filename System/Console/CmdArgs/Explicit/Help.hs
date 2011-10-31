@@ -78,8 +78,8 @@ helpText :: [String] -> HelpFormat -> Mode a -> [Text]
 helpText pre HelpFormatDefault x = helpPrefix pre ++ helpTextDefault x
 helpText pre HelpFormatOne x = helpPrefix pre ++ helpTextOne x
 helpText pre HelpFormatAll x = helpPrefix pre ++ helpTextAll x
-helpText pre HelpFormatBash x = completeBash $ head $ modeNames x ++ ["unknown"]
-helpText pre HelpFormatZsh x = completeZsh $ head $ modeNames x ++ ["unknown"]
+helpText pre HelpFormatBash x = map Line $ completeBash $ head $ modeNames x ++ ["unknown"]
+helpText pre HelpFormatZsh x = map Line $ completeZsh $ head $ modeNames x ++ ["unknown"]
 
 
 helpPrefix :: [String] -> [Text]
