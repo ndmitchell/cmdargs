@@ -49,7 +49,7 @@ $(cmdArgsQuote
 test = do
     let Tester{..} = testers "Diffy" [mode,mode_]
     fails []
-    isHelp ["--help"] []
+    isHelp ["--help"] ["diffy [COMMAND] ... [OPTIONS]"] -- FIXME: Should know that root is not valid, thus no brackets on [COMMAND]
     isHelp ["create","--help"] []
     isHelp ["diff","--help"] []
     isHelpNot ["--help"] ["diffy"]
