@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, RecordWildCards, TemplateHaskell, MagicHash #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields #-}
 module System.Console.CmdArgs.Test.Implicit.Diffy where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Quote
