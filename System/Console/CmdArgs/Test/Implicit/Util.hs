@@ -1,6 +1,9 @@
 {-# LANGUAGE PatternGuards #-}
 
-module System.Console.CmdArgs.Test.Implicit.Util where
+module System.Console.CmdArgs.Test.Implicit.Util(
+    module System.Console.CmdArgs.Test.Implicit.Util,
+    Complete(..)
+    ) where
 
 import System.Console.CmdArgs.Implicit
 import System.Console.CmdArgs.Explicit
@@ -29,19 +32,21 @@ data Tester a = Tester
     ,isHelpNot :: [String] -> [String] -> IO ()
     ,isVersion :: [String] -> String -> IO ()
     ,isVerbosity :: [String] -> Verbosity -> IO ()
+    ,completion :: [String] -> (Int,Int) -> [Complete] -> IO ()
     }
 
 testers :: (Show a, Eq a) => String -> [Mode (CmdArgs a)] -> Tester a
 testers name = foldr1 f . map (tester name)
     where
-        f (Tester x1 x2 x3 x4 x5 x6) (Tester y1 y2 y3 y4 y5 y6) =
-            Tester (f2 x1 y1) (f1 x2 y2) (f2 x3 y3) (f2 x4 y4) (f2 x5 y5) (f2 x6 y6)
+        f (Tester x1 x2 x3 x4 x5 x6 x7) (Tester y1 y2 y3 y4 y5 y6 y7) =
+            Tester (f2 x1 y1) (f1 x2 y2) (f2 x3 y3) (f2 x4 y4) (f2 x5 y5) (f2 x6 y6) (f3 x7 y7)
         f1 x y a = x a >> y a
         f2 x y a b = x a b >> y a b
+        f3 x y a b c = x a b c >> y a b c
 
 
 tester :: (Show a, Eq a) => String -> Mode (CmdArgs a) -> Tester a
-tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity
+tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity completion
     where
         failed msg args xs = failure msg $ ("Name","Implicit "++name):("Args",show args):xs
 
@@ -83,6 +88,12 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity
         isVerbosity args v = f args $ \x -> case x of
             Right x | fromMaybe Normal (cmdArgsVerbosity x) == v -> success
             _ -> failed "Failed on isVerbosity" args []
+
+        completion args pos res
+            | res == ans = success
+            | otherwise = failed "Failed on completion" args [("Position",show pos),("Want",shw res),("Got",shw ans)]
+            where ans = complete m args pos
+                  shw = intercalate ", " . lines . show
 
 
 match :: [String] -> [String] -> Bool
