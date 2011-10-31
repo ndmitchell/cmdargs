@@ -10,11 +10,19 @@ import Data.Maybe
 
 
 -- | How to complete a command line option.
+--   The 'Show' instance is suitable for parsing from shell scripts.
 data Complete
-    = CompleteFile String FilePath -- ^ Complete to a prefix, and a file
+    = CompleteValue String -- ^ Complete to a particular value
+    | CompleteFile String FilePath -- ^ Complete to a prefix, and a file
     | CompleteDir String FilePath -- ^ Complete to a prefix, and a directory
-    | CompleteValue String -- ^ Complete to a particular value
-      deriving (Eq,Ord,Show)
+      deriving (Eq,Ord)
+
+instance Show Complete where
+    show (CompleteValue a) = "VALUE " ++ a
+    show (CompleteFile a b) = "FILE " ++ a ++ " " ++ b
+    show (CompleteDir a b) = "DIR " ++ a ++ " " ++ b
+
+    showList xs = showString $ unlines (map show xs)
 
 
 prepend :: String -> Complete -> Complete
