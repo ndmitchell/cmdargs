@@ -132,6 +132,9 @@ expectFlagHelp :: FlagHelp -> String -> [Complete]
 expectFlagHelp typ x = case typ of
     "FILE" -> [CompleteFile "" x]
     "DIR" -> [CompleteDir "" x]
+    "FILE/DIR" -> [CompleteFile "" x, CompleteDir "" x]
+    "DIR/FILE" -> [CompleteDir "" x, CompleteFile "" x]
+    '[':s | "]" `isSuffixOf` s -> expectFlagHelp (init s) x
     _ -> []
 
 
