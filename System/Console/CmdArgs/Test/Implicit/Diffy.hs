@@ -66,4 +66,7 @@ test = do
     ["diff","foo1","foo2"] === diff{old="foo1",new="foo2"}
     fails ["diff","foo1"]
     fails ["diff","foo1","foo2","foo3"]
+    completion [] (0,0) [CompleteValue "create",CompleteValue "diff",CompleteValue "--out",CompleteValue "--help",CompleteValue "--version"]
+    completion ["d"] (0,1) [CompleteValue "diff"]
+    completion ["dd"] (0,2) []
 
