@@ -99,7 +99,7 @@ processArgs m = do
             let argInd = fromMaybe (length args - 1) $ readMay x
                 argPos = fromMaybe (if argInd >= 0 && argInd < length args then length (args !! argInd) else 0) $
                          readMay =<< lookup "CMDARGS_COMPLETE_POS" env
-            print $ complete m args (argInd,argPos)
+            print $ complete m (concatMap words args) (argInd,argPos)
             exitWith ExitSuccess
         Nothing -> do
             nam <- getProgName
