@@ -168,6 +168,7 @@ flagHelpFormat f = (flagOpt "" ["help","?"] upd "" "Display help message"){flagI
                     "html" -> Right (a,HTML)
                     "text" -> Right (a,defaultWrap)
                     "bash" -> Right (HelpFormatBash,Wrap 1000000)
+                    "zsh"  -> Right (HelpFormatZsh ,Wrap 1000000)
                     _ | all isDigit x -> Right (a,Wrap $ read x)
                     _ -> Left "unrecognised help format, expected one of: all one def html text <NUMBER>"
 
