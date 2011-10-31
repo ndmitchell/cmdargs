@@ -195,4 +195,4 @@ completeBash prog =
 -- ZSH SCRIPT
 
 completeZsh :: String -> [String]
-completeZsh = ["echo TODO: help add Zsh completions to cmdargs programs"]
+completeZsh _ = ["echo TODO: help add Zsh completions to cmdargs programs"]
