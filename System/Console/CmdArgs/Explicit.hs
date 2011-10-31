@@ -57,7 +57,7 @@ module System.Console.CmdArgs.Explicit(
     module System.Console.CmdArgs.Explicit.Help,
     -- * Utilities for working with command line
     module System.Console.CmdArgs.Explicit.SplitJoin,
-    module System.Console.CmdArgs.Explicit.Complete
+    Complete(..), complete
     ) where
 
 import System.Console.CmdArgs.Explicit.Type
