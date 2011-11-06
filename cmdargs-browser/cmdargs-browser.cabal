@@ -39,7 +39,7 @@ executable cmdargs-browser
         http-types,
         wai,
         wai-handler-launch,
-        cmdargs == 0.7.*
+        cmdargs == 0.9.*
 
     other-modules:
         Paths_cmdargs_browser
