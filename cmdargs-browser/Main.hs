@@ -4,22 +4,15 @@ module Main where
 import Network.Wai
 import Network.Wai.Handler.Launch
 import Control.Monad.IO.Class
-import Network.Wai
 import Network.HTTP.Types
-import Data.CaseInsensitive(original)
-import Blaze.ByteString.Builder(toLazyByteString)
-import Data.Enumerator.List(consume)
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Control.Exception
 import Data.String
 import Control.Concurrent
 import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as Text
 import Control.Monad
 import Control.Arrow
 import System.Environment
-import System.IO
 import System.FilePath
 import Data.Maybe
 import System.Console.CmdArgs.Helper
