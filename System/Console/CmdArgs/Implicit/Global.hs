@@ -26,13 +26,16 @@ global x = setReform (reform y) $ setHelp y $ collapse $ assignGroups y
 -- COLLAPSE THE FLAGS/MODES UPWARDS
 
 collapse :: Prog_ -> Mode (CmdArgs Any)
-collapse x | length ms == 1 = (head ms){modeNames=[progProgram x]}
+collapse x | length ms == 1 = (snd $ head ms){modeNames=[progProgram x]}
            | length auto > 1 = err "prog" "Multiple automatic modes"
-           | otherwise = (head $ map zeroMode auto ++ map emptyMode ms)
-                {modeNames=[progProgram x], modeGroupModes = toGroup ms, modeHelp = progHelp x}
+           | otherwise = (head $ map zeroMode auto ++ map (emptyMode . snd) ms)
+                {modeNames=[progProgram x], modeGroupModes=grouped, modeHelp=progHelp x}
     where
-        ms = map collapseMode $ progModes x
-        auto = [m | (m,True) <- zip ms $ map modeDefault $ progModes x]
+        grouped = Group (pick Nothing) [] [(g, pick $ Just g) | g <- nub $ mapMaybe (modeGroup . fst) ms]
+        pick x = [m | (m_,m) <- ms, modeGroup m_ == x]
+
+        ms = map (id &&& collapseMode) $ progModes x
+        auto = [m | (m_,m) <- ms, modeDefault m_]
 
 
 -- | A mode devoid of all it's contents

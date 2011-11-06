@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #433, propagate groupname on modes in the Implicit code
 0.9
     #467, add completions for people running bash
     #334, add a Quote module, to write pure in the impure syntax
