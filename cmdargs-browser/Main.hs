@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Text as Text
 import Control.Monad
 import Control.Arrow
+import System.Environment
 import System.IO
 import System.FilePath
 import Data.Maybe
@@ -35,17 +36,18 @@ txtUnpack = Text.unpack
 
 main :: IO ()
 main = do
+    args <- getArgs
     wait <- newEmptyMVar
     mc <- receive
-    thread <- forkIO $ run $ liftIO . talk mc wait
+    thread <- forkIO $ run $ liftIO . talk ("--verbose" `elem` args) mc wait
     res <- takeMVar wait
     killThread thread
     reply res
 
 
-talk :: Mode a -> MVar (Either String [String]) -> Request -> IO Response
-talk mode wait r = do
-    comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
+talk :: Bool -> Mode a -> MVar (Either String [String]) -> Request -> IO Response
+talk verbose mode wait r = do
+    when verbose $ comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
         ["res",x] -> do
             dir <- getDataDir
