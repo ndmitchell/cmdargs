@@ -3,7 +3,7 @@ build-type:         Simple
 name:               cmdargs-browser
 version:            0.1
 license:            BSD3
-license-file:       ../LICENSE
+license-file:       LICENSE
 category:           Console
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
