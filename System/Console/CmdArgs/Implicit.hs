@@ -208,7 +208,8 @@ modes = many
 -- | Flag: \"I want several different flags to set this one field to different values.\"
 --
 --   This annotation takes a type which is an enumeration, and provides multiple
---   separate flags to set the field to each value.
+--   separate flags to set the field to each value. The first element in the list
+--   is used as the value of the field.
 --
 -- > data State = On | Off deriving Data
 -- > data Mode = Mode {state :: State}
