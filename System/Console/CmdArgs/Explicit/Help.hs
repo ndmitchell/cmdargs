@@ -73,7 +73,8 @@ instance Show (Flag a) where
 instance Show (Arg a) where
     show = show . argType
 
--- | Generate a help message from a mode.
+-- | Generate a help message from a mode.  The first argument is a prefix,
+--   which is prepended when not using 'HelpFormatBash' or 'HelpFormatZsh'.
 helpText :: [String] -> HelpFormat -> Mode a -> [Text]
 helpText pre HelpFormatDefault x = helpPrefix pre ++ helpTextDefault x
 helpText pre HelpFormatOne x = helpPrefix pre ++ helpTextOne x

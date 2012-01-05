@@ -10,21 +10,25 @@
 
     As an example of a parser:
 
-  > arguments :: Mode [(String,String)]
-  > arguments = mode "explicit" [] "Explicit sample program" (flagArg (upd "file") "FILE")
-  >     [flagOpt "world" ["hello","h"] (upd "world") "WHO" "World argument"
-  >     ,flagReq ["greeting","g"] (upd "greeting") "MSG" "Greeting to give"
-  >     ,flagHelpSimple (("help",""):)]
-  >     where upd msg x v = Right $ (msg,x):v
+    @
+    arguments :: 'Mode' [(String,String)]
+    arguments = 'mode' \"explicit\" [] \"Explicit sample program\" ('flagArg' (upd \"file\") \"FILE\")
+        ['flagOpt' \"world\" [\"hello\",\"h\"] (upd \"world\") \"WHO\" \"World argument\"
+        ,'flagReq' [\"greeting\",\"g\"] (upd \"greeting\") \"MSG\" \"Greeting to give\"
+        ,'flagHelpSimple' ((\"help\",\"\"):)]
+        where upd msg x v = Right $ (msg,x):v
+    @
 
     And this can be invoked by:
 
-  > main = do
-  >     xs <- processArgs arguments
-  >     if ("help","") `elem` xs then
-  >         print $ helpText HelpFormatDefault arguments
-  >      else
-  >         print xs
+    @
+    main = do
+        xs <- 'processArgs' arguments
+        if (\"help\",\"\") \`elem\` xs then
+            print $ 'helpText' [] 'HelpFormatDefault' arguments
+         else
+            print xs
+    @
 
     /Groups/: The 'Group' structure allows flags/modes to be grouped for the purpose of
     displaying help. When processing command lines, the group structure is ignored.
