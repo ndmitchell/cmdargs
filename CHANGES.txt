@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.9.1
     Improve the documentation for the Explicit module
     #433, propagate groupname on modes in the Implicit code
 0.9
