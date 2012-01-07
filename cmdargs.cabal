@@ -84,7 +84,7 @@ library
 
 executable cmdargs
     main-is: Main.hs
-    if flag(testprog)
+    if flag(testprog) && flag(quotation)
         buildable: True
     else
         buildable: False
