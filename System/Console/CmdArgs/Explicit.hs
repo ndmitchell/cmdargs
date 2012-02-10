@@ -59,7 +59,8 @@ module System.Console.CmdArgs.Explicit(
     flagHelpSimple, flagHelpFormat, flagVersion, flagsVerbosity,
     -- * Displaying help
     module System.Console.CmdArgs.Explicit.Help,
-    -- * Utilities for working with command line
+    -- * Utilities for working with command lines
+    module System.Console.CmdArgs.Explicit.ExpandArgsAt,
     module System.Console.CmdArgs.Explicit.SplitJoin,
     Complete(..), complete
     ) where
@@ -67,6 +68,7 @@ module System.Console.CmdArgs.Explicit(
 import System.Console.CmdArgs.Explicit.Type
 import System.Console.CmdArgs.Explicit.Process
 import System.Console.CmdArgs.Explicit.Help
+import System.Console.CmdArgs.Explicit.ExpandArgsAt
 import System.Console.CmdArgs.Explicit.SplitJoin
 import System.Console.CmdArgs.Explicit.Complete
 import System.Console.CmdArgs.Default
@@ -82,7 +84,7 @@ import System.Exit
 import System.IO
 
 
--- | Process the flags obtained by @'getArgs'@ with a mode. Displays
+-- | Process the flags obtained by @'getArgs'@ and @'expandArgsAt'@ with a mode. Displays
 --   an error and exits with failure if the command line fails to parse, or returns
 --   the associated value. Implemented in terms of 'process'. This function makes
 --   use of the following environment variables:
@@ -110,7 +112,7 @@ processArgs m = do
             let var = mplus (lookup ("CMDARGS_HELPER_" ++ show (map toUpper $ head $ modeNames m ++ [nam])) env)
                             (lookup "CMDARGS_HELPER" env)
             case var of
-                Nothing -> run =<< getArgs
+                Nothing -> run =<< expandArgsAt =<< getArgs
                 Just cmd -> do
                     res <- execute cmd m []
                     case res of
@@ -131,7 +133,7 @@ readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
                 _ -> Nothing
 
 
--- | Process a list of flags (usually obtained from @getArgs@) with a mode. Displays
+-- | Process a list of flags (usually obtained from @'getArgs'@ and @'expandArgsAt'@) with a mode. Displays
 --   an error and exits with failure if the command line fails to parse, or returns
 --   the associated value. Implemeneted in terms of 'process'. This function
 --   does not take account of any environment variables that may be set

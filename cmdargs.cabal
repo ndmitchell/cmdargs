@@ -48,6 +48,7 @@ flag quotation
 library
     build-depends:
         base == 4.*,
+        filepath,
         transformers == 0.2.*,
         process >= 1.0 && < 1.2
 
@@ -70,6 +71,7 @@ library
         Data.Generics.Any
         Data.Generics.Any.Prelude
         System.Console.CmdArgs.Explicit.Complete
+        System.Console.CmdArgs.Explicit.ExpandArgsAt
         System.Console.CmdArgs.Explicit.Help
         System.Console.CmdArgs.Explicit.Process
         System.Console.CmdArgs.Explicit.SplitJoin

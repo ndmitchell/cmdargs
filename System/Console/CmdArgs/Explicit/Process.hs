@@ -7,7 +7,7 @@ import Data.List
 import Data.Maybe
 
 
--- | Process a list of flags (usually obtained from @getArgs@) with a mode. Returns
+-- | Process a list of flags (usually obtained from @getArgs@/@expandArgsAt@) with a mode. Returns
 --   @Left@ and an error message if the command line fails to parse, or @Right@ and
 --   the associated value.
 process :: Mode a -> [String] -> Either String a
