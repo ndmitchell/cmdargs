@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #539, specify the TH extension in the Cabal file
     Allow transformers 0.3.*
     Correct copyright in license and cabal file
 0.9.3

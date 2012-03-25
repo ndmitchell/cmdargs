@@ -55,6 +55,8 @@ library
     if flag(quotation)
         build-depends: template-haskell
         exposed-modules: System.Console.CmdArgs.Quote
+        -- See bug #539 for why this magic is required
+        extensions: TemplateHaskell
 
     exposed-modules:
         System.Console.CmdArgs
