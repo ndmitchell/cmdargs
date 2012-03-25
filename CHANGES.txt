@@ -1,5 +1,7 @@
 Changelog for CmdArgs
 
+0.9.5
+    Don't specify TH extension unless quotation is true
 0.9.4
     #539, specify the TH extension in the Cabal file
     Allow transformers 0.3.*
