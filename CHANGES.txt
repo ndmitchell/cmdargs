@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Allow transformers 0.3.*
     Correct copyright in license and cabal file
 0.9.3
     Add expandArgsAt and support for @ flag file directives
