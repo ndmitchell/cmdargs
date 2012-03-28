@@ -7,7 +7,7 @@ license-file:       LICENSE
 category:           Console
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2011
+copyright:          Neil Mitchell 2011-2012
 synopsis:           Helper to enter cmdargs command lines using a web browser
 description:
     Used in conjunction with a cmdargs enabled program to enter flags using a web browser,
