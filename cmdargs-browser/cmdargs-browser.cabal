@@ -29,7 +29,7 @@ executable cmdargs-browser
     main-is: Main.hs
     build-depends:
         base == 4.*,
-        transformers == 0.2.*,
+        transformers >= 0.2 && < 0.4,
         filepath,
         text,
         bytestring,
