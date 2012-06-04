@@ -70,6 +70,8 @@ toGroup x = Group x [] []
 --   * A list of flags ('modeGroupFlags')
 --
 --   * Optionally an unnamed argument ('modeArgs')
+--
+--  To produce the help information for a mode, either use 'helpText' or 'show'.
 data Mode a = Mode
     {modeGroupModes :: Group (Mode a) -- ^ The available sub-modes
     ,modeNames :: [Name] -- ^ The names assigned to this mode (for the root mode, this name is used as the program name)
