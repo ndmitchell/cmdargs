@@ -208,3 +208,13 @@ versionArg = ProgVersionArg
 -- > Sample{..} &= verbosityArgs [ignore] [name "silent", explicit]
 verbosityArgs :: [Ann] -> [Ann] -> Ann
 verbosityArgs = ProgVerbosityArgs
+
+
+-- | Program: \"Turn off \@ expansion.\"
+--
+--   Usually arguments starting with \@ are treated as a file containing
+--   a set of arguments. This annotation turns off that behaviour.
+--
+-- > Sample{..} &= noAtExpand
+noAtExpand :: Ann
+noAtExpand = ProgNoAtExpand

@@ -26,4 +26,5 @@ data Ann
     | ProgHelpArg [Ann]
     | ProgVersionArg [Ann]
     | ProgVerbosityArgs [Ann] [Ann]
+    | ProgNoAtExpand
       deriving (Eq,Ord,Show,Data,Typeable)

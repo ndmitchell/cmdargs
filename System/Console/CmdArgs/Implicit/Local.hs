@@ -30,9 +30,10 @@ data Prog_ = Prog_
     ,progVerbosityArgs :: (Maybe Builtin_, Maybe Builtin_) -- (verbose, quiet)
     ,progHelpArg :: Maybe Builtin_
     ,progVersionArg :: Maybe Builtin_
+    ,progNoAtExpand :: Bool
     } deriving Show
 instance Default Prog_ where
-    def = Prog_ def def def def def (Just def) (Just def)
+    def = Prog_ def def def def def (Just def) (Just def) def
 
 progOutput f x = fromMaybe ["The " ++ progProgram x ++ " program"] $
     (builtinSummary =<< f x) `mplus` progSummary x
@@ -153,6 +154,7 @@ progAnn (Help a) x | length (progModes x) > 1 = x{progHelp=a}
 progAnn (ProgHelpArg a) x = x{progHelpArg = builtinAnns (progHelpArg x) a}
 progAnn (ProgVersionArg a) x = x{progVersionArg = builtinAnns (progVersionArg x) a}
 progAnn (ProgVerbosityArgs a b) x = x{progVerbosityArgs=(builtinAnns (Just $ fromMaybe def $ fst $ progVerbosityArgs x) a, builtinAnns (Just $ fromMaybe def $ snd $ progVerbosityArgs x) b)}
+progAnn ProgNoAtExpand x = x{progNoAtExpand=True}
 progAnn a x | length (progModes x) == 1 = x{progModes = map (modeAnn a) $ progModes x}
 progAnn a x = err "program" $ show a
 

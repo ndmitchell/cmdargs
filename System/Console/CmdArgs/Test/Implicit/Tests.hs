@@ -305,7 +305,7 @@ test16 = do
 -- not actually checked because this path doesn't go through processArgs
 data Test17 = Test17 {test17_ :: [String]} deriving (Eq,Show,Data,Typeable)
 
-mode17 = cmdArgsMode $ Test17 ([] &= args)
+mode17 = cmdArgsMode $ Test17 ([] &= args) &= noAtExpand
 
 test17 = do
     let Tester{..} = tester "Test17" mode17

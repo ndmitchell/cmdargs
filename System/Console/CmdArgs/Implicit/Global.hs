@@ -19,8 +19,14 @@ import Data.Maybe
 
 
 global :: Prog_ -> Mode (CmdArgs Any)
-global x = setReform (reform y) $ setHelp y $ collapse $ assignGroups y
+global x = setReform (reform y) $ setHelp y $ setProgOpts x $ collapse $ assignGroups y
     where y = assignNames $ extraFlags x
+
+
+setProgOpts :: Prog_ -> Mode a -> Mode a
+setProgOpts p m = m{modeExpandAt = False -- not $ progNoAtExpand p
+                   ,modeGroupModes = fmap (setProgOpts p) $ modeGroupModes m}
+
 
 ---------------------------------------------------------------------
 -- COLLAPSE THE FLAGS/MODES UPWARDS
