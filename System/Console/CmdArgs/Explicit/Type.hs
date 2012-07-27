@@ -78,6 +78,8 @@ data Mode a = Mode
     ,modeValue :: a -- ^ Value to start with
     ,modeCheck :: a -> Either String a -- ^ Check the value reprsented by a mode is correct, after applying all flags
     ,modeReform :: a -> Maybe [String] -- ^ Given a value, try to generate the input arguments.
+    ,modeExpandAt :: Bool -- ^ Expand @\@@ arguments with 'expandArgsAt', defaults to 'True', only applied if using an 'IO' processing function.
+                          --   Only the root 'Mode's value will be used.
     ,modeHelp :: Help -- ^ Help text
     ,modeHelpSuffix :: [String] -- ^ A longer help suffix displayed after a mode
     ,modeArgs :: ([Arg a], Maybe (Arg a)) -- ^ The unnamed arguments, a series of arguments, followed optionally by one for all remaining slots
@@ -206,7 +208,7 @@ remapUpdate f g upd = \s v -> let (a,b) = g v in fmap b $ upd s a
 -- | Create an empty mode specifying only 'modeValue'. All other fields will usually be populated
 --   using record updates.
 modeEmpty :: a -> Mode a
-modeEmpty x = Mode mempty [] x Right (const Nothing) "" [] ([],Nothing) mempty
+modeEmpty x = Mode mempty [] x Right (const Nothing) True "" [] ([],Nothing) mempty
 
 -- | Create a mode with a name, an initial value, some help text, a way of processing arguments
 --   and a list of flags.

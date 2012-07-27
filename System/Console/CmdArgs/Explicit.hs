@@ -112,7 +112,7 @@ processArgs m = do
             let var = mplus (lookup ("CMDARGS_HELPER_" ++ show (map toUpper $ head $ modeNames m ++ [nam])) env)
                             (lookup "CMDARGS_HELPER" env)
             case var of
-                Nothing -> run =<< expandArgsAt =<< getArgs
+                Nothing -> run =<< (if modeExpandAt m then expandArgsAt else return) =<< getArgs
                 Just cmd -> do
                     res <- execute cmd m []
                     case res of
