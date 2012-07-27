@@ -301,6 +301,18 @@ test16 = do
     ["--test16a=5"] === Test16 (MyInt 5) []
     ["--test16b=5","--test16b=82"] === Test16 (MyInt 12) [MyInt 5, MyInt 82]
 
+-- #552, @ directives not expanded after -- symbols
+-- not actually checked because this path doesn't go through processArgs
+data Test17 = Test17 {test17_ :: [String]} deriving (Eq,Show,Data,Typeable)
+
+mode17 = cmdArgsMode $ Test17 ([] &= args)
+
+test17 = do
+    let Tester{..} = tester "Test17" mode17
+    [] === Test17 []
+    ["test","of","this"] === Test17 ["test","of","this"]
+    ["test","--","@foo"] === Test17 ["test","@foo"]
+
 
 -- For some reason, these must be at the end, otherwise the Template Haskell
 -- stage restriction kicks in.
@@ -310,7 +322,7 @@ test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> t
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
-        ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16]
+        ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16, toDemo mode17]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 

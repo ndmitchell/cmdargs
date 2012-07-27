@@ -11,9 +11,15 @@ import System.FilePath
 --
 --   Any @\@@ directives in the files will be recursively expanded (raising an error
 --   if there is infinite recursion).
+--
+--   To supress @\@@ expansion, pass any @\@@ arguments after @--@.
 expandArgsAt :: [String] -> IO [String]
-expandArgsAt = fmap concat . mapM (f [] ".")
+expandArgsAt args = do
+        ebefore <- mapM (f [] ".") before
+        return $ concat ebefore ++ after
     where
+        (before,after) = break (== "--") args
+
         f seen dir ('@':x)
             | x `elem` seen = error $ unlines $
                 "System.Console.CmdArgs.Explicit.expandArgsAt, recursion in @ directives:" :

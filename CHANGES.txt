@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #522, don't @expand after --
 0.9.5
     Don't specify TH extension unless quotation is true
 0.9.4
