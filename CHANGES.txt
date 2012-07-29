@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.9.6
     #539, hopefully more fixes to compiling in profile mode
     #522, add modeExpandAt and noAtExpand annotation
     #522, don't @expand after --
