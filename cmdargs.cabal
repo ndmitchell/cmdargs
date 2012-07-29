@@ -88,6 +88,8 @@ library
 
 executable cmdargs
     main-is: Main.hs
+    if flag(quotation)
+        extensions: TemplateHaskell
     if flag(testprog) && flag(quotation)
         buildable: True
     else
