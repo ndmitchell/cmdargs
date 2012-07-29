@@ -276,7 +276,8 @@ instance Packer a => Packer (Mode a) where
         ,add "modeGroupFlags" modeGroupFlags
         ,add "modeValue" modeValue
         ,add "modeCheck" modeCheck
-        ,add "modeReform" modeReform]
+        ,add "modeReform" modeReform
+        ,add "modeExpandAt" modeExpandAt]
     unpack x = let y = ctor "Mode" x in Mode
         {modeGroupModes = get "modeGroupModes" y
         ,modeNames = get "modeNames" y
@@ -286,7 +287,8 @@ instance Packer a => Packer (Mode a) where
         ,modeGroupFlags = get "modeGroupFlags" y
         ,modeValue = get "modeValue" y
         ,modeCheck = get "modeCheck" y
-        ,modeReform = get "modeReform" y}
+        ,modeReform = get "modeReform" y
+        ,modeExpandAt = get "modeExpandAt" y}
 
 instance Packer a => Packer (Flag a) where
     pack Flag{..} = Ctor "Flag"
