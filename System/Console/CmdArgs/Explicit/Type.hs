@@ -63,7 +63,9 @@ toGroup x = Group x [] []
 ---------------------------------------------------------------------
 -- TYPES
 
--- | A mode. Each mode has three main features:
+-- | A mode. Do not use the 'Mode' constructor directly, instead
+--   use 'mode' to construct the 'Mode' and then record updates.
+--   Each mode has three main features:
 --
 --   * A list of submodes ('modeGroupModes')
 --
