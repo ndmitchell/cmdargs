@@ -1,5 +1,9 @@
 Changelog for CmdArgs
 
+0.10
+    Revert to 0.9.6, including modeExpandAt
+0.9.7
+    Revert to 0.9.5, to fix up PVP breakage
 0.9.6
     #539, hopefully more fixes to compiling in profile mode
     #522, add modeExpandAt and noAtExpand annotation
