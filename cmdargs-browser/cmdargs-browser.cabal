@@ -1,7 +1,7 @@
 cabal-version:      >= 1.6
 build-type:         Simple
 name:               cmdargs-browser
-version:            0.1.1
+version:            0.1.2
 license:            BSD3
 license-file:       LICENSE
 category:           Console
@@ -36,7 +36,7 @@ executable cmdargs-browser
         http-types,
         wai,
         wai-handler-launch,
-        cmdargs == 0.9.*
+        cmdargs >= 0.9 && < 1.11
 
     other-modules:
         Paths_cmdargs_browser
