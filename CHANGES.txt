@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Add a missing case for Helper marshalling FlagNone
 0.10
     Revert to 0.9.6, including modeExpandAt
 0.9.7
