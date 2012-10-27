@@ -323,4 +323,5 @@ instance Packer FlagInfo where
         "FlagReq" -> FlagReq
         "FlagOpt" -> FlagOpt $ get "fromFlagOpt" $ ctor name x
         "FlagOptRare" -> FlagOpt $ get "fromFlagOpt" $ ctor name x
+        "FlagNone" -> FlagNone
     unpack _ = FlagNone
