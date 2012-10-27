@@ -1,0 +1,3 @@
+:set -w -fwarn-unused-binds -fwarn-unused-imports
+:set -i.:Paths
+:load Main
