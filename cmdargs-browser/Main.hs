@@ -44,17 +44,17 @@ talk verbose mode wait r = do
     case path of
         ["res",x] -> do
             dir <- getDataDir
-            return $ ResponseFile status200 [noCache, headerContentType $ fromString $ mime $ takeExtension x] (dir </> x) Nothing
+            return $ ResponseFile status200 [noCache, (hContentType, fromString $ mime $ takeExtension x)] (dir </> x) Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
         ["check"] -> return $ responseLBS status200 [] $ fromString $ fromMaybe "" $ check mode 0 $ splitArgs $ fromMaybe "" argument
-        [] -> return $ responseLBS status200 [noCache, headerContentType $ fromString "text/html"] $ fromString $ contents mode
+        [] -> return $ responseLBS status200 [noCache, (hContentType, fromString "text/html")] $ fromString $ contents mode
         _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
     where
         path = map txtUnpack $ pathInfo r
         argument = fmap bsUnpack $ join $ lookup (fromString "arg") (queryString r)
-        exit val = do putMVar wait val; return $ responseLBS status200 [headerContentType $ fromString "text/plain"] $ fromString ""
-        noCache = headerCacheControl $ fromString "no-cache"
+        exit val = do putMVar wait val; return $ responseLBS status200 [(hContentType, fromString "text/plain")] $ fromString ""
+        noCache = (hCacheControl, fromString "no-cache")
 
 
 check :: Mode a -> Int -> [String] -> Maybe String
