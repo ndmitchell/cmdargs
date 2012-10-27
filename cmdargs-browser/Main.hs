@@ -10,6 +10,7 @@ import Network.HTTP.Types
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.String
 import Control.Concurrent
+import Control.Exception
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.Text as Text
 import Control.Monad
@@ -42,7 +43,7 @@ main = do
 
 
 talk :: Bool -> Mode a -> MVar (Either String [String]) -> Request -> IO Response
-talk verbose mode wait r = do
+talk verbose mode wait r = handle err $ do
     when verbose $ comment $ bsUnpack (rawPathInfo r) ++ " " ++ maybe "" show argument
     case path of
         ["res",x] -> do
@@ -50,13 +51,15 @@ talk verbose mode wait r = do
             return $ ResponseFile status200 [noCache, (hContentType, fromString $ mime $ takeExtension x)] (dir </> x) Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
-        ["check"] -> return $ responseLBS status200 [] $ fromString $ fromMaybe "" $ check mode 0 $ splitArgs $ fromMaybe "" argument
-        [] -> return $ responseLBS status200 [noCache, (hContentType, fromString "text/html")] $ fromString $ contents mode
-        _ -> return $ responseLBS status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
+        ["check"] -> respond status200 [] $ fromString $ fromMaybe "" $ check mode 0 $ splitArgs $ fromMaybe "" argument
+        [] -> respond status200 [noCache, (hContentType, fromString "text/html")] $ fromString $ contents mode
+        _ -> respond status404 [] $ fromString $ "URL not found: " ++ bsUnpack (rawPathInfo r)
     where
+        respond a b c = do evaluate $ LBS.length c; return $ responseLBS a b c -- try and get decent error messages
+        err (x :: SomeException) = respond status500 [noCache, (hContentType, fromString "text/plain")] $ fromString $ "EXCEPTION:\n" ++ show x
         path = map txtUnpack $ pathInfo r
         argument = fmap bsUnpack $ join $ lookup (fromString "arg") (queryString r)
-        exit val = do putMVar wait val; return $ responseLBS status200 [(hContentType, fromString "text/plain")] $ fromString ""
+        exit val = do putMVar wait val; respond status200 [(hContentType, fromString "text/plain")] $ fromString ""
         noCache = (hCacheControl, fromString "no-cache")
 
 
