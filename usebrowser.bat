@@ -1,1 +1,13 @@
-set CMDARGS_HELPER="(cd c:\spacework\cmdargs\cmdargs-browser && runhaskell -i..:Paths Main.hs)" 
+@echo off
+set cmdargs=
+if exist c:\spacework\cmdargs set cmdargs=c:\spacework\cmdargs
+if exist c:\Neil\cmdargs set cmdargs=c:\Neil\cmdargs
+if "%cmdargs%" == "" goto fail
+
+set CMDARGS_HELPER="(cd %cmdargs%\cmdargs-browser && runhaskell -i..:Paths Main.hs)" 
+goto finish
+
+:fail
+echo Failed to find cmdargs repo on this machine
+
+:finish
