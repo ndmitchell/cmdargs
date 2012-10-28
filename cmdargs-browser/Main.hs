@@ -17,6 +17,7 @@ import Control.Monad
 import Control.Arrow
 import System.Environment
 import System.FilePath
+import Data.Char
 import Data.Maybe
 import Data.List
 import System.Console.CmdArgs.Helper
@@ -86,7 +87,7 @@ contents mode = unlines
     ,"<link type='image/png' rel='icon' href='/res/cmdargs.png' />"
     ,"<script src='/res/jquery-1.4.2.js'></script>"
     ,"<script>"
-    ,"var mode = " ++ json mode ++ ";"
+    ,"var mode = " ++ fromJ (json mode) ++ ";"
     ,"</script>"
     ,"<script src='/res/cmdargs.js'></script>"
     ,"<link type='text/css' rel='stylesheet' href='res/cmdargs.css' />"
@@ -103,30 +104,33 @@ contents mode = unlines
 ---------------------------------------------------------------------
 -- JSON conversion
 
-class JSON a where json :: a -> String
+class JSON a where json :: a -> J
 
-(@=) :: JSON a => String -> a -> (String,String)
+newtype J = J {fromJ :: String}
+
+(@=) :: JSON a => String -> a -> (String,J)
 (@=) a b = (a, json b)
 
-jsonFields :: [(String, String)] -> String
-jsonFields xs = "{" ++ intercalate "," [a ++ ":" ++ b | (a,b) <- xs] ++ "}"
+jsonFields :: [(String, J)] -> J
+jsonFields xs = J $ "{" ++ intercalate "," [a ++ ":" ++ b | (a,J b) <- xs] ++ "}"
 
-instance JSON Bool where json = show
-instance JSON [Char] where json = show
+instance JSON Bool where json = J . map toLower . show
+instance JSON [Char] where json = J . show
+instance JSON J where json = id
 
 instance JSON a => JSON [a] where
-    json xs = "[" ++ intercalate "," (map json xs) ++ "]"
+    json xs = J $ "[" ++ intercalate "," (map (fromJ . json) xs) ++ "]"
 
 instance JSON a => JSON (Maybe a) where
-    json Nothing = "null"
+    json Nothing = J "null"
     json (Just x) = json x
 
 instance (JSON a, JSON b) => JSON (a, b) where
-    json (a, b) = "[" ++ json a ++ "," ++ json b ++ "]"
+    json (a, b) = J $ "[" ++ fromJ (json a) ++ "," ++ fromJ (json b) ++ "]"
 
 
 instance JSON (Mode a) where
-    json Mode{..} = json
+    json Mode{..} = jsonFields
         ["modes" @= modeGroupModes
         ,"names" @= modeNames
         ,"expandAt" @= modeExpandAt
