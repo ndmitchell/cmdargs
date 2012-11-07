@@ -19,6 +19,7 @@ data-files:
     cmdargs.css
     cmdargs.js
     favicon.png
+    cmdargs.png
     jquery-1.4.2.js
 
 source-repository head
