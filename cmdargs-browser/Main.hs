@@ -85,7 +85,7 @@ contents mode = unlines
     ,"<head>"
     ,"<title>" ++ prog ++ " arguments</title>"
     ,"<link type='image/png' rel='icon' href='/res/favicon.png' />"
-    ,"<script src='/res/jquery-1.4.2.js'></script>"
+    ,"<script src='/res/jquery.js'></script>"
     ,"<script>"
     ,"var mode = " ++ fromJ (json mode) ++ ";"
     ,"</script>"

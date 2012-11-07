@@ -20,7 +20,7 @@ data-files:
     cmdargs.js
     favicon.png
     cmdargs.png
-    jquery-1.4.2.js
+    jquery.js
 
 source-repository head
     type:     darcs
