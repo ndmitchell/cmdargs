@@ -18,7 +18,7 @@ stability:          Beta
 data-files:
     cmdargs.css
     cmdargs.js
-    cmdargs.png
+    favicon.png
     jquery-1.4.2.js
 
 source-repository head
