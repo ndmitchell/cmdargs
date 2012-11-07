@@ -33,6 +33,8 @@ executable cmdargs-browser
         transformers >= 0.2 && < 0.4,
         filepath,
         text,
+        directory,
+        process,
         bytestring,
         http-types,
         wai,

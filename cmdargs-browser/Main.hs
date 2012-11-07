@@ -17,8 +17,11 @@ import Control.Monad
 import Control.Arrow
 import System.Environment
 import System.FilePath
+import System.Process
+import System.Exit
 import Data.Char
 import Data.Maybe
+import System.Directory
 import Data.List
 import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Explicit
@@ -31,16 +34,40 @@ lbsUnpack = LBS.unpack
 bsUnpack = BS.unpack
 txtUnpack = Text.unpack
 
-
 main :: IO ()
 main = do
     args <- getArgs
-    wait <- newEmptyMVar
-    mc <- receive
-    thread <- forkIO $ run $ liftIO . talk ("--verbose" `elem` args) mc wait
-    res <- takeMVar wait
-    killThread thread
-    reply res
+    case args of
+        x:xs | not $ "-" `isPrefixOf` x -> do
+            helper <- findHelper
+            env <- getEnvironment
+            (_, _, _, hdl) <- createProcess (proc x xs){env = Just $ ("CMDARGS_HELPER",helper):env}
+            exitWith =<< waitForProcess hdl
+        _ -> do
+            wait <- newEmptyMVar
+            mc <- receive
+            thread <- forkIO $ run $ liftIO . talk ("--verbose" `elem` args) mc wait
+            res <- takeMVar wait
+            killThread thread
+            reply res
+
+
+findHelper :: IO String
+findHelper = do
+    prog <- getProgName
+    if prog == "<interactive>" then do
+        -- Running on a development system in GHCi, try and find the source then run appropriately
+        let poss = ["C:/Neil", "C:/spacework"]
+        poss <- filterM (\x -> doesFileExist $ x ++ "/cmdargs/Main.hs") poss
+        case poss of
+            [] -> error "Running cmdargs-browser in GHCi, but can't find source code"
+            x:_ -> return $ "(cd " ++ x ++ "/cmdargs/cmdargs-browser && runhaskell -i..:Paths Main.hs)"
+     else do
+        -- Check it is on the path
+        res <- findExecutable "cmdargs-browser"
+        case res of
+            Nothing -> error "Could not find cmdargs-browser on your $PATH, this is required (if this restriction is limiting, please email Neil)"
+            Just _ -> return "cmdargs-browser"
 
 
 talk :: Bool -> Mode a -> MVar (Either String [String]) -> Request -> IO Response
