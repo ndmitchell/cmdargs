@@ -322,6 +322,6 @@ instance Packer FlagInfo where
     unpack x@(Ctor name _) = case name of
         "FlagReq" -> FlagReq
         "FlagOpt" -> FlagOpt $ get "fromFlagOpt" $ ctor name x
-        "FlagOptRare" -> FlagOpt $ get "fromFlagOpt" $ ctor name x
+        "FlagOptRare" -> FlagOptRare $ get "fromFlagOpt" $ ctor name x
         "FlagNone" -> FlagNone
     unpack _ = FlagNone
