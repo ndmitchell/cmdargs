@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+	Complete revamp of cmdargs-browser, far better Javascript
     Add a missing case for Helper marshalling FlagNone
 0.10
     Revert to 0.9.6, including modeExpandAt
