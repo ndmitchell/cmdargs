@@ -38,7 +38,7 @@ source-repository head
     location: http://community.haskell.org/~ndm/darcs/cmdargs/
 
 flag testprog
-    default: True
+    default: False
     description: Build the test program
 
 flag quotation

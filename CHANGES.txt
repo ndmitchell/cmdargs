@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #569, set the test program to off by default
 	Complete revamp of cmdargs-browser, far better Javascript
     Add a missing case for Helper marshalling FlagNone
 0.10
