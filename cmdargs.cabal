@@ -49,8 +49,8 @@ library
     build-depends:
         base == 4.*,
         filepath,
-        transformers >= 0.2 && < 0.4,
-        process >= 1.0 && < 1.2
+        transformers >= 0.2,
+        process >= 1.0
 
     if flag(quotation)
         build-depends: template-haskell

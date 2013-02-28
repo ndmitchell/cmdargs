@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Relax upper bounds to be GHC 7.7 compatible
 0.10.1
     #569, set the test program to off by default
 	Complete revamp of cmdargs-browser, far better Javascript
