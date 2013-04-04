@@ -15,6 +15,7 @@ import System.Console.CmdArgs.Implicit.Reader
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Annotate
 import System.Console.CmdArgs.Default
+import qualified Data.Generics.Any.Prelude as A
 
 import Control.Monad
 import Data.Char
@@ -124,7 +125,9 @@ flag_ name x = errFlag name $ show x
 enum_ :: String -> Capture Ann -> [Flag_]
 enum_ name (Ann Ignore _) = []
 enum_ name (Ann a b) = map (flagAnn a) $ enum_ name b
-enum_ name (Value x) = [def{flagField=name, flagFlag = flagNone [] (fmap $ setField (name,x)) "", flagEnum=Just $ ctor x}]
+enum_ name (Value x) = [def{flagField=name, flagFlag = flagNone [] (fmap upd) "", flagEnum=Just $ ctor x}]
+    where upd v | not (A.isString x) && A.isList x = setField (name, getField name v `A.append` x) v
+                | otherwise = setField (name,x) v
 enum_ name x@Ctor{} = enum_ name $ Value $ fromCapture x
 enum_ name x = errFlag name $ show x
 
