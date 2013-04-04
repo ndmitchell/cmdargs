@@ -117,13 +117,14 @@ flag_ name (Ann Ignore _) = []
 flag_ name (Ann a b) = map (flagAnn a) $ flag_ name b
 flag_ name (Value x) = [def{flagField=name, flagFlag = remap embed reembed $ value_ name x}]
 flag_ name x@Ctor{} = flag_ name $ Value $ fromCapture x
-flag_ name (Many xs) = map (enum_ name) xs
+flag_ name (Many xs) = concatMap (enum_ name) xs
 flag_ name x = errFlag name $ show x
 
 
-enum_ :: String -> Capture Ann -> Flag_
-enum_ name (Ann a b) = flagAnn a $ enum_ name b
-enum_ name (Value x) = def{flagField=name, flagFlag = flagNone [] (fmap $ setField (name,x)) "", flagEnum=Just $ ctor x}
+enum_ :: String -> Capture Ann -> [Flag_]
+enum_ name (Ann Ignore _) = []
+enum_ name (Ann a b) = map (flagAnn a) $ enum_ name b
+enum_ name (Value x) = [def{flagField=name, flagFlag = flagNone [] (fmap $ setField (name,x)) "", flagEnum=Just $ ctor x}]
 enum_ name x@Ctor{} = enum_ name $ Value $ fromCapture x
 enum_ name x = errFlag name $ show x
 

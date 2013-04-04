@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Support &= ignore on enum fields
 0.10.2
     Relax upper bounds to be GHC 7.7 compatible
 0.10.1
