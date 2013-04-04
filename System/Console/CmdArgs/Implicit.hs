@@ -216,6 +216,13 @@ modes = many
 -- > cmdArgs $ Mode {state = enum [On &= help "Turn on",Off &= help "Turn off"]}
 -- >   --on   Turn on
 -- >   --off  Turn off
+--
+--   This annotation can be used to allow multiple flags within a field:
+--
+-- > data Mode = Mode {state :: [State]}
+-- > cmdArgs $ Mode {state = enum [[] &= ignore, [On] &= help "Turn on", [Off] &= help "Turn off"]}
+--
+--   Now @--on --off@ would produce @Mode [On,Off]@.
 enum :: Data val => [val] -> val
 enum = many
 
