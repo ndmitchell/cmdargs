@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.10.3
     Append list items under an enum
     Support &= ignore on enum fields
 0.10.2
