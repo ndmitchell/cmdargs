@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #610, make sure it is O(n) to append arguments, not O(n^2)
 0.10.3
     Append list items under an enum
     Support &= ignore on enum fields

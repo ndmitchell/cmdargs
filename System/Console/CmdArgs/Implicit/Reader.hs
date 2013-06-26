@@ -16,6 +16,7 @@ data Reader = Reader
     {readerHelp :: String
     ,readerBool :: Bool
     ,readerParts :: Int
+    ,readerFixup :: Any -> Any -- If a list, then 'reverse', otherwise nothing, so we can build up using cons in O(n)
     ,readerRead :: Any -> String -> Either String Any
     }
 
@@ -26,15 +27,15 @@ readerRead_ r = readerRead r $ error "Invariant broken: reader/reader_"
 reader :: Any -> Maybe Reader
 reader x | A.isList x && not (A.isString x) = do
     r <- reader_ $ A.fromList x
-    return r{readerRead = \o s -> fmap (A.append o . A.list_ x) $ readerRead_ r s}
+    return r{readerRead = \o s -> fmap (`A.cons` o) $ readerRead_ r s, readerFixup = A.reverse}
 reader x = reader_ x
 
 
 reader_ :: Any -> Maybe Reader
-reader_ x | A.isString x = Just $ Reader "ITEM" False 1 $ const $ Right . Any
+reader_ x | A.isString x = Just $ Reader "ITEM" False 1 id $ const $ Right . Any
 
 
-reader_ x | typeName x == "Bool" = Just $ Reader "BOOL" True 1 $ const $ \s ->
+reader_ x | typeName x == "Bool" = Just $ Reader "BOOL" True 1 id $ const $ \s ->
     maybe (Left $ "Could not read as boolean, " ++ show s) (Right . Any) $ parseBool s
 
 
@@ -46,7 +47,7 @@ reader_ x | res:_ <- catMaybes
     where
         ty = typeOf x
         f hlp t | typeOf (Any t) /= ty = Nothing
-                | otherwise = Just $ Reader hlp False 1 $ const $ \s -> case reads s of
+                | otherwise = Just $ Reader hlp False 1 id $ const $ \s -> case reads s of
             [(x,"")] -> Right $ Any $ x `asTypeOf` t
             _ -> Left $ "Could not read as type " ++ show (typeOf $ Any t) ++ ", " ++ show s
 
@@ -62,7 +63,7 @@ reader_ x | A.isMaybe x = do
 
 
 reader_ x | isAlgType x && length xs > 1 && all ((==) 0 . arity . snd) xs
-    = Just $ Reader (map toUpper $ typeShell x) (typeName x == "Bool") 1 $ const $ rd . map toLower
+    = Just $ Reader (map toUpper $ typeShell x) (typeName x == "Bool") 1 id $ const $ rd . map toLower
     where
         xs = [(map toLower c, compose0 x c) | c <- ctors x]
 
@@ -77,7 +78,7 @@ reader_ x | isAlgType x, [c] <- ctors x, x <- compose0 x c = do
     let cs = children x
     rs <- mapM reader_ cs
     let n = sum $ map readerParts rs
-    return $ Reader (uncommas $ map readerHelp rs) (map readerBool rs == [True]) n $ const $ \s ->
+    return $ Reader (uncommas $ map readerHelp rs) (map readerBool rs == [True]) n id $ const $ \s ->
         let ss = commas s in
         if n == 1 then fmap (recompose x . return) $ readerRead_ (head $ filter ((==) 1 . readerParts) rs) s
         else if length ss /= n then Left "Incorrect number of commas for fields"

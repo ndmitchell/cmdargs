@@ -5,7 +5,7 @@
 --   constraints.
 module System.Console.CmdArgs.Implicit.Local(
     local, err,
-    Prog_(..), Builtin_(..), Mode_(..), Flag_(..), isFlag_,
+    Prog_(..), Builtin_(..), Mode_(..), Flag_(..), Fixup(..), isFlag_,
     progHelpOutput, progVersionOutput
     ) where
 
@@ -70,15 +70,22 @@ data Flag_
         ,flagExplicit :: Bool
         ,flagGroup :: Maybe String
         ,flagEnum :: Maybe String -- if you are an enum, what is your string value
+        ,flagFixup :: Fixup
         }
     | Arg_
         {flagArg_ :: Arg (CmdArgs Any)
         ,flagArgPos :: Maybe Int
         ,flagArgOpt :: Maybe String
+        ,flagFixup :: Fixup
         }
       deriving Show
 instance Default Flag_ where
-    def = Flag_ "" (error "Flag_ undefined") def def def
+    def = Flag_ "" (error "Flag_ undefined") def def def def
+
+newtype Fixup = Fixup (Any -> Any)
+
+instance Default Fixup where def = Fixup id
+instance Show Fixup where show _ = "Fixup"
 
 isFlag_ Flag_{} = True
 isFlag_ _ = False
@@ -116,7 +123,7 @@ mode_ x = err "mode" $ show x
 flag_ :: String -> Capture Ann -> [Flag_]
 flag_ name (Ann Ignore _) = []
 flag_ name (Ann a b) = map (flagAnn a) $ flag_ name b
-flag_ name (Value x) = [def{flagField=name, flagFlag = remap embed reembed $ value_ name x}]
+flag_ name (Value x) = let (fix,flg) = value_ name x in [def{flagField=name, flagFlag=remap embed reembed flg, flagFixup=fix}]
 flag_ name x@Ctor{} = flag_ name $ Value $ fromCapture x
 flag_ name (Many xs) = concatMap (enum_ name) xs
 flag_ name x = errFlag name $ show x
@@ -132,19 +139,21 @@ enum_ name x@Ctor{} = enum_ name $ Value $ fromCapture x
 enum_ name x = errFlag name $ show x
 
 
-value_ :: String -> Any -> Flag Any
+-- Fixup (ends up in modeCheck) and the flag itself
+value_ :: String -> Any -> (Fixup, Flag Any)
 value_ name x
     | isNothing mty = errFlag name $ show x
     | readerBool ty =
         let f (Right x) = x
             upd b x = setField (name, f $ readerRead ty (getField name x) $ show b) x
-        in flagBool [] upd ""
+        in (fixup, flagBool [] upd "")
     | otherwise =
         let upd s x = fmap (\c -> setField (name,c) x) $ readerRead ty (getField name x) s
-        in flagReq [] upd (readerHelp ty) ""
+        in (fixup, flagReq [] upd (readerHelp ty) "")
     where
         mty = reader x
         ty = fromJust mty
+        fixup = Fixup $ \x -> setField (name,readerFixup ty $ getField name x) x
 
 
 ---------------------------------------------------------------------
@@ -200,9 +209,9 @@ flagAnn (GroupName a) x@Flag_{} = x{flagGroup=Just a}
 flagAnn a x = errFlag (head $ words $ show x) $ show a
 
 toArg :: Flag_ -> Maybe Int -> Flag_
-toArg (Flag_ fld x False Nothing Nothing) pos
+toArg (Flag_ fld x False Nothing Nothing fix) pos
     | null (flagNames x), null (flagHelp x), Just y <- opt $ flagInfo x
-    = Arg_ (Arg (flagValue x) (flagType x) (isNothing y)) pos y
+    = Arg_ (Arg (flagValue x) (flagType x) (isNothing y)) pos y fix
     where
         opt FlagReq = Just Nothing
         opt (FlagOpt x) = Just (Just x)

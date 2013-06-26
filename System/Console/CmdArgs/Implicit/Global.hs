@@ -61,9 +61,15 @@ zeroMode x = x
 
 collapseMode :: Mode_ -> Mode (CmdArgs Any)
 collapseMode x =
+    applyFixups (map flagFixup $ modeFlags_ x) $
     collapseArgs [x | x@Arg_{} <- modeFlags_ x] $
     collapseFlags [x | x@Flag_{} <- modeFlags_ x] $
     modeMode x
+
+
+applyFixups :: [Fixup] -> Mode (CmdArgs Any) -> Mode (CmdArgs Any)
+applyFixups xs m = m{modeCheck = either Left (Right . fmap fix) . modeCheck m}
+    where fix a = foldr ($) a [x | Fixup x <- xs]
 
 
 collapseFlags :: [Flag_] -> Mode (CmdArgs Any) -> Mode (CmdArgs Any)
