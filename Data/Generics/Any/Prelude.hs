@@ -39,6 +39,12 @@ append x y | typeOf x == typeOf y = f x y
                        Nothing -> y
                        Just (a,b) -> cons a $ f b y
 
+reverse :: AnyT [a] -> AnyT [a]
+reverse xs | isList xs = rev xs (nil_ xs)
+    where rev xs acc = case uncons xs of
+                           Nothing -> acc
+                           Just (x,xs) -> rev xs (cons x acc)
+
 
 isString x = typeName x == "[Char]"
 isList x = typeShell x == "[]"
