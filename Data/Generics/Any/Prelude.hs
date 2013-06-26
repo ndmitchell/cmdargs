@@ -16,6 +16,11 @@ tail (decompose -> ("(:)",[_,x])) = x
 cons :: AnyT a -> AnyT [a] -> AnyT [a]
 cons x y = compose y "(:)" [x,y]
 
+uncons :: AnyT [a] -> Maybe (AnyT a, AnyT [a])
+uncons x = case decompose x of
+    ("[]",[]) -> Nothing
+    ("(:)",[a,b]) -> Just (a,b)
+
 null :: AnyT [a] -> Bool
 null x | isList x = ctor x == "[]"
 
