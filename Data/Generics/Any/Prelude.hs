@@ -35,8 +35,9 @@ list_ w x = cons x $ nil_ w
 
 append :: AnyT [a] -> AnyT [a] -> AnyT [a]
 append x y | typeOf x == typeOf y = f x y
-    where f x y | null x = y
-                | otherwise = cons (head x) (f (tail x) y)
+    where f x y = case uncons x of
+                       Nothing -> y
+                       Just (a,b) -> cons a $ f b y
 
 
 isString x = typeName x == "[Char]"
