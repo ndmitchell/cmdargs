@@ -336,16 +336,28 @@ test19 = do
     args === Test19 args
 
 
+-- #615, newtype wrappers of lists/Maybe should accumulate properly
+
+newtype Test20A = Test20A [String] deriving (Eq,Show,Data,Typeable)
+data Test20 = Test20 {test20_ :: Test20A} deriving (Eq,Show,Data,Typeable)
+
+mode20 = cmdArgsMode $ Test20 (Test20A [] &= args)
+
+test20 = do
+    let Tester{..} = tester "Test20" mode20
+    ["a","b","c"] === Test20 (Test20A ["a","b","c"])
+
+
 -- For some reason, these must be at the end, otherwise the Template Haskell
 -- stage restriction kicks in.
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12 >> test13 >> test14 >> test15 >> test16 >> test18 >> test19
+       test11 >> test12 >> test13 >> test14 >> test15 >> test16 >> test18 >> test19 >> test20
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
         ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16, toDemo mode17, toDemo mode18
-        ,toDemo mode19]
+        ,toDemo mode19, toDemo mode20]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
 
 

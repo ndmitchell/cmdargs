@@ -20,7 +20,8 @@ data Reader = Reader
     ,readerRead :: Any -> String -> Either String Any
     }
 
--- reader tries to use the first argument to readerRead, but reader_ doesn't
+-- reader has an actual value of type Any that can be inspected
+-- reader_ has a value of type _|_ instead
 readerRead_ r = readerRead r $ error "Invariant broken: reader/reader_"
 
 
@@ -28,6 +29,14 @@ reader :: Any -> Maybe Reader
 reader x | A.isList x && not (A.isString x) = do
     r <- reader_ $ A.fromList x
     return r{readerRead = \o s -> fmap (`A.cons` o) $ readerRead_ r s, readerFixup = A.reverse}
+reader x | isAlgType x, [ctor] <- ctors x, [child] <- children x = do
+    -- newtype wrapper, just forward it
+    r <- reader child
+    let down = head . children
+    let up o c = recompose o [c]
+    return r{readerFixup = \x -> up x $ readerFixup r $ down x
+            ,readerRead = \x -> either Left (Right . up x) . readerRead r (down x)
+            }
 reader x = reader_ x
 
 
