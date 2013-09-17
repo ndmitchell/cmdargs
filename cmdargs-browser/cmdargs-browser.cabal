@@ -36,9 +36,9 @@ executable cmdargs-browser
         directory,
         process,
         bytestring,
-        http-types,
-        wai,
-        wai-handler-launch,
+        http-types >= 0.8,
+        wai >= 1.4,
+        wai-handler-launch >= 1.3,
         cmdargs >= 0.9 && < 1.11
 
     other-modules:
