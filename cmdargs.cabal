@@ -34,8 +34,8 @@ extra-source-files:
     cmdargs.htm
 
 source-repository head
-    type:     darcs
-    location: http://community.haskell.org/~ndm/darcs/cmdargs/
+    type:     git
+    location: https://github.com/ndmitchell/cmdargs.git
 
 flag testprog
     default: False
