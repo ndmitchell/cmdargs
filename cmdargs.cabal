@@ -29,7 +29,7 @@ description:
     For a general reference on what command line flags are commonly used,
     see <http://www.faqs.org/docs/artu/ch10s05.html>.
 homepage:           http://community.haskell.org/~ndm/cmdargs/
-stability:          Beta
+tested-with:        GHC==7.6.3, GHC==7.4.2, GHC==7.2.2
 extra-source-files:
     cmdargs.htm
 
