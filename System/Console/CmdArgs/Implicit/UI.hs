@@ -90,6 +90,8 @@ name = Name
 
 -- | Flag: \"Put non-flag arguments here.\"
 --
+--   All argument flags not captured by 'argPos' are returned by 'args'.
+--
 -- > {hello = def &= args}
 args :: Ann
 args = FlagArgs
