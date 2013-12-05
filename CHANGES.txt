@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #626, ensure initial lists don't get reversed (fix after #610)
 0.10.5
     #615, support lists inside a newtype
 0.10.4
