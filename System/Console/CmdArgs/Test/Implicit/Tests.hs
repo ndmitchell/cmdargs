@@ -348,16 +348,27 @@ test20 = do
     ["a","b","c"] === Test20 (Test20A ["a","b","c"])
 
 
+-- #626, don't reverse values too much
+
+newtype Test21A = Test21A [String] deriving (Eq,Show,Data,Typeable)
+data Test21 = Test21 {test21A :: Test21A, test21B :: [String], test21C :: [Int]} deriving (Eq,Show,Data,Typeable)
+
+mode21 = cmdArgsMode $ Test21 (Test21A ["a","b","c"]) ["A","B","C"] [1,2,3]
+
+test21 = do
+    let Tester{..} = tester "Test21" mode21
+    [] === Test21 (Test21A ["a","b","c"]) ["A","B","C"] [1,2,3]
+
+
 -- For some reason, these must be at the end, otherwise the Template Haskell
 -- stage restriction kicks in.
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
-       test11 >> test12 >> test13 >> test14 >> test15 >> test16 >> test18 >> test19 >> test20
+       test11 >> test12 >> test13 >> test14 >> test15 >> test16 >> test18 >> test19 >> test20 >>
+       test21
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
         ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16, toDemo mode17, toDemo mode18
-        ,toDemo mode19, toDemo mode20]
+        ,toDemo mode19, toDemo mode20, toDemo mode21]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
-
-
