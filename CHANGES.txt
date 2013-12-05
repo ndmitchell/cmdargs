@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.10.6
     #625, more documentation about args/argPos
     #626, ensure initial lists don't get reversed (fix after #610)
 0.10.5
