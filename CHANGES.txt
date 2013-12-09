@@ -1,5 +1,7 @@
 Changelog for CmdArgs
 
+0.10.7
+    #1, fix timestamps in .tar.gz dist file
 0.10.6
     #625, more documentation about args/argPos
     #626, ensure initial lists don't get reversed (fix after #610)
