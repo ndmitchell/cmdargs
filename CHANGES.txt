@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Update the copyright year
     Change GetOpt.usageInfo to be more like GetOpt
 0.10.7
     #1, fix timestamps in .tar.gz dist file
