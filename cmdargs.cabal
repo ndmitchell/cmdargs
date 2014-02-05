@@ -31,6 +31,7 @@ description:
 homepage:           http://community.haskell.org/~ndm/cmdargs/
 tested-with:        GHC==7.6.3, GHC==7.4.2, GHC==7.2.2
 extra-source-files:
+    CHANGES.txt
     cmdargs.htm
 
 source-repository head
