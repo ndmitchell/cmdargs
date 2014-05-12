@@ -48,7 +48,7 @@ data ArgDescr a
 --   the header (first argument) and the options described by the 
 --   second argument.
 usageInfo :: String -> [OptDescr a] -> String
-usageInfo desc flags = show $ convert desc flags
+usageInfo desc flags = unlines $ desc : drop 2 (lines $ show $ convert "" flags)
 
 
 -- | Process the command-line, and return the list of values that matched
