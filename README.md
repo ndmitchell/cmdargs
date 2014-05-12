@@ -1,81 +1,46 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-        <title>CmdArgs: Easy Command Line Processing</title>
-        <style type="text/css">
-pre, .cmdargs {
-    border: 2px solid gray;
-    padding: 1px;
-    padding-left: 5px;
-    margin-left: 10px;
-    background-color: #eee;
-}
-
-pre.define {
-    background-color: #ffb;
-    border-color: #cc0;
-}
-
-body {
-    font-family: sans-serif;
-}
-
-h1, h2, h3 {
-    font-family: serif;
-}
-
-h1 {
-    color: rgb(23,54,93);
-    border-bottom: 1px solid rgb(79,129,189);
-    padding-bottom: 2px;
-    font-variant: small-caps;
-    text-align: center;
-}
-
-a {
-    color: rgb(54,95,145);
-}
-
-h2 {
-    color: rgb(54,95,145);
-}
-
-h3 {
-    color: rgb(79,129,189);
-}
-
-p.rule {
-    background-color: #ffb;
-    padding: 3px;
-    margin-left: 50px;
-    margin-right: 50px;
-}
-
-
-.cmdargs {
-	display: block;
-	font-family: monospace;
-}
-.cmdargs td {
-	padding: 0px;
-	margin: 0px;
-}
-        </style>
-    </head>
-    <body>
-
 <h1>CmdArgs: Easy Command Line Processing</h1>
 
-<p style="text-align:right;margin-bottom:25px;">
-    by <a href="http://community.haskell.org/~ndm/">Neil Mitchell</a>
+<p>
+	CmdArgs is a Haskell library for defining command line parsers. The two features that make it a better choice than the standard <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">getopt library</a> are:
 </p>
+<ol>
+	<li>It's very concise to use. The HLint command line handling is three times shorter with CmdArgs.</li>
+	<li>It supports programs with multiple modes, such as <a href="http://darcs.net">darcs</a> or <a href="http://haskell.org/cabal/">Cabal</a>.</li>
+</ol>
+<p>
+	A very simple example of a command line processor is:
+</p>
+<pre>
+data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)
+
+sample = Sample{hello = def &amp;= help "World argument" &amp;= opt "world"}
+         &amp;= summary "Sample v1"
+
+main = print =&lt;&lt; cmdArgs sample
+</pre>
+<p>
+	Despite being very concise, this processor is already fairly well featured:
+</p>
+<pre>
+$ runhaskell Sample.hs --hello=world
+Sample {hello = "world"}
+
+$ runhaskell Sample.hs --help
+Sample v1, (C) Neil Mitchell 2009
+
+sample [FLAG]
+
+  -? --help[=FORMAT]  Show usage information (optional format)
+  -V --version        Show version information
+  -v --verbose        Higher verbosity
+  -q --quiet          Lower verbosity
+  -h --hello=VALUE    World argument (default=world)
+</pre>
+
+<h2>User Manual</h2>
 
 <p>
-    <a href="http://community.haskell.org/~ndm/cmdargs/">CmdArgs</a> is a library for defining and parsing command lines. The focus of CmdArgs is allowing the concise definition of fully-featured command line argument processors, in a mainly declarative manner (i.e. little coding needed). CmdArgs also supports multiple mode programs, for example as used in <a href="http://darcs.net/">darcs</a> and <a href="http://haskell.org/cabal/">Cabal</a>.
-</p><p>
-	This document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. Finally this document gives three samples, which the <tt>cmdargs</tt> program can run. The three samples are:
+	The rest of this document explains how to write the "hello world" of command line processors, then how to extend it with features into a complex command line processor. Finally this document gives three samples, which the <tt>cmdargs</tt> program can run. The three samples are:
 </p>
 <ol>
     <li><tt>hlint</tt> - the <a href="http://community.haskell.org/~ndm/hlint/">HLint</a> program.</li>
@@ -272,40 +237,37 @@ hlint = HLint
 
 mode = cmdArgsMode hlint
 </pre>
-<!-- END -->
-<!-- BEGIN help hlint -->
-<table class='cmdargs'>
-<tr><td colspan='3'>HLint v0.0.0, (C) Neil Mitchell</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>hlint [OPTIONS] [FILES/DIRS]</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Suggest improvements to Haskell source code</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>Common flags:</td></tr>
-<tr><td style='padding-left:2ex;'>-r</td><td style='padding-left:1ex;'>--report[=FILE]</td><td style='padding-left:2ex;'>Generate a report in HTML</td></tr>
-<tr><td style='padding-left:2ex;'>-h</td><td style='padding-left:1ex;'>--hint=FILE</td><td style='padding-left:2ex;'>Hint/ignore file to use</td></tr>
-<tr><td style='padding-left:2ex;'>-c</td><td style='padding-left:1ex;'>--colour --color</td><td style='padding-left:2ex;'>Color the output (requires ANSI terminal)</td></tr>
-<tr><td style='padding-left:2ex;'>-i</td><td style='padding-left:1ex;'>--ignore=MESSAGE</td><td style='padding-left:2ex;'>Ignore a particular hint</td></tr>
-<tr><td style='padding-left:2ex;'>-s</td><td style='padding-left:1ex;'>--show</td><td style='padding-left:2ex;'>Show all ignored ideas</td></tr>
-<tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--extension=EXT</td><td style='padding-left:2ex;'>File extensions to search (defaults to hs and lhs)</td></tr>
-<tr><td style='padding-left:2ex;'>-X</td><td style='padding-left:1ex;'>--language=LANG</td><td style='padding-left:2ex;'>Language extension (Arrows, NoCPP)</td></tr>
-<tr><td style='padding-left:2ex;'>-u</td><td style='padding-left:1ex;'>--utf8</td><td style='padding-left:2ex;'>Use UTF-8 text encoding</td></tr>
-<tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--encoding=ENC</td><td style='padding-left:2ex;'>Choose the text encoding</td></tr>
-<tr><td style='padding-left:2ex;'>-f</td><td style='padding-left:1ex;'>--find=FILE</td><td style='padding-left:2ex;'>Find hints in a Haskell file</td></tr>
-<tr><td style='padding-left:2ex;'>-t</td><td style='padding-left:1ex;'>--test</td><td style='padding-left:2ex;'>Run in test mode</td></tr>
-<tr><td style='padding-left:2ex;'>-d</td><td style='padding-left:1ex;'>--datadir=DIR</td><td style='padding-left:2ex;'>Override the data directory</td></tr>
-<tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--cpp-define=NAME[=VALUE]</td><td style='padding-left:2ex;'>CPP #define</td></tr>
-<tr><td style='padding-left:2ex;'>&nbsp;<td style='padding-left:1ex;'>--cpp-include=DIR</td><td style='padding-left:2ex;'>CPP include path</td></tr>
-<tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
-<tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
-<tr><td style='padding-left:2ex;'>-v</td><td style='padding-left:1ex;'>--verbose</td><td style='padding-left:2ex;'>Loud verbosity</td></tr>
-<tr><td style='padding-left:2ex;'>-q</td><td style='padding-left:1ex;'>--quiet</td><td style='padding-left:2ex;'>Quiet verbosity</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>Hlint gives hints on how to improve Haskell code</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>To check all Haskell files in 'src' and generate a report type:</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>hlint src --report</td></tr>
-</table>
-<!-- END -->
+
+    HLint v0.0.0, (C) Neil Mitchell
+    
+    hlint [OPTIONS] [FILES/DIRS]
+    Suggest improvements to Haskell source code
+    
+    Common flags:
+      -r --report[=FILE]	        Generate a report in HTML
+      -h --hint=FILE	            Hint/ignore file to use
+      -c --colour --color	        Color the output (requires ANSI terminal)
+      -i --ignore=MESSAGE	        Ignore a particular hint
+      -s --show                     Show all ignored ideas
+         --extension=EXT            File extensions to search (defaults to hs and lhs)
+      -X --language=LANG	        Language extension (Arrows, NoCPP)
+      -u --utf8	                    Use UTF-8 text encoding
+         --encoding=ENC	            Choose the text encoding
+      -f --find=FILE	            Find hints in a Haskell file
+      -t --test	                    Run in test mode
+      -d --datadir=DIR	            Override the data directory
+         --cpp-define=NAME[=VALUE]  CPP #define
+         --cpp-include=DIR	        CPP include path
+      -? --help	                    Display help message
+      -V --version	                Print version information
+      -v --verbose	                Loud verbosity
+      -q --quiet	                Quiet verbosity
+    
+    Hlint gives hints on how to improve Haskell code
+    
+    To check all Haskell files in 'src' and generate a report type:
+      hlint src --report
+	
 
 <h3>Diffy</h3>
 
@@ -345,25 +307,24 @@ mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences
 </pre>
 <!-- END -->
 <!-- BEGIN help diffy -->
-<table class='cmdargs'>
-<tr><td colspan='3'>Diffy v1.0</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>diffy [COMMAND] ... [OPTIONS]</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Create and compare differences</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>Common flags:</td></tr>
-<tr><td style='padding-left:2ex;'>-o</td><td style='padding-left:1ex;'>--out=FILE</td><td style='padding-left:2ex;'>Output file</td></tr>
-<tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
-<tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>diffy create [OPTIONS]</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Create a fingerprint</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td style='padding-left:2ex;'>-s</td><td style='padding-left:1ex;'>--src=DIR</td><td style='padding-left:2ex;'>Source directory</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>diffy diff [OPTIONS] OLDFILE NEWFILE</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Perform a diff</td></tr>
-</table>
+	Diffy v1.0
+	 
+	diffy [COMMAND] ... [OPTIONS]
+	  Create and compare differences
+	 
+	Common flags:
+	  -o --out=FILE	 Output file
+	  -? --help	     Display help message
+	  -V --version	 Print version information
+	 
+	diffy create [OPTIONS]
+	  Create a fingerprint
+	 
+	  -s  --src=DIR  Source directory
+	 
+	diffy diff [OPTIONS] OLDFILE NEWFILE
+	  Perform a diff
+
 <!-- END -->
 
 <h3>Maker</h3>
@@ -415,34 +376,29 @@ mode = cmdArgsMode $ modes [build,wipe,test_] &= help "Build helper program" &= 
 </pre>
 <!-- END -->
 <!-- BEGIN help maker -->
-<table class='cmdargs'>
-<tr><td colspan='3'>Maker v1.0</td></tr>
-<tr><td colspan='3'>Make it</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>maker [COMMAND] ... [OPTIONS] </td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Build helper program</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>Common flags:</td></tr>
-<tr><td style='padding-left:2ex;'>-?</td><td style='padding-left:1ex;'>--help</td><td style='padding-left:2ex;'>Display help message</td></tr>
-<tr><td style='padding-left:2ex;'>-V</td><td style='padding-left:1ex;'>--version</td><td style='padding-left:2ex;'>Print version information</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>maker [build] [OPTIONS] [ITEM]</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Build the project</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td style='padding-left:2ex;'>-j</td><td style='padding-left:1ex;'>--threads=NUM</td><td style='padding-left:2ex;'>Number of threads to use</td></tr>
-<tr><td style='padding-left:2ex;'>-r</td><td style='padding-left:1ex;'>--release</td><td style='padding-left:2ex;'>Release build</td></tr>
-<tr><td style='padding-left:2ex;'>-d</td><td style='padding-left:1ex;'>--debug</td><td style='padding-left:2ex;'>Debug build</td></tr>
-<tr><td style='padding-left:2ex;'>-p</td><td style='padding-left:1ex;'>--profile</td><td style='padding-left:2ex;'>Profile build</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>maker wipe [OPTIONS]</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Clean all build objects</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td colspan='3'>maker test [OPTIONS] [ANY]</td></tr>
-<tr><td colspan='3' style='padding-left:2ex;'>Run the test suite</td></tr>
-<tr><td colspan='3'>&nbsp;</tr>
-<tr><td style='padding-left:2ex;'>-j</td><td style='padding-left:1ex;'>--threads=NUM</td><td style='padding-left:2ex;'>Number of threads to use</td></tr>
-</table>
+    Maker v1.0
+      Make it
+     
+    maker [COMMAND] ... [OPTIONS]
+      Build helper program
+     
+    Common flags:
+      -? --help     Display help message
+      -V --version  Print version information
+     
+    maker [build] [OPTIONS] [ITEM]
+      Build the project
+     
+      -j --threads=NUM  Number of threads to use
+      -r --release      Release build
+      -d --debug        Debug build
+      -p --profile      Profile build
+     
+    maker wipe [OPTIONS]
+      Clean all build objects
+     
+    maker test [OPTIONS] [ANY]
+      Run the test suite
+     
+      -j --threads=NUM  Number of threads to use
 <!-- END -->
-
-    </body>
-</html>
