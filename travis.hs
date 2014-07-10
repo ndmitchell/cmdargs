@@ -1,5 +1,8 @@
 
-import Neil
+import Control.Monad
+import System.Cmd
+import System.Exit
 
 main = do
-    cmd "cmdargs --test"
+    r <- system "cmdargs --test"
+    when (r /= ExitSuccess) $ error "failed"
