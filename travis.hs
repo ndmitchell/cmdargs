@@ -4,5 +4,5 @@ import System.Cmd
 import System.Exit
 
 main = do
-    r <- system "cmdargs --test"
+    r <- system "runhaskell Main --test"
     when (r /= ExitSuccess) $ error "failed"
