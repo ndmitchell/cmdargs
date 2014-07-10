@@ -1,4 +1,4 @@
-<h1>CmdArgs: Easy Command Line Processing</h1>
+# CmdArgs: Easy Command Line Processing [![Build Status](https://travis-ci.org/ndmitchell/cmdargs.svg)](https://travis-ci.org/ndmitchell/cmdargs)
 
 <p>
 	CmdArgs is a Haskell library for defining command line parsers. The two features that make it a better choice than the standard <a href="http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html">getopt library</a> are:
@@ -60,18 +60,18 @@ sample [FLAG]
 <p>
 	The following code defines a complete command line argument processor:
 </p>
-<pre>
-{-# LANGUAGE DeriveDataTypeable #-}
-module Sample where
-import System.Console.CmdArgs
 
-data Sample = Sample {hello :: String}
-              deriving (Show, Data, Typeable)
+    {-# LANGUAGE DeriveDataTypeable #-}
+    module Sample where
+    import System.Console.CmdArgs
+    
+    data Sample = Sample {hello :: String}
+                  deriving (Show, Data, Typeable)
+    
+    sample = Sample{hello = def}
+    
+    main = print =<< cmdArgs sample
 
-sample = Sample{hello = def}
-
-main = print =<< cmdArgs sample
-</pre>
 <p>
 	To use the CmdArgs library there are three steps:
 </p>
@@ -130,16 +130,17 @@ sample = Sample {hello = def &= help "Who to say hello to" &= typ "WORLD"}
 <p>
 	To specify a program with multiple modes, similar to <a href="http://darcs.net/">darcs</a>, we can supply a data type with multiple constructors, for example:
 </p>
-<pre>
-data Sample = Hello {whom :: String}
-            | Goodbye
-              deriving (Show, Data, Typeable)
 
-hello = Hello{whom = def}
-goodbye = Goodbye
+    
+    data Sample = Hello {whom :: String}
+                | Goodbye
+                  deriving (Show, Data, Typeable)
+    
+    hello = Hello{whom = def}
+    goodbye = Goodbye
+    
+    main = print =<< cmdArgs (modes [hello,goodbye])
 
-main = print =<< cmdArgs (modes [hello,goodbye])
-</pre>
 <p>
 	Compared to the first example, we now have multiple constructors, and a sample value for each constructor is passed to <tt>cmdArgs</tt>. Some sample interactions with this command line are:
 </p>
