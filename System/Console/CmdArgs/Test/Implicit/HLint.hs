@@ -63,6 +63,7 @@ test = do
     isHelp ["--help"] ["  hlint src --report"]
     isVersion ["--version"] "HLint v0.0.0, (C) Neil Mitchell"
     isVersion ["-V"] "HLint v0.0.0, (C) Neil Mitchell"
+    isVersion ["--numeric-version"] "0.0.0"
     ["--colo"] === hlint{color=True}
     ["--colour","--colour=false"] === hlint
     ["--colour=true"] === hlint{color=True}

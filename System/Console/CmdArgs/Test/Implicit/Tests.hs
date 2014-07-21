@@ -248,6 +248,7 @@ test13 = do
     ["test13c","--foo13=13"] === Test13C 13
     isHelp ["--help"] ["Help text here"]
     isVersion ["--version"] "Version text here"
+    fails ["--numeric-version"]
 
 -- check a list becomes modes not an enum
 data Test14 = Test14A | Test14B | Test14C deriving (Eq,Show,Data,Typeable)
@@ -292,11 +293,12 @@ newtype MyInt = MyInt Int deriving (Eq,Show,Data,Typeable)
 
 data Test16 = Test16 {test16a :: MyInt, test16b :: [MyInt]} deriving (Eq,Show,Data,Typeable)
 
-mode16 = cmdArgsMode $ Test16 (MyInt 12) []
+mode16 = cmdArgsMode $ Test16 (MyInt 12) [] &= summary "The Glorious Glasgow Haskell Compilation System, version 7.6.3"
 
 test16 = do
     let Tester{..} = tester "Test16" mode16
     [] === Test16 (MyInt 12) []
+    isVersion ["--numeric-version"] "7.6.3"
     fails ["--test16a"]
     ["--test16a=5"] === Test16 (MyInt 5) []
     ["--test16b=5","--test16b=82"] === Test16 (MyInt 12) [MyInt 5, MyInt 82]
@@ -305,13 +307,14 @@ test16 = do
 -- not actually checked because this path doesn't go through processArgs
 data Test17 = Test17 {test17_ :: [String]} deriving (Eq,Show,Data,Typeable)
 
-mode17 = cmdArgsMode $ Test17 ([] &= args) &= noAtExpand
+mode17 = cmdArgsMode $ Test17 ([] &= args) &= noAtExpand &= summary "bzip2 3.5-windows version"
 
 test17 = do
     let Tester{..} = tester "Test17" mode17
     [] === Test17 []
     ["test","of","this"] === Test17 ["test","of","this"]
     ["test","--","@foo"] === Test17 ["test","@foo"]
+    isVersion ["--numeric-version"] "3.5-windows"
 
 
 data Debuggable = This | That deriving (Eq,Show,Data,Typeable)
