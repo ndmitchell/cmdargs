@@ -83,7 +83,8 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity comple
 
         isVersion args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsVersion x, match [want] (lines got) -> success
-            _ -> failed "Failed on isVersion" args [("Want",want)]
+            _ -> failed "Failed on isVersion" args $
+                ("Want",want) : [("Got",got) | Right x <- [x], Just got <- [cmdArgsVersion x]]
 
         isVerbosity args v = f args $ \x -> case x of
             Right x | fromMaybe Normal (cmdArgsVerbosity x) == v -> success
