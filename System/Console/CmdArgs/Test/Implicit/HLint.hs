@@ -61,6 +61,8 @@ test = do
     isVerbosity [] Normal
     isHelp ["-?"] ["HLint v0.0.0, (C) Neil Mitchell"]
     isHelp ["--help"] ["  hlint src --report"]
+    isVersion ["--version"] "HLint v0.0.0, (C) Neil Mitchell"
+    isVersion ["-V"] "HLint v0.0.0, (C) Neil Mitchell"
     ["--colo"] === hlint{color=True}
     ["--colour","--colour=false"] === hlint
     ["--colour=true"] === hlint{color=True}
