@@ -56,7 +56,7 @@ module System.Console.CmdArgs.Explicit(
     process, processArgs, processValue,
     -- * Constructing command lines
     module System.Console.CmdArgs.Explicit.Type,
-    flagHelpSimple, flagHelpFormat, flagVersion, flagsVerbosity,
+    flagHelpSimple, flagHelpFormat, flagVersion, flagNumericVersion, flagsVerbosity,
     -- * Displaying help
     module System.Console.CmdArgs.Explicit.Help,
     -- * Utilities for working with command lines
@@ -182,6 +182,10 @@ flagHelpFormat f = (flagOpt "" ["help","?"] upd "" "Display help message"){flagI
 -- | Create a version flag triggered by @-V@/@--version@.
 flagVersion :: (a -> a) -> Flag a
 flagVersion f = flagNone ["version","V"] f "Print version information"
+
+-- | Create a version flag triggered by @--numeric-version@.
+flagNumericVersion :: (a -> a) -> Flag a
+flagNumericVersion f = flagNone ["numeric-version"] f "Print just the version number"
 
 
 -- | Create verbosity flags triggered by @-v@/@--verbose@ and

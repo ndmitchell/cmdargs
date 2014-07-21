@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #9, add --numeric-version flag
     Update the copyright year
     Change GetOpt.usageInfo to be more like GetOpt
 0.10.7

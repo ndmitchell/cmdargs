@@ -129,7 +129,8 @@ details = ModeHelpSuffix
 -- | Modes: \"My program name\/version\/copyright is ...\"
 --
 --   One line summary of the entire program, the first line of
---   @--help@ and the only line of @--version@.
+--   @--help@ and the only line of @--version@. If the string contains a
+--   version number component will also provide @--numeric-version@.
 --
 -- > Sample{..} &= summary "CmdArgs v0.0, (C) Neil Mitchell 1981"
 summary :: String -> Ann

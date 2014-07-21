@@ -6,7 +6,7 @@
 module System.Console.CmdArgs.Implicit.Local(
     local, err,
     Prog_(..), Builtin_(..), Mode_(..), Flag_(..), Fixup(..), isFlag_,
-    progHelpOutput, progVersionOutput
+    progHelpOutput, progVersionOutput, progNumericVersionOutput
     ) where
 
 import System.Console.CmdArgs.Implicit.Ann
@@ -21,6 +21,7 @@ import Control.Monad
 import Data.Char
 import Data.Generics.Any
 import Data.Maybe
+import Data.List
 
 
 data Prog_ = Prog_
@@ -41,6 +42,14 @@ progOutput f x = fromMaybe ["The " ++ progProgram x ++ " program"] $
 
 progHelpOutput = progOutput progHelpArg
 progVersionOutput = progOutput progVersionArg
+progNumericVersionOutput x = fmap return $ parseVersion =<< listToMaybe (progVersionOutput x)
+
+-- | Find numbers starting after space/comma, v
+parseVersion :: String -> Maybe String
+parseVersion xs = listToMaybe
+    [y | x <- words $ map (\x -> if x `elem` ",;" then ' ' else x) xs
+       , let y = fromMaybe x $ stripPrefix "v" x
+       , length (takeWhile isDigit y) >= 1]
 
 
 data Builtin_ = Builtin_
