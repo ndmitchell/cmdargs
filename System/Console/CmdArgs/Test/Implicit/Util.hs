@@ -82,7 +82,7 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity comple
             _ -> failed "Failed on isHelpNot" args []
 
         isVersion args want = f args $ \x -> case x of
-            Right x | Just got <- cmdArgsVersion x, match [want] (lines got) -> success
+            Right x | Just got <- cmdArgsVersion x, (want ++ "\n") == got -> success
             _ -> failed "Failed on isVersion" args $
                 ("Want",want) : [("Got",got) | Right x <- [x], Just got <- [cmdArgsVersion x]]
 
