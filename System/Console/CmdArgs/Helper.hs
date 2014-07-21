@@ -172,8 +172,8 @@ data Pack = Ctor String [(String, Pack)]
             deriving (Show,Read)
 
 newtype NoShow a = NoShow a
-instance Show (NoShow a) where -- deliberately leave the methods unimplemented
-instance Read (NoShow a) where -- deliberately leave the methods unimplemented
+instance Show (NoShow a) where showsPrec = error "Cannot show value of type NoShow"
+instance Read (NoShow a) where readsPrec = error "Cannot read value of type NoShow"
 
 
 transformM, descendM :: Monad m => (Pack -> m Pack) -> Pack -> m Pack

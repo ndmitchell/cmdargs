@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Avoid compilation warnings on GHC 7.8
     #9, add --numeric-version flag
     Update the copyright year
     Change GetOpt.usageInfo to be more like GetOpt
