@@ -284,6 +284,7 @@ test15 = do
     isHelp ["-h"] []
     isHelp ["-h"] ["GROUP:"]
     fails ["--version"]
+    fails ["--numeric-version"]
     fails ["--verbose"]
     fails ["--quiet"]
     isVerbosity ["--help","--silent"] Quiet
@@ -362,16 +363,45 @@ test21 = do
     let Tester{..} = tester "Test21" mode21
     [] === Test21 (Test21A ["a","b","c"]) ["A","B","C"] [1,2,3]
 
+-- #10, don't break elm-server
+
+data Test22 = Test22 {port :: Int, runtime :: Maybe FilePath} deriving (Data,Typeable,Show,Eq)
+
+mode22 = cmdArgsMode $ Test22
+  { port = 8000 &= help "set the port of the server"
+  , runtime = Nothing &= typFile
+              &= help "Specify a custom location for Elm's runtime system."
+  } &= help "Quickly reload Elm projects in your browser. Just refresh to recompile.\n\
+            \It serves static files and freshly recompiled Elm files."
+    &= helpArg [explicit, name "help", name "h"]
+    &= versionArg [ explicit, name "version", name "v"
+                  , summary "0.12.0.1"
+                  ]
+    &= summary "Elm Server 0.11.0.1, (c) Evan Czaplicki 2011-2014"
+
+test22 = do
+    let Tester{..} = tester "Test22" mode22
+    [] === Test22 8000 Nothing
+    isVersion ["-v"] "0.12.0.1"
+    isVersion ["--version"] "0.12.0.1"
+    isVersion ["--numeric-version"] "0.12.0.1"
+    isHelp ["--help"] ["Elm Server 0.11.0.1, (c) Evan Czaplicki 2011-2014"]
+    isHelp ["--h"] ["Elm Server 0.11.0.1, (c) Evan Czaplicki 2011-2014"]
+    fails ["-?"]
+    ["--port=20"] === Test22 20 Nothing
+    ["--runtime=20"] === Test22 8000 (Just "20")
+    fails ["bob"]
+
 
 -- For some reason, these must be at the end, otherwise the Template Haskell
 -- stage restriction kicks in.
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
        test11 >> test12 >> test13 >> test14 >> test15 >> test16 >> test18 >> test19 >> test20 >>
-       test21
+       test21 >> test22
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
         ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16, toDemo mode17, toDemo mode18
-        ,toDemo mode19, toDemo mode20, toDemo mode21]
+        ,toDemo mode19, toDemo mode20, toDemo mode21, toDemo mode22]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
