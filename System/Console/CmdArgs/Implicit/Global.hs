@@ -165,7 +165,7 @@ extraFlags p = p{progModes = map f $ progModes p}
           wrap x = def{flagFlag=x, flagExplicit=True, flagGroup=grp}
           flags = changeBuiltin_ (progHelpArg p) (wrap $ flagHelpFormat $ error "flagHelpFormat undefined") ++
                   changeBuiltin_ (progVersionArg p) (wrap $ flagVersion vers) ++
-                  concat [changeBuiltin_ (progVersionArg p) (wrap $ flagNumericVersion $ \x -> x{cmdArgsVersion = Just $ unlines v})
+                  [wrap $ flagNumericVersion $ \x -> x{cmdArgsVersion = Just $ unlines v}
                         | Just v <- [progNumericVersionOutput p]] ++
                   changeBuiltin_ (fst $ progVerbosityArgs p) (wrap loud) ++
                   changeBuiltin_ (snd $ progVerbosityArgs p) (wrap quiet)
