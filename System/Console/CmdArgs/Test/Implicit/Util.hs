@@ -73,9 +73,12 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity comple
             Left x -> success
             Right x -> failed "Succeeded 52 should have failed" args [("Result",show x)]
 
+        showGot sel x = [("Got",show got) | Right x <- [x], Just got <- [sel x]]
+
         isHelp args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsHelp x, match want (lines got) -> success
-            _ -> failed "Failed on isHelp" args [("Want",show want)]
+            _ -> failed "Failed on isHelp" args $
+                ("Want",show want) : showGot cmdArgsHelp x
 
         isHelpNot args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsHelp x, not $ match want (lines got) -> success
@@ -84,7 +87,7 @@ tester name m = Tester (===) fails isHelp isHelpNot isVersion isVerbosity comple
         isVersion args want = f args $ \x -> case x of
             Right x | Just got <- cmdArgsVersion x, (want ++ "\n") == got -> success
             _ -> failed "Failed on isVersion" args $
-                ("Want",want) : [("Got",got) | Right x <- [x], Just got <- [cmdArgsVersion x]]
+                ("Want",show $ want ++ "\n") : showGot cmdArgsVersion x
 
         isVerbosity args v = f args $ \x -> case x of
             Right x | fromMaybe Normal (cmdArgsVerbosity x) == v -> success
