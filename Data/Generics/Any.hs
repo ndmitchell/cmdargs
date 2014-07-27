@@ -62,7 +62,7 @@ typeShell :: Any -> String
 typeShell = tyconUQname . typeShellFull
 
 typeShellFull :: Any -> String
-typeShellFull = tyConString . typeRepTyCon . typeOf
+typeShellFull = tyConName . typeRepTyCon . typeOf
 
 typeName :: Any -> String
 typeName = show . typeOf
