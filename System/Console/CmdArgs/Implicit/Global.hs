@@ -24,7 +24,7 @@ global x = setReform (reform y) $ setHelp y $ setProgOpts x $ collapse $ assignG
 
 
 setProgOpts :: Prog_ -> Mode a -> Mode a
-setProgOpts p m = m{modeExpandAt = False -- not $ progNoAtExpand p
+setProgOpts p m = m{modeExpandAt = not $ progNoAtExpand p
                    ,modeGroupModes = fmap (setProgOpts p) $ modeGroupModes m}
 
 
