@@ -1,4 +1,4 @@
-:set -w -fwarn-unused-binds -fwarn-unused-imports
+:set -fwarn-unused-binds -fwarn-unused-imports
 :load Main
 
 :def test const $ return ":main --test"
