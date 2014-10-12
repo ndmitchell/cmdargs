@@ -140,7 +140,7 @@ helpGroup f xs = concatMap f (groupUnnamed xs) ++ concatMap g (groupNamed xs)
 
 
 helpArgs :: ([Arg a], Maybe (Arg a)) -> [String]
-helpArgs (ys,y) = [['['|r] ++ argType x ++ [']'|r] | (i,x) <- zip [0..] xs, let r = req > i]
+helpArgs (ys,y) = [['['|o] ++ argType x ++ [']'|o] | (i,x) <- zip [0..] xs, let o = False && req <= i]
     where xs = ys ++ maybeToList y
           req = maximum $ 0 : [i | (i,x) <- zip [1..] xs, argRequire x]
 

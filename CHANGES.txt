@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #15, never put [brackets] around optional args in Explicit
 0.10.10
     #14, fix @ file arguments
 0.10.9
