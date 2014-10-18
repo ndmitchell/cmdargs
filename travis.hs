@@ -1,8 +1,5 @@
 
-import Control.Monad
-import System.Cmd
-import System.Exit
+import System.Process.Extra
 
 main = do
-    r <- system "runhaskell Main --test"
-    when (r /= ExitSuccess) $ error "failed"
+    system_ "runhaskell Main --test"
