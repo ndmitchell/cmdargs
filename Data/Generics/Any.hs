@@ -7,6 +7,7 @@ import qualified Data.Data as D
 import Data.Data hiding (toConstr, typeOf, dataTypeOf, isAlgType)
 import Data.List
 import Data.Maybe
+import qualified Data.Typeable.Internal as I
 
 
 type CtorName = String
@@ -62,7 +63,7 @@ typeShell :: Any -> String
 typeShell = tyconUQname . typeShellFull
 
 typeShellFull :: Any -> String
-typeShellFull = tyConName . typeRepTyCon . typeOf
+typeShellFull = I.tyConName . typeRepTyCon . typeOf
 
 typeName :: Any -> String
 typeName = show . typeOf
