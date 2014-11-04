@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 
 module System.Console.CmdArgs.Explicit.Type where
 
@@ -6,7 +7,9 @@ import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
+#if __GLASGOW_HASKELL__ < 709
 import Data.Monoid
+#endif
 
 
 -- | A name, either the name of a flag (@--/foo/@) or the name of a mode.
