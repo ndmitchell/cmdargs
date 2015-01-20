@@ -49,7 +49,7 @@ flag quotation
 
 library
     build-depends:
-        base == 4.*,
+        base >= 4.4 && < 5,
         filepath,
         transformers >= 0.2,
         process >= 1.0
