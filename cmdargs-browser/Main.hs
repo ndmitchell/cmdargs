@@ -5,7 +5,6 @@ module Main where
 
 import Network.Wai
 import Network.Wai.Handler.Launch
-import Control.Monad.IO.Class
 import Network.HTTP.Types
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.String
@@ -46,7 +45,7 @@ main = do
         _ -> do
             wait <- newEmptyMVar
             mc <- receive
-            thread <- forkIO $ run $ liftIO . talk ("--verbose" `elem` args) mc wait
+            thread <- forkIO $ run $ \request cont -> cont =<< talk ("--verbose" `elem` args) mc wait request
             res <- takeMVar wait
             killThread thread
             reply res
@@ -76,7 +75,7 @@ talk verbose mode wait r = handle err $ do
     case path of
         ["res",x] -> do
             dir <- getDataDir
-            return $ ResponseFile status200 [noCache, (hContentType, fromString $ mime $ takeExtension x)] (dir </> x) Nothing
+            return $ responseFile status200 [noCache, (hContentType, fromString $ mime $ takeExtension x)] (dir </> x) Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
         ["check"] -> respond status200 [] $ fromString $ fromMaybe "" $ check mode 0 $ splitArgs $ fromMaybe "" argument
