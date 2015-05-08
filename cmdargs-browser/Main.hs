@@ -24,6 +24,7 @@ import System.Directory
 import Data.List
 import System.Console.CmdArgs.Helper
 import System.Console.CmdArgs.Explicit
+import qualified Language.Javascript.JQuery as JQuery
 import Paths_cmdargs_browser
 
 
@@ -75,7 +76,8 @@ talk verbose mode wait r = handle err $ do
     case path of
         ["res",x] -> do
             dir <- getDataDir
-            return $ responseFile status200 [noCache, (hContentType, fromString $ mime $ takeExtension x)] (dir </> x) Nothing
+            file <- if x == "jquery.js" then JQuery.file else return $ dir </> x
+            return $ responseFile status200 [noCache, (hContentType, fromString $ mime $ takeExtension x)] file Nothing
         ["ok"] -> exit $ Right $ splitArgs $ fromMaybe "" argument
         ["cancel"] -> exit $ Left "User pressed cancel"
         ["check"] -> respond status200 [] $ fromString $ fromMaybe "" $ check mode 0 $ splitArgs $ fromMaybe "" argument

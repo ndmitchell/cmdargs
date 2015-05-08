@@ -20,7 +20,6 @@ data-files:
     cmdargs.js
     favicon.png
     cmdargs.png
-    jquery.js
 
 source-repository head
     type:     darcs
@@ -39,6 +38,7 @@ executable cmdargs-browser
         http-types >= 0.8,
         wai >= 1.4,
         wai-handler-launch >= 1.3,
+        js-jquery,
         cmdargs >= 0.9 && < 1.11
 
     other-modules:
