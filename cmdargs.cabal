@@ -7,7 +7,7 @@ license-file:       LICENSE
 category:           Console
 author:             Neil Mitchell <ndmitchell@gmail.com>
 maintainer:         Neil Mitchell <ndmitchell@gmail.com>
-copyright:          Neil Mitchell 2009-2014
+copyright:          Neil Mitchell 2009-2015
 synopsis:           Command line argument processing
 description:
     This library provides an easy way to define command line parsers. Most users
@@ -33,7 +33,7 @@ homepage:           http://community.haskell.org/~ndm/cmdargs/
 extra-source-files:
     README.md
     CHANGES.txt
-tested-with:        GHC==7.8.3, GHC==7.6.3, GHC==7.4.2, GHC==7.2.2
+tested-with:        GHC==7.10.1, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2, GHC==7.2.2
 
 source-repository head
     type:     git
