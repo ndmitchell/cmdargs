@@ -2,12 +2,14 @@
 
 module Data.Generics.Any where
 
+import Control.Exception
 import Control.Monad.Trans.State
 import qualified Data.Data as D
 import Data.Data hiding (toConstr, typeOf, dataTypeOf, isAlgType)
 import Data.List
 import Data.Maybe
 import qualified Data.Typeable.Internal as I
+import System.IO.Unsafe
 
 
 type CtorName = String
@@ -19,6 +21,8 @@ readTupleType x | "(" `isPrefixOf` x && ")" `isSuffixOf` x && all (== ',') y = J
                 | otherwise = Nothing
     where y = init $ tail x
 
+try1 :: a -> Either SomeException a
+try1 = unsafePerformIO . try . evaluate
 
 ---------------------------------------------------------------------
 -- BASIC TYPES
@@ -82,6 +86,7 @@ children (Any x) = gmapQ Any x
 
 
 compose0 :: Any -> CtorName -> Any
+compose0 x c | either (const False) (== c) $ try1 $ ctor x = x
 compose0 (Any x) c = Any $ fromConstrB err y `asTypeOf` x
     where Just y = readConstr (D.dataTypeOf x) c
           err = error $ "Data.Generics.Any: Undefined field inside compose0, " ++ c ++ " :: " ++ show (Any x)

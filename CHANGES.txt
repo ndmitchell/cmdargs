@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #24, support Ratio in some places
 0.10.12
     GHC 7.2 compatibility
 0.10.11
