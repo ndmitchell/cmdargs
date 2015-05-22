@@ -8,6 +8,7 @@ import System.Console.CmdArgs.Explicit(modeHelp)
 import System.Console.CmdArgs.Test.Implicit.Util
 import System.Console.CmdArgs.Quote
 import Data.Int
+import Data.Ratio
 
 
 -- from bug #256 and #231
@@ -392,16 +393,27 @@ test22 = do
     ["--runtime=20"] === Test22 8000 (Just "20")
     fails ["bob"]
 
+-- # 24, doesn't work with Ratio
+
+data Test23 = Test23 {test23A :: Ratio Int} deriving (Show, Data, Typeable, Eq)
+
+mode23 = cmdArgsMode $ Test23 {test23A = 4 % 7 }
+
+test23 = do
+    let Tester{..} = tester "Test23" mode23
+    [] === Test23 (4 % 7)
+    ["--test23=1,6"] === Test23 (1 % 6)
+
 
 -- For some reason, these must be at the end, otherwise the Template Haskell
 -- stage restriction kicks in.
 
 test = test1 >> test2 >> test3 >> test4 >> test5 >> test6 >> test7 >> test8 >> test9 >> test10 >>
        test11 >> test12 >> test13 >> test14 >> test15 >> test16 >> test18 >> test19 >> test20 >>
-       test21 >> test22
+       test21 >> test22 >> test23
 demos = zipWith f [1..]
         [toDemo mode1, toDemo mode2, toDemo mode3, toDemo mode4, toDemo mode5, toDemo mode6
         ,toDemo mode7, toDemo mode8, toDemo mode9, toDemo mode10, toDemo mode11, toDemo mode12
         ,toDemo mode13, toDemo mode14, toDemo mode15, toDemo mode16, toDemo mode17, toDemo mode18
-        ,toDemo mode19, toDemo mode20, toDemo mode21, toDemo mode22]
+        ,toDemo mode19, toDemo mode20, toDemo mode21, toDemo mode22, toDemo mode23]
     where f i x = x{modeHelp = "Testing various corner cases (" ++ show i ++ ")"}
