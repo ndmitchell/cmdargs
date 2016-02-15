@@ -30,7 +30,7 @@ description:
     see <http://www.faqs.org/docs/artu/ch10s05.html>.
 bug-reports:        https://github.com/ndmitchell/cmdargs/issues
 homepage:           https://github.com/ndmitchell/cmdargs#readme
-extra-source-files:
+extra-doc-files:
     README.md
     CHANGES.txt
 tested-with:        GHC==8.0.1, GHC==7.10.3, GHC==7.8.4, GHC==7.6.3, GHC==7.4.2
