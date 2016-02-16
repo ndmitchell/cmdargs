@@ -142,6 +142,7 @@ showHTML xs = unlines $
                      ">" ++ if null b then "&nbsp;" else concatMap esc b ++ "</td>"
             where (a,b) = span isSpace x
                   -- if the first letter of the contents is '-', assume this is a flag
+                  -- and be aware that HTML might try to line-break it, see #39
                   isFlag = take 1 b == "-"
                   styles = [ "padding-left:" ++ show (length a) ++ "ex;" | a /= "" ]
                         ++ [ "white-space:nowrap;" | isFlag ]
