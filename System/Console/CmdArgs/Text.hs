@@ -150,4 +150,5 @@ showHTML xs = unlines $
         esc '&' = "&amp;"
         esc '>' = "&gt;"
         esc '<' = "&lt;"
+        esc '\n' = "<br />"
         esc x = [x]
