@@ -107,19 +107,23 @@ wrap1 width x = ["" | null res] ++ res
 
 -- | Split the text into strips of no-more than the given width
 wrap :: Int -> String -> [String]
-wrap width = combine . split
+wrap width = concatMap (split . map attachLen)
+           . map words . lines
     where
-        split :: String -> [(String,Int)] -- string, amount of space after
-        split "" = []
-        split x = (a,length c) : split d
-            where (a,b) = break isSpace x
-                  (c,d) = span isSpace b
+        -- input: a list of words paired with their length
+        --        (we know there are no line breaks between words)
+        -- output: the full text, split into lines such that no line is wider than "width"
+        split :: [(String, Int)] -> [String]
+        split = map (unwords . reverse) . go [] 0 where
+            -- the argument to "go" is the current line and its width
+            -- its output is backwards and split into words
+            go line _       [] = [line | not (null line)]
+            go line lineLen ((w,wLen):rest)
+                | lineLen + wLen <= width = go (w:line) (lineLen + wLen) rest
+                | otherwise               = line : go [] 0 ((w,wLen):rest)
 
-        -- combine two adjacent chunks while they are less than width
-        combine :: [(String,Int)] -> [String]
-        combine ((a,b):(c,d):xs) | length a + b + length c < width = combine $ (a ++ replicate b ' ' ++ c,d):xs
-        combine (x:xs) = fst x : combine xs
-        combine [] = []
+        attachLen :: String -> (String, Int)
+        attachLen w = (w, length w)
 
 
 ---------------------------------------------------------------------
