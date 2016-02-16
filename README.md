@@ -48,6 +48,7 @@ For each example you are encouraged to look at it's source (in the [repo](https:
 The following code defines a complete command line argument processor:
 
     {-# LANGUAGE DeriveDataTypeable #-}
+    {-# OPTIONS_GHC -fno-cse #-}
     module Sample where
     import System.Console.CmdArgs
     
@@ -62,6 +63,7 @@ To use the CmdArgs library there are three steps:
 
 * Define a record data type (`Sample`) that contains a field for each argument. This type needs to have instances for `Show`, `Data` and `Typeable`.
 * Give a value of that type (`sample`) with default values (`def` is a default value of any type, but I could also have written `""`). This value is turned into a command line by calling the `cmdArgs` function.
+* To ensure GHC evalutes attributes the right number of times we disable the CSE optimisation on this module.
 
 Now we have a reasonably functional command line argument processor. Some sample interactions are:
 
