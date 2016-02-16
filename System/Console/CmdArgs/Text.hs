@@ -131,16 +131,20 @@ showHTML xs = unlines $
     map f xs ++
     ["</table>"]
     where
-        cols = maximum [length x | Cols x <- xs]
+        maxCols = maximum [length x | Cols x <- xs]
 
-        f (Line x) = tr $ td cols x
-        f (Cols xs) = tr $ concatMap (td 1) (init xs) ++ td (cols + 1 - length xs) (last xs)
+        f (Line x) = tr $ td maxCols x
+        f (Cols xs) = tr $ concatMap (td 1) (init xs) ++ td (maxCols + 1 - length xs) (last xs)
 
         tr x = "<tr>" ++ x ++ "</tr>"
         td cols x = "<td" ++ (if cols == 1 then "" else " colspan='" ++ show cols ++ "'")
-                          ++ (if a /= "" then " style='padding-left:" ++ show (length a) ++ "ex;'" else "") ++
+                          ++ (if null styles then "" else " style='" ++ unwords styles ++ "'") ++
                      ">" ++ if null b then "&nbsp;" else concatMap esc b ++ "</td>"
             where (a,b) = span isSpace x
+                  -- if the first letter of the contents is '-', assume this is a flag
+                  isFlag = take 1 b == "-"
+                  styles = [ "padding-left:" ++ show (length a) ++ "ex;" | a /= "" ]
+                        ++ [ "white-space:nowrap;" | isFlag ]
 
         esc '&' = "&amp;"
         esc '>' = "&gt;"
