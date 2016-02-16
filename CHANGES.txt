@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #18, preserve manual \n in help messages
     #25, reformat the README
 0.10.13
     #24, support Ratio in some places

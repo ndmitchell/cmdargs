@@ -107,7 +107,7 @@ wrap1 width x = ["" | null res] ++ res
 
 -- | Split the text into strips of no-more than the given width
 wrap :: Int -> String -> [String]
-wrap width = combine . split
+wrap width = concatMap (combine . split) . lines
     where
         split :: String -> [(String,Int)] -- string, amount of space after
         split "" = []
