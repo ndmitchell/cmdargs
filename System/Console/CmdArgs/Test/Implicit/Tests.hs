@@ -266,12 +266,12 @@ test14 = do
 data Test15 = Test15 {test15a :: Bool} deriving (Eq,Show,Data,Typeable)
 
 mode15 = cmdArgsMode $ Test15 (False &= name "help")
-         &= helpArg [groupname "GROUP", name "h", name "nohelp", explicit, help "whatever"] &= versionArg [ignore]
+         &= helpArg [groupname "GROUP", name "h", name "nohelp", explicit, help "whatever\nstuff"] &= versionArg [ignore]
          &= verbosityArgs [ignore] [explicit,name "silent"]
 
 $(cmdArgsQuote [d|
     mode15_ = cmdArgsMode# $ Test15 (False &=# name "help")
-              &=# helpArg [groupname "GROUP", name "h", name "nohelp", explicit, help "whatever"] &=# versionArg [ignore]
+              &=# helpArg [groupname "GROUP", name "h", name "nohelp", explicit, help "whatever\nstuff"] &=# versionArg [ignore]
               &=# verbosityArgs [ignore] [explicit,name "silent"]
     |])
 
