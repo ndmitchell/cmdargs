@@ -181,11 +181,14 @@ checkMode x = msum
 ---------------------------------------------------------------------
 -- REMAP
 
+-- | Like functor, but where the the argument isn't just covariant.
 class Remap m where
+    -- | Convert between two values.
     remap :: (a -> b) -- ^ Embed a value
           -> (b -> (a, a -> b)) -- ^ Extract the mode and give a way of re-embedding
           -> m a -> m b
 
+-- | Restricted version of 'remap' where the values are isomorphic.
 remap2 :: Remap m => (a -> b) -> (b -> a) -> m a -> m b
 remap2 f g = remap f (\x -> (g x, f))
 
@@ -204,6 +207,8 @@ instance Remap Flag where
 instance Remap Arg where
     remap f g x = x{argValue = remapUpdate f g $ argValue x}
 
+-- | Version of 'remap' for the 'Update' type alias.
+remapUpdate :: (a -> b) -> (b -> (a, a -> b)) -> Update a -> Update b
 remapUpdate f g upd = \s v -> let (a,b) = g v in fmap b $ upd s a
 
 
