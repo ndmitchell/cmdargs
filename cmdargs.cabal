@@ -48,6 +48,7 @@ flag quotation
     description: Build the Quote module
 
 library
+    default-language: Haskell2010
     build-depends:
         base >= 4.4 && < 5,
         filepath,
@@ -89,6 +90,7 @@ library
         System.Console.CmdArgs.Implicit.UI
 
 executable cmdargs
+    default-language: Haskell2010
     main-is: Main.hs
     if flag(quotation)
         extensions: TemplateHaskell
