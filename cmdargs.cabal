@@ -59,7 +59,7 @@ library
         build-depends: template-haskell
         exposed-modules: System.Console.CmdArgs.Quote
         -- See bug #539 for why this magic is required
-        extensions: TemplateHaskell
+        other-extensions: TemplateHaskell
 
     exposed-modules:
         System.Console.CmdArgs
@@ -93,7 +93,7 @@ executable cmdargs
     default-language: Haskell2010
     main-is: Main.hs
     if flag(quotation)
-        extensions: TemplateHaskell
+        other-extensions: TemplateHaskell
     if flag(testprog) && flag(quotation)
         buildable: True
     else
