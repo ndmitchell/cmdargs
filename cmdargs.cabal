@@ -41,10 +41,12 @@ source-repository head
 
 flag testprog
     default: False
+    manual: True
     description: Build the test program
 
 flag quotation
     default: True
+    manual: True
     description: Build the Quote module
 
 library
