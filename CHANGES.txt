@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.10.15
     #43, GHC 8.2 compatibility
 0.10.14
     #39, ensure correct line breaks in HTML help output
