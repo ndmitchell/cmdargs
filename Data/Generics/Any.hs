@@ -9,11 +9,6 @@ import qualified Data.Data as D
 import Data.Data hiding (toConstr, typeOf, dataTypeOf, isAlgType)
 import Data.List
 import Data.Maybe
-#if MIN_VERSION_base(4,5,0)
-import qualified Data.Typeable as I
-#else
-import qualified Data.Typeable.Internal as I
-#endif
 import System.IO.Unsafe
 
 
@@ -72,7 +67,7 @@ typeShell :: Any -> String
 typeShell = tyconUQname . typeShellFull
 
 typeShellFull :: Any -> String
-typeShellFull = I.tyConName . typeRepTyCon . typeOf
+typeShellFull = tyConName . typeRepTyCon . typeOf
 
 typeName :: Any -> String
 typeName = show . typeOf
