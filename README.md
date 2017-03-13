@@ -1,4 +1,4 @@
-# CmdArgs: Easy Command Line Processing [![Hackage version](https://img.shields.io/hackage/v/cmdargs.svg?style=flat)](https://hackage.haskell.org/package/cmdargs) [![Build Status](https://img.shields.io/travis/ndmitchell/cmdargs.svg?style=flat)](https://travis-ci.org/ndmitchell/cmdargs)
+# CmdArgs: Easy Command Line Processing [![Hackage version](https://img.shields.io/hackage/v/cmdargs.svg?label=Hackage)](https://hackage.haskell.org/package/cmdargs) [![Build Status](https://img.shields.io/travis/ndmitchell/cmdargs.svg)](https://travis-ci.org/ndmitchell/cmdargs)
 
 CmdArgs is a Haskell library for defining command line parsers. The two features that make it a better choice than the standard [getopt library](http://haskell.org/ghc/docs/latest/html/libraries/base/System-Console-GetOpt.html) are:
 
