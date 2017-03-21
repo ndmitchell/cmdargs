@@ -76,9 +76,9 @@ reader_ x | isAlgType x && length xs > 1 && all ((==) 0 . arity . snd) xs
     where
         xs = [(map toLower c, compose0 x c) | c <- ctors x]
 
-        rd s | null ys = Left $ "Could not read, expected one of: " ++ unwords (map fst xs)
+        rd s | null ys = Left $ "Could not read " ++ show s ++ ", expected one of: " ++ unwords (map fst xs)
              | Just (_,x) <- find ((==) s . fst) ys = Right x
-             | length ys > 1 = Left $ "Ambiguous read, could be any of: " ++ unwords (map fst ys)
+             | length ys > 1 = Left $ "Ambiguous read for " ++ show s ++ ", could be any of: " ++ unwords (map fst ys)
              | otherwise = Right $ snd $ head ys
             where ys = filter (isPrefixOf s . fst) xs
 
