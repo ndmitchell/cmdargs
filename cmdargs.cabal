@@ -94,12 +94,11 @@ library
 executable cmdargs
     default-language: Haskell2010
     main-is: Main.hs
-    if flag(quotation)
-        other-extensions: TemplateHaskell
+    other-extensions: TemplateHaskell
+    build-depends:
+        base, transformers, filepath, template-haskell
     if flag(testprog) && flag(quotation)
         buildable: True
-        build-depends:
-            base, transformers
     else
         buildable: False
 
