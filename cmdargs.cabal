@@ -96,7 +96,7 @@ executable cmdargs
     main-is: Main.hs
     other-extensions: TemplateHaskell
     build-depends:
-        base, transformers, filepath, template-haskell
+        base, transformers, filepath, process, template-haskell
     if flag(testprog) && flag(quotation)
         buildable: True
     else
