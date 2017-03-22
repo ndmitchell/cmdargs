@@ -98,6 +98,8 @@ executable cmdargs
         other-extensions: TemplateHaskell
     if flag(testprog) && flag(quotation)
         buildable: True
+        build-depends:
+            base, transformers
     else
         buildable: False
 
