@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, CPP #-}
 {-|
     This module constructs command lines. You may either use the helper functions
     ('flagNone', 'flagOpt', 'mode' etc.) or construct the type directly. These
@@ -133,6 +133,11 @@ readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
                 _ -> Nothing
 
 
+#if __GLASGOW_HASKELL__ < 800
+errorWithoutStackTrace :: String -> a
+errorWithoutStackTrace = error
+#endif
+
 -- | Process a list of flags (usually obtained from @'getArgs'@ and @'expandArgsAt'@) with a mode. Displays
 --   an error and exits with failure if the command line fails to parse, or returns
 --   the associated value. Implemeneted in terms of 'process'. This function
@@ -140,7 +145,7 @@ readMay s = case [x | (x,t) <- reads s, ("","") <- lex t] of
 --   (see 'processArgs').
 processValue :: Mode a -> [String] -> a
 processValue m xs = case process m xs of
-    Left x -> error x
+    Left x -> errorWithoutStackTrace x
     Right x -> x
 
 

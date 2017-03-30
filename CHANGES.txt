@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #529, don't include the stack trace in processValue
 0.10.16
     Minor improvement to error messages
 0.10.15
