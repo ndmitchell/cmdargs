@@ -112,7 +112,7 @@ processArgs m = do
             let var = mplus (lookup ("CMDARGS_HELPER_" ++ show (map toUpper $ head $ modeNames m ++ [nam])) env)
                             (lookup "CMDARGS_HELPER" env)
             case var of
-                Nothing -> run =<< (if modeExpandAt m then expandArgsAt else return) =<< getArgs
+                Nothing -> processValueIO m =<< (if modeExpandAt m then expandArgsAt else return) =<< getArgs
                 Just cmd -> do
                     res <- execute cmd m []
                     case res of
@@ -120,11 +120,7 @@ processArgs m = do
                             hPutStrLn stderr $ "Error when running helper " ++ cmd
                             hPutStrLn stderr err
                             exitFailure               
-                        Right args -> run args
-    where
-        run args = case process m args of
-            Left x -> do hPutStrLn stderr x; exitFailure
-            Right x -> return x
+                        Right args -> processValueIO m args
 
 
 readMay :: Read a => String -> Maybe a
