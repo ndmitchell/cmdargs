@@ -53,7 +53,7 @@
 -}
 module System.Console.CmdArgs.Explicit(
     -- * Running command lines
-    process, processArgs, processValue,
+    process, processArgs, processValue, processValueIO,
     -- * Constructing command lines
     module System.Console.CmdArgs.Explicit.Type,
     flagHelpSimple, flagHelpFormat, flagVersion, flagNumericVersion, flagsVerbosity,
@@ -138,15 +138,23 @@ errorWithoutStackTrace :: String -> a
 errorWithoutStackTrace = error
 #endif
 
--- | Process a list of flags (usually obtained from @'getArgs'@ and @'expandArgsAt'@) with a mode. Displays
---   an error and exits with failure if the command line fails to parse, or returns
+-- | Process a list of flags (usually obtained from @'getArgs'@ and @'expandArgsAt'@) with a mode.
+--   Throws an error if the command line fails to parse, or returns
 --   the associated value. Implemeneted in terms of 'process'. This function
 --   does not take account of any environment variables that may be set
 --   (see 'processArgs').
+--
+--   If you are in 'IO' you will probably get a better user experience by calling 'processValueIO'.
 processValue :: Mode a -> [String] -> a
 processValue m xs = case process m xs of
     Left x -> errorWithoutStackTrace x
     Right x -> x
+
+-- | Like 'processValue' but on failure prints to stderr and exits the program.
+processValueIO :: Mode a -> [String] -> IO a
+processValueIO m xs = case process m xs of
+    Left x -> do hPutStrLn stderr x; exitFailure
+    Right x -> return x
 
 
 -- | Create a help flag triggered by @-?@/@--help@.

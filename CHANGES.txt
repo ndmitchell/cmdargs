@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    Add processValueIO for more controlled error messages
     #529, don't include the stack trace in processValue
 0.10.16
     Minor improvement to error messages
