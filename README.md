@@ -87,13 +87,13 @@ CmdArgs uses defaults to automatically infer a command line parser for a value, 
 ## Specifying Attributes
 
 In order to control the behaviour we can add attributes. For example to add an attribute specifying the help text for the `--hello` argument we can write:
-
+```haskell
     sample = Sample{hello = def &= help "Who to say hello to"}
-
+```
 We can add additional attributes, for example to specify the type of the value expected by hello:
-
+```haskell
     sample = Sample {hello = def &= help "Who to say hello to" &= typ "WORLD"}
-
+```
 Now when running `--help` the final line is:
 
       -h --hello=WORLD  Who to say hello to
@@ -104,7 +104,7 @@ There are many more attributes, detailed in the [Haddock documentation](http://h
 ## Multiple Modes
 
 To specify a program with multiple modes, similar to [darcs](http://darcs.net/), we can supply a data type with multiple constructors, for example:
-    ```haskell
+```haskell
     data Sample = Hello {whom :: String}
                 | Goodbye
                   deriving (Show, Data, Typeable)
