@@ -6,24 +6,24 @@ CmdArgs is a Haskell library for defining command line parsers. The two features
 * It supports programs with multiple modes, such as [darcs](http://darcs.net) or [Cabal](http://haskell.org/cabal/).
 
 A very simple example of a command line processor is:
-
+```haskell
     data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)
-    
+
     sample = Sample{hello = def &= help "World argument" &= opt "world"}
              &= summary "Sample v1"
-    
-    main = print =<< cmdArgs sample
 
+    main = print =<< cmdArgs sample
+```
 Despite being very concise, this processor is already fairly well featured:
 
     $ runhaskell Sample.hs --hello=world
     Sample {hello = "world"}
-    
+
     $ runhaskell Sample.hs --help
     Sample v1, (C) Neil Mitchell 2009
-    
+
     sample [FLAG]
-    
+
       -? --help[=FORMAT]  Show usage information (optional format)
       -V --version        Show version information
       -v --verbose        Higher verbosity
@@ -46,19 +46,19 @@ For each example you are encouraged to look at it's source (in the [repo](https:
 ## Hello World Example
 
 The following code defines a complete command line argument processor:
-
+```haskell
     {-# LANGUAGE DeriveDataTypeable #-}
     {-# OPTIONS_GHC -fno-cse #-}
     module Sample where
     import System.Console.CmdArgs
-    
+
     data Sample = Sample {hello :: String}
                   deriving (Show, Data, Typeable)
-    
-    sample = Sample{hello = def}
-    
-    main = print =<< cmdArgs sample
 
+    sample = Sample{hello = def}
+
+    main = print =<< cmdArgs sample
+```
 To use the CmdArgs library there are three steps:
 
 * Define a record data type (`Sample`) that contains a field for each argument. This type needs to have instances for `Show`, `Data` and `Typeable`.
@@ -69,15 +69,15 @@ Now we have a reasonably functional command line argument processor. Some sample
 
     $ runhaskell Sample.hs --hello=world
     Sample {hello = "world"}
-    
+
     $ runhaskell Sample.hs --version
     The sample program
-    
+
     $ runhaskell Sample.hs --help
     The sample program
-    
+
     sample [OPTIONS]
-    
+
       -? --help        Display help message
       -V --version     Print version information
       -h --hello=ITEM
@@ -104,37 +104,37 @@ There are many more attributes, detailed in the [Haddock documentation](http://h
 ## Multiple Modes
 
 To specify a program with multiple modes, similar to [darcs](http://darcs.net/), we can supply a data type with multiple constructors, for example:
-    
+    ```haskell
     data Sample = Hello {whom :: String}
                 | Goodbye
                   deriving (Show, Data, Typeable)
-    
+
     hello = Hello{whom = def}
     goodbye = Goodbye
-    
-    main = print =<< cmdArgs (modes [hello,goodbye])
 
+    main = print =<< cmdArgs (modes [hello,goodbye])
+```
 Compared to the first example, we now have multiple constructors, and a sample value for each constructor is passed to `cmdArgs`. Some sample interactions with this command line are:
 
     $ runhaskell Sample.hs hello --whom=world
     Hello {whom = "world"}
-    
+
     $ runhaskell Sample.hs goodbye
     Goodbye
-    
+
     $ runhaskell Sample.hs --help
     The sample program
-    
+
     sample [OPTIONS]
-    
+
      Common flags
       -? --help       Display help message
       -V --version    Print version information
-    
+
     sample hello [OPTIONS]
-    
+
       -w --whom=ITEM
-    
+
     sample goodbye [OPTIONS]
 
 As before, the behaviour can be customised using attributes.
@@ -154,11 +154,11 @@ The [HLint](https://github.com/ndmitchell/hlint#readme) program analyses a list 
 * The `cpp_define` field has an underscore in it's name, which is transformed into a hyphen for the flag name.
 
 The code is:
-
+```haskell
     {-# LANGUAGE DeriveDataTypeable #-}
     module HLint where
     import System.Console.CmdArgs
-    
+
     data HLint = HLint
         {report :: [FilePath]
         ,hint :: [FilePath]
@@ -177,7 +177,7 @@ The code is:
         ,files :: [FilePath]
         }
         deriving (Data,Typeable,Show,Eq)
-    
+
     hlint = HLint
         {report = def &= opt "report.html" &= typFile &= help "Generate a report in HTML"
         ,hint = def &= typFile &= help "Hint/ignore file to use"
@@ -200,16 +200,16 @@ The code is:
         summary "HLint v0.0.0, (C) Neil Mitchell" &=
         details ["Hlint gives hints on how to improve Haskell code",""
                 ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
-    
-    mode = cmdArgsMode hlint
 
+    mode = cmdArgsMode hlint
+```
 Produces the `--help` output:
 
     HLint v0.0.0, (C) Neil Mitchell
-    
+
     hlint [OPTIONS] [FILES/DIRS]
     Suggest improvements to Haskell source code
-    
+
     Common flags:
       -r --report[=FILE]            Generate a report in HTML
       -h --hint=FILE                Hint/ignore file to use
@@ -229,12 +229,12 @@ Produces the `--help` output:
       -V --version                    Print version information
       -v --verbose                    Loud verbosity
       -q --quiet                    Quiet verbosity
-    
+
     Hlint gives hints on how to improve Haskell code
-    
+
     To check all Haskell files in 'src' and generate a report type:
       hlint src --report
-    
+
 
 ### Diffy
 
@@ -245,47 +245,47 @@ The Diffy sample is a based on the idea of creating directory listings and compa
 * Default values are given for the `out` field, which are different in both modes.
 
 The code is:
-
+```haskell
     {-# LANGUAGE DeriveDataTypeable #-}
     module Diffy where
     import System.Console.CmdArgs
-    
+
     data Diffy = Create {src :: Maybe FilePath, out :: FilePath}
                | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
                  deriving (Data,Typeable,Show,Eq)
-    
+
     outFlags x = x &= help "Output file" &= typFile
-    
+
     create = Create
         {src = def &= help "Source directory" &= typDir
         ,out = outFlags "ls.txt"
         } &= help "Create a fingerprint"
-    
+
     diff = Diff
         {old = def &= typ "OLDFILE" &= argPos 0
         ,new = def &= typ "NEWFILE" &= argPos 1
         ,out = outFlags "diff.txt"
         } &= help "Perform a diff"
-    
-    mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
 
+    mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
+```
 And `--help` produces:
 
     Diffy v1.0
-     
+
     diffy [COMMAND] ... [OPTIONS]
       Create and compare differences
-     
+
     Common flags:
       -o --out=FILE     Output file
       -? --help         Display help message
       -V --version     Print version information
-     
+
     diffy create [OPTIONS]
       Create a fingerprint
-     
+
       -s  --src=DIR  Source directory
-     
+
     diffy diff [OPTIONS] OLDFILE NEWFILE
       Perform a diff
 
@@ -298,29 +298,29 @@ The Maker sample is based around a build system, where we can either build a pro
 * The `threads` field is in two of the constructors, but not all three. It is given the short flag `-j`, rather than the default `-t`.
 
 The code is:
-
+```haskell
     {-# LANGUAGE DeriveDataTypeable #-}
     module Maker where
     import System.Console.CmdArgs
-    
+
     data Method = Debug | Release | Profile
                   deriving (Data,Typeable,Show,Eq)
-    
+
     data Maker
         = Wipe
         | Test {threads :: Int, extra :: [String]}
         | Build {threads :: Int, method :: Method, files :: [FilePath]}
           deriving (Data,Typeable,Show,Eq)
-    
+
     threadsMsg x = x &= help "Number of threads to use" &= name "j" &= typ "NUM"
-    
+
     wipe = Wipe &= help "Clean all build objects"
-    
+
     test_ = Test
         {threads = threadsMsg def
         ,extra = def &= typ "ANY" &= args
         } &= help "Run the test suite"
-    
+
     build = Build
         {threads = threadsMsg def
         ,method = enum
@@ -329,36 +329,36 @@ The code is:
             ,Profile &= help "Profile build"]
         ,files = def &= args
         } &= help "Build the project" &= auto
-    
+
     mode = cmdArgsMode $ modes [build,wipe,test_]
          &= help "Build helper program"
          &= program "maker"
          &= summary "Maker v1.0\nMake it"
-
+```
 And `--help` produces:
 
     Maker v1.0
       Make it
-     
+
     maker [COMMAND] ... [OPTIONS]
       Build helper program
-     
+
     Common flags:
       -? --help     Display help message
       -V --version  Print version information
-     
+
     maker [build] [OPTIONS] [ITEM]
       Build the project
-     
+
       -j --threads=NUM  Number of threads to use
       -r --release      Release build
       -d --debug        Debug build
       -p --profile      Profile build
-     
+
     maker wipe [OPTIONS]
       Clean all build objects
-     
+
     maker test [OPTIONS] [ANY]
       Run the test suite
-     
+
       -j --threads=NUM  Number of threads to use
