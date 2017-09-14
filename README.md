@@ -7,12 +7,12 @@ CmdArgs is a Haskell library for defining command line parsers. The two features
 
 A very simple example of a command line processor is:
 ```haskell
-    data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)
+data Sample = Sample {hello :: String} deriving (Show, Data, Typeable)
 
-    sample = Sample{hello = def &= help "World argument" &= opt "world"}
-             &= summary "Sample v1"
+sample = Sample{hello = def &= help "World argument" &= opt "world"}
+         &= summary "Sample v1"
 
-    main = print =<< cmdArgs sample
+main = print =<< cmdArgs sample
 ```
 Despite being very concise, this processor is already fairly well featured:
 
@@ -47,17 +47,17 @@ For each example you are encouraged to look at it's source (in the [repo](https:
 
 The following code defines a complete command line argument processor:
 ```haskell
-    {-# LANGUAGE DeriveDataTypeable #-}
-    {-# OPTIONS_GHC -fno-cse #-}
-    module Sample where
-    import System.Console.CmdArgs
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# OPTIONS_GHC -fno-cse #-}
+module Sample where
+import System.Console.CmdArgs
 
-    data Sample = Sample {hello :: String}
-                  deriving (Show, Data, Typeable)
+data Sample = Sample {hello :: String}
+              deriving (Show, Data, Typeable)
 
-    sample = Sample{hello = def}
+sample = Sample{hello = def}
 
-    main = print =<< cmdArgs sample
+main = print =<< cmdArgs sample
 ```
 To use the CmdArgs library there are three steps:
 
@@ -88,11 +88,11 @@ CmdArgs uses defaults to automatically infer a command line parser for a value, 
 
 In order to control the behaviour we can add attributes. For example to add an attribute specifying the help text for the `--hello` argument we can write:
 ```haskell
-    sample = Sample{hello = def &= help "Who to say hello to"}
+sample = Sample{hello = def &= help "Who to say hello to"}
 ```
 We can add additional attributes, for example to specify the type of the value expected by hello:
 ```haskell
-    sample = Sample {hello = def &= help "Who to say hello to" &= typ "WORLD"}
+sample = Sample {hello = def &= help "Who to say hello to" &= typ "WORLD"}
 ```
 Now when running `--help` the final line is:
 
@@ -105,14 +105,14 @@ There are many more attributes, detailed in the [Haddock documentation](http://h
 
 To specify a program with multiple modes, similar to [darcs](http://darcs.net/), we can supply a data type with multiple constructors, for example:
 ```haskell
-    data Sample = Hello {whom :: String}
-                | Goodbye
-                  deriving (Show, Data, Typeable)
+data Sample = Hello {whom :: String}
+            | Goodbye
+              deriving (Show, Data, Typeable)
 
-    hello = Hello{whom = def}
-    goodbye = Goodbye
+hello = Hello{whom = def}
+goodbye = Goodbye
 
-    main = print =<< cmdArgs (modes [hello,goodbye])
+main = print =<< cmdArgs (modes [hello,goodbye])
 ```
 Compared to the first example, we now have multiple constructors, and a sample value for each constructor is passed to `cmdArgs`. Some sample interactions with this command line are:
 
@@ -155,53 +155,53 @@ The [HLint](https://github.com/ndmitchell/hlint#readme) program analyses a list 
 
 The code is:
 ```haskell
-    {-# LANGUAGE DeriveDataTypeable #-}
-    module HLint where
-    import System.Console.CmdArgs
+{-# LANGUAGE DeriveDataTypeable #-}
+module HLint where
+import System.Console.CmdArgs
 
-    data HLint = HLint
-        {report :: [FilePath]
-        ,hint :: [FilePath]
-        ,color :: Bool
-        ,ignore_ :: [String]
-        ,show_ :: Bool
-        ,extension :: [String]
-        ,language :: [String]
-        ,utf8 :: Bool
-        ,encoding :: String
-        ,find :: [FilePath]
-        ,test_ :: Bool
-        ,datadir :: [FilePath]
-        ,cpp_define :: [String]
-        ,cpp_include :: [FilePath]
-        ,files :: [FilePath]
-        }
-        deriving (Data,Typeable,Show,Eq)
+data HLint = HLint
+    {report :: [FilePath]
+    ,hint :: [FilePath]
+    ,color :: Bool
+    ,ignore_ :: [String]
+    ,show_ :: Bool
+    ,extension :: [String]
+    ,language :: [String]
+    ,utf8 :: Bool
+    ,encoding :: String
+    ,find :: [FilePath]
+    ,test_ :: Bool
+    ,datadir :: [FilePath]
+    ,cpp_define :: [String]
+    ,cpp_include :: [FilePath]
+    ,files :: [FilePath]
+    }
+    deriving (Data,Typeable,Show,Eq)
 
-    hlint = HLint
-        {report = def &= opt "report.html" &= typFile &= help "Generate a report in HTML"
-        ,hint = def &= typFile &= help "Hint/ignore file to use"
-        ,color = def &= name "c" &= name "colour" &= help "Color the output (requires ANSI terminal)"
-        ,ignore_ = def &= typ "MESSAGE" &= help "Ignore a particular hint"
-        ,show_ = def &= help "Show all ignored ideas"
-        ,extension = def &= typ "EXT" &= help "File extensions to search (defaults to hs and lhs)"
-        ,language = def &= name "X" &= typ "LANG" &= help "Language extension (Arrows, NoCPP)"
-        ,utf8 = def &= help "Use UTF-8 text encoding"
-        ,encoding = def &= typ "ENC" &= help "Choose the text encoding"
-        ,find = def &= typFile &= help "Find hints in a Haskell file"
-        ,test_ = def &= help "Run in test mode"
-        ,datadir = def &= typDir &= help "Override the data directory"
-        ,cpp_define = def &= typ "NAME[=VALUE]" &= help "CPP #define"
-        ,cpp_include = def &= typDir &= help "CPP include path"
-        ,files = def &= args &= typ "FILES/DIRS"
-        } &=
-        verbosity &=
-        help "Suggest improvements to Haskell source code" &=
-        summary "HLint v0.0.0, (C) Neil Mitchell" &=
-        details ["Hlint gives hints on how to improve Haskell code",""
-                ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
+hlint = HLint
+    {report = def &= opt "report.html" &= typFile &= help "Generate a report in HTML"
+    ,hint = def &= typFile &= help "Hint/ignore file to use"
+    ,color = def &= name "c" &= name "colour" &= help "Color the output (requires ANSI terminal)"
+    ,ignore_ = def &= typ "MESSAGE" &= help "Ignore a particular hint"
+    ,show_ = def &= help "Show all ignored ideas"
+    ,extension = def &= typ "EXT" &= help "File extensions to search (defaults to hs and lhs)"
+    ,language = def &= name "X" &= typ "LANG" &= help "Language extension (Arrows, NoCPP)"
+    ,utf8 = def &= help "Use UTF-8 text encoding"
+    ,encoding = def &= typ "ENC" &= help "Choose the text encoding"
+    ,find = def &= typFile &= help "Find hints in a Haskell file"
+    ,test_ = def &= help "Run in test mode"
+    ,datadir = def &= typDir &= help "Override the data directory"
+    ,cpp_define = def &= typ "NAME[=VALUE]" &= help "CPP #define"
+    ,cpp_include = def &= typDir &= help "CPP include path"
+    ,files = def &= args &= typ "FILES/DIRS"
+    } &=
+    verbosity &=
+    help "Suggest improvements to Haskell source code" &=
+    summary "HLint v0.0.0, (C) Neil Mitchell" &=
+    details ["Hlint gives hints on how to improve Haskell code",""
+            ,"To check all Haskell files in 'src' and generate a report type:","  hlint src --report"]
 
-    mode = cmdArgsMode hlint
+mode = cmdArgsMode hlint
 ```
 Produces the `--help` output:
 
@@ -246,28 +246,28 @@ The Diffy sample is a based on the idea of creating directory listings and compa
 
 The code is:
 ```haskell
-    {-# LANGUAGE DeriveDataTypeable #-}
-    module Diffy where
-    import System.Console.CmdArgs
+{-# LANGUAGE DeriveDataTypeable #-}
+module Diffy where
+import System.Console.CmdArgs
 
-    data Diffy = Create {src :: Maybe FilePath, out :: FilePath}
-               | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
-                 deriving (Data,Typeable,Show,Eq)
+data Diffy = Create {src :: Maybe FilePath, out :: FilePath}
+           | Diff {old :: FilePath, new :: FilePath, out :: FilePath}
+             deriving (Data,Typeable,Show,Eq)
 
-    outFlags x = x &= help "Output file" &= typFile
+outFlags x = x &= help "Output file" &= typFile
 
-    create = Create
-        {src = def &= help "Source directory" &= typDir
-        ,out = outFlags "ls.txt"
-        } &= help "Create a fingerprint"
+create = Create
+    {src = def &= help "Source directory" &= typDir
+    ,out = outFlags "ls.txt"
+    } &= help "Create a fingerprint"
 
-    diff = Diff
-        {old = def &= typ "OLDFILE" &= argPos 0
-        ,new = def &= typ "NEWFILE" &= argPos 1
-        ,out = outFlags "diff.txt"
-        } &= help "Perform a diff"
+diff = Diff
+    {old = def &= typ "OLDFILE" &= argPos 0
+    ,new = def &= typ "NEWFILE" &= argPos 1
+    ,out = outFlags "diff.txt"
+    } &= help "Perform a diff"
 
-    mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
+mode = cmdArgsMode $ modes [create,diff] &= help "Create and compare differences" &= program "diffy" &= summary "Diffy v1.0"
 ```
 And `--help` produces:
 
@@ -299,41 +299,41 @@ The Maker sample is based around a build system, where we can either build a pro
 
 The code is:
 ```haskell
-    {-# LANGUAGE DeriveDataTypeable #-}
-    module Maker where
-    import System.Console.CmdArgs
+{-# LANGUAGE DeriveDataTypeable #-}
+module Maker where
+import System.Console.CmdArgs
 
-    data Method = Debug | Release | Profile
-                  deriving (Data,Typeable,Show,Eq)
+data Method = Debug | Release | Profile
+              deriving (Data,Typeable,Show,Eq)
 
-    data Maker
-        = Wipe
-        | Test {threads :: Int, extra :: [String]}
-        | Build {threads :: Int, method :: Method, files :: [FilePath]}
-          deriving (Data,Typeable,Show,Eq)
+data Maker
+    = Wipe
+    | Test {threads :: Int, extra :: [String]}
+    | Build {threads :: Int, method :: Method, files :: [FilePath]}
+      deriving (Data,Typeable,Show,Eq)
 
-    threadsMsg x = x &= help "Number of threads to use" &= name "j" &= typ "NUM"
+threadsMsg x = x &= help "Number of threads to use" &= name "j" &= typ "NUM"
 
-    wipe = Wipe &= help "Clean all build objects"
+wipe = Wipe &= help "Clean all build objects"
 
-    test_ = Test
-        {threads = threadsMsg def
-        ,extra = def &= typ "ANY" &= args
-        } &= help "Run the test suite"
+test_ = Test
+    {threads = threadsMsg def
+    ,extra = def &= typ "ANY" &= args
+    } &= help "Run the test suite"
 
-    build = Build
-        {threads = threadsMsg def
-        ,method = enum
-            [Release &= help "Release build"
-            ,Debug &= help "Debug build"
-            ,Profile &= help "Profile build"]
-        ,files = def &= args
-        } &= help "Build the project" &= auto
+build = Build
+    {threads = threadsMsg def
+    ,method = enum
+        [Release &= help "Release build"
+        ,Debug &= help "Debug build"
+        ,Profile &= help "Profile build"]
+    ,files = def &= args
+    } &= help "Build the project" &= auto
 
-    mode = cmdArgsMode $ modes [build,wipe,test_]
-         &= help "Build helper program"
-         &= program "maker"
-         &= summary "Maker v1.0\nMake it"
+mode = cmdArgsMode $ modes [build,wipe,test_]
+     &= help "Build helper program"
+     &= program "maker"
+     &= summary "Maker v1.0\nMake it"
 ```
 And `--help` produces:
 
