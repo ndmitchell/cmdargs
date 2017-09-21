@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 
 module System.Console.CmdArgs.Explicit.Type where
 
@@ -7,6 +8,9 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Monoid
+#if MIN_VERSION_base(4,9,0)
+import Data.Semigroup (Semigroup(..))
+#endif
 import Prelude
 
 
@@ -47,6 +51,11 @@ data Group a = Group
 
 instance Functor Group where
     fmap f (Group a b c) = Group (map f a) (map f b) (map (second $ map f) c)
+
+#if MIN_VERSION_base(4,9,0)
+instance Semigroup (Group a) where
+    (<>) = mappend
+#endif
 
 instance Monoid (Group a) where
     mempty = Group [] [] []
