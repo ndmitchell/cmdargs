@@ -8,7 +8,7 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Monoid
-#if __GLASGOW_HASKELL__ >= 800
+#if __GLASGOW_HASKELL__ >= 802
 import Data.Semigroup (Semigroup(..))
 #endif
 import Prelude
