@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.10.18
     #47, GHC 8.4 compatibility
 0.10.17
     Add processValueIO for more controlled error messages
