@@ -5,7 +5,7 @@ module Data.Generics.Any where
 import Control.Exception
 import Control.Monad.Trans.State
 import qualified Data.Data as D
-import Data.Data hiding (toConstr, typeOf, dataTypeOf, isAlgType)
+import Data.Data hiding (toConstr, typeOf, dataTypeOf)
 import Data.List
 import Data.Maybe
 import System.IO.Unsafe

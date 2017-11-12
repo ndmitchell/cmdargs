@@ -2,7 +2,6 @@
 
 module Data.Generics.Any.Prelude where
 
-import Prelude hiding (head,tail,null)
 import Data.Generics.Any
 import Data.Maybe
 
