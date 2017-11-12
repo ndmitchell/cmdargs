@@ -29,6 +29,7 @@
 - ignore: {name: "Use camelCase"}
 - ignore: {name: "Use >=>"}
 - ignore: {name: "Use first"}
+- ignore: {name: "Use lambda-case"}
 
 
 # Specify additional command line arguments
