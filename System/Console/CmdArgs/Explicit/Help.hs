@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-} -- Not good reasons, but shouldn't be too fatal
 {-
 Sample renderings:
 
