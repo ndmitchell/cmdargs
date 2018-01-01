@@ -27,7 +27,7 @@ type FlagHelp = String
 ---------------------------------------------------------------------
 -- UTILITY
 
--- | Parse a boolean, accepts as True: true yes on enabled 1. 
+-- | Parse a boolean, accepts as True: true yes on enabled 1.
 parseBool :: String -> Maybe Bool
 parseBool s | ls `elem` true  = Just True
             | ls `elem` false = Just False
@@ -47,7 +47,7 @@ data Group a = Group
     {groupUnnamed :: [a] -- ^ Normal items.
     ,groupHidden :: [a] -- ^ Items that are hidden (not displayed in the help message).
     ,groupNamed :: [(Help, [a])] -- ^ Items that have been grouped, along with a description of each group.
-    } deriving Show 
+    } deriving Show
 
 instance Functor Group where
     fmap f (Group a b c) = Group (map f a) (map f b) (map (second $ map f) c)
