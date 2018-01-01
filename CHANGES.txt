@@ -139,5 +139,5 @@ Changelog for CmdArgs
     #231, add support for Maybe
     #256, add --option=false support
     Complete rewrite to introduce Explicit module
-0.1.1
+0.1
     Start of changelog
