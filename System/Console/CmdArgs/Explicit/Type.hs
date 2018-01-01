@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 
 module System.Console.CmdArgs.Explicit.Type where
 
@@ -7,10 +6,7 @@ import Control.Monad
 import Data.Char
 import Data.List
 import Data.Maybe
-import Data.Monoid
-#if __GLASGOW_HASKELL__ >= 802
-import Data.Semigroup (Semigroup(..))
-#endif
+import Data.Semigroup hiding (Arg)
 import Prelude
 
 
@@ -52,14 +48,12 @@ data Group a = Group
 instance Functor Group where
     fmap f (Group a b c) = Group (map f a) (map f b) (map (second $ map f) c)
 
-#if __GLASGOW_HASKELL__ > 800
 instance Semigroup (Group a) where
-    (<>) = mappend
-#endif
+    Group x1 x2 x3 <> Group y1 y2 y3 = Group (x1++y1) (x2++y2) (x3++y3)
 
 instance Monoid (Group a) where
     mempty = Group [] [] []
-    mappend (Group x1 x2 x3) (Group y1 y2 y3) = Group (x1++y1) (x2++y2) (x3++y3)
+    mappend = (<>)
 
 -- | Convert a group into a list.
 fromGroup :: Group a -> [a]

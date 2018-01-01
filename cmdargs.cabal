@@ -57,6 +57,9 @@ library
         transformers >= 0.2,
         process >= 1.0
 
+    if impl(ghc < 8.0)
+        build-depends: semigroups >= 0.18
+
     if flag(quotation)
         build-depends: template-haskell
         exposed-modules: System.Console.CmdArgs.Quote

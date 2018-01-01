@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #47, ensure Semigroup instance on all GHC versions
 0.10.18, released 2017-09-24
     #47, GHC 8.4 compatibility
 0.10.17, released 2017-03-31
