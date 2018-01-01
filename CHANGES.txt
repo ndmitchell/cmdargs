@@ -1,73 +1,73 @@
 Changelog for CmdArgs
 
-0.10.18
+0.10.18, released 2017-09-24
     #47, GHC 8.4 compatibility
-0.10.17
+0.10.17, released 2017-03-31
     Add processValueIO for more controlled error messages
     #529, don't include the stack trace in processValue
-0.10.16
+0.10.16, released 2017-03-22
     Minor improvement to error messages
-0.10.15
+0.10.15, released 2017-03-06
     #43, GHC 8.2 compatibility
-0.10.14
+0.10.14, released 2016-02-16
     #39, ensure correct line breaks in HTML help output
     #18, preserve manual \n in help messages
     #25, reformat the README
-0.10.13
+0.10.13, released 2015-05-22
     #24, support Ratio in some places
-0.10.12
+0.10.12, released 2014-10-27
     GHC 7.2 compatibility
-0.10.11
+0.10.11, released 2014-10-12
     #15, never put [brackets] around optional args in Explicit
-0.10.10
+0.10.10, released 2014-09-18
     #14, fix @ file arguments
-0.10.9
+0.10.9, released 2014-07-22
     #10, fix versionArgs (broken in 0.10.8)
-0.10.8
+0.10.8, released 2014-07-21
     Avoid compilation warnings on GHC 7.8
     #9, add --numeric-version flag
     Update the copyright year
     Change GetOpt.usageInfo to be more like GetOpt
-0.10.7
+0.10.7, released 2013-12-09
     #1, fix timestamps in .tar.gz dist file
-0.10.6
+0.10.6, released 2013-12-05
     #625, more documentation about args/argPos
     #626, ensure initial lists don't get reversed (fix after #610)
-0.10.5
+0.10.5, released 2013-07-29
     #615, support lists inside a newtype
-0.10.4
+0.10.4, released 2013-06-26
     #610, make sure it is O(n) to append arguments, not O(n^2)
-0.10.3
+0.10.3, released 2013-04-05
     Append list items under an enum
     Support &= ignore on enum fields
-0.10.2
+0.10.2, released 2013-02-28
     Relax upper bounds to be GHC 7.7 compatible
-0.10.1
+0.10.1, released 2012-11-17
     #569, set the test program to off by default
 	Complete revamp of cmdargs-browser, far better Javascript
     Add a missing case for Helper marshalling FlagNone
-0.10
+0.10, released 2012-08-09
     Revert to 0.9.6, including modeExpandAt
-0.9.7
+0.9.7, released 2012-08-09
     Revert to 0.9.5, to fix up PVP breakage
-0.9.6
+0.9.6, released 2012-07-29
     #539, hopefully more fixes to compiling in profile mode
     #522, add modeExpandAt and noAtExpand annotation
     #522, don't @expand after --
-0.9.5
+0.9.5, released 2012-03-25
     Don't specify TH extension unless quotation is true
-0.9.4
+0.9.4, released 2012-03-25
     #539, specify the TH extension in the Cabal file
     Allow transformers 0.3.*
     Correct copyright in license and cabal file
-0.9.3
+0.9.3, released 2012-02-10
     Add expandArgsAt and support for @ flag file directives
-0.9.2
+0.9.2, released 2012-01-07
     Don't build the test program if quotation is turned off
-0.9.1
+0.9.1, released 2012-01-05
     Improve the documentation for the Explicit module
     #433, propagate groupname on modes in the Implicit code
-0.9
+0.9, released 2011-11-05
     #467, add completions for people running bash
     #334, add a Quote module, to write pure in the impure syntax
     #482, fix the sample in Explicit, don't use def
@@ -75,59 +75,59 @@ Changelog for CmdArgs
     Make showHelp take an argument for the prefix bits
     Add Helper interface, and initial cmdargs-browser code
     Add splitArgs/joinArgs
-0.8
+0.8, released 2011-08-13
     #450, redo the manual generator so Maker example is not cut off
     Support all the types in Data.Int/Data.Word
     Make modeArgs take a list of arguments as well
-0.7
+0.7, released 2011-05-07
     No changes, just a version bump to allow requiring the GHC fix
-0.6.10
+0.6.10, released 2011-05-07
     Change the annotate module to cope better with GHC's CSE
-0.6.9
+0.6.9, released 2011-04-03
     #422, support newtype value as the underlying type
-0.6.8
+0.6.8, released 2011-02-13
     Allow versionArgs [summary] to override --version
     Improve the documentation surrounding opt
     Add modeReform to Mode
     Add modeEmpty, to construct blank Mode values
     Improve the documentation surrounding pure annotations.
-0.6.7
+0.6.7, released 2011-01-15
     #395, don't put two newlines after --help or --version
-0.6.6
+0.6.6, released 2010-12-30
     #392, support helpArgs [groupname "something"]
-0.6.5
+0.6.5, released 2010-12-15
     Don't fail with ambiguous enum if you exactly match a value
     Put errors on stderr
-0.6.4
+0.6.4, released 2010-11-20
     Eliminate the filepath dependence
-0.6.3
+0.6.3, released 2010-11-10
     Switch mtl for transformers
-0.6.2
+0.6.2, released 2010-11-10
     Build on GHC 7.0 RC2, add an extra type signature
     Add verbosityArgs to customise the verbose/quiet flags
     Add helpArg/versionArg flags to customise those flags
     Support multiline summary using \n escape codes
-0.6.1
+0.6.1, released 2010-10-04
     Build on GHC 6.10, don't rely on record name disambiguation
-0.6
+0.6, released 2010-09-18
     Add ignore annotation for modes and flags
     #350, make top-level help appear properly
-0.5
+0.5, released 2010-09-15
     #351, name/explicit attributes on mode were broken (regression)
-0.4
+0.4, released 2010-09-05
     #342, display common fields only once
     Raise errors if annotations are placed in invalid places
     Rewrite the translation of annotation to explicit modes
     Treat anything after -- as an argument
     Add a pure annotation mechanism
     Introduce System.Console.CmdArgs.Annotate
-0.3
+0.3, released 2010-08-23
     Add a documentation example for the Explicit mode
     Improve the purity and annotations a bit, try disabling CSE
     Change the help format
     Rename groupHiden to groupHidden, patch from Matthew Cox
     Bug, missing fields and explicit enums didn't work together
-0.2
+0.2, released 2010-08-14
     #252, add support for grouped flags/modes
     #333, support missing fields
     Add support for reading tuple values (including nested)
@@ -139,5 +139,5 @@ Changelog for CmdArgs
     #231, add support for Maybe
     #256, add --option=false support
     Complete rewrite to introduce Explicit module
-0.1
+0.1, released 2009-09-12
     Start of changelog
