@@ -6,7 +6,7 @@ Program description
 
 programname [OPTIONS] FILE1 FILE2 [FILES]
   Program to perform some action
-  
+
   -f --flag     description
 Flag grouping:
   -a --another  description
@@ -114,7 +114,7 @@ helpTextAll = disp . push ""
 -- > <options>
 helpTextOne :: Mode a -> [Text]
 helpTextOne m = pre ++ ms ++ suf
-    where 
+    where
         (pre,suf) = helpTextMode m
         ms = space $ [Line "Commands:" | not $ null $ groupUnnamed $ modeGroupModes m] ++ helpGroup f (modeGroupModes m)
         f m = return $ cols [concat $ take 1 $ modeNames m, ' ' : modeHelp m]
