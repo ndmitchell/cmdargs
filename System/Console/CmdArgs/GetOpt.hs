@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveFunctor #-}
 
 -- | This provides a compatiblity wrapper to the @System.Console.GetOpt@ module in @base@.
 --   That module is essentially a Haskell port of the GNU @getopt@ library.
@@ -34,6 +35,7 @@ data OptDescr a = Option
     [String]
     (ArgDescr a)
     String
+    deriving (Functor)
 
 
 -- | Describes whether an option takes an argument or not, and if so
@@ -42,6 +44,7 @@ data ArgDescr a
    = NoArg                   a         -- ^ no argument expected
    | ReqArg (String       -> a) String -- ^ option requires argument
    | OptArg (Maybe String -> a) String -- ^ optional argument
+    deriving (Functor)
 
 
 -- | Return a string describing the usage of a command, derived from
