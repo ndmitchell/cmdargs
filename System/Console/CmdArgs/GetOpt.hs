@@ -9,6 +9,7 @@ module System.Console.CmdArgs.GetOpt(
     ) where
 
 import System.Console.CmdArgs.Explicit
+import System.Console.GetOpt(OptDescr(..), ArgDescr(..))
 
 
 -- | What to do with options following non-options.
@@ -16,36 +17,12 @@ import System.Console.CmdArgs.Explicit
 --   /Changes:/ Only 'Permute' is allowed, both @RequireOrder@ and @ReturnInOrder@
 --   have been removed.
 data ArgOrder a = Permute
-
-
--- | Each 'OptDescr' describes a single option/flag.
---
---   The arguments to 'Option' are:
---
---   * list of short option characters
---
---   * list of long option strings (without @\"--\"@, may not be 1 character long)
---
---   * argument descriptor
---
---   * explanation of option for userdata
-data OptDescr a = Option
-    [Char]
-    [String]
-    (ArgDescr a)
-    String
-
-
--- | Describes whether an option takes an argument or not, and if so
---   how the argument is injected into a value of type @a@.
-data ArgDescr a
-   = NoArg                   a         -- ^ no argument expected
-   | ReqArg (String       -> a) String -- ^ option requires argument
-   | OptArg (Maybe String -> a) String -- ^ optional argument
+instance Functor ArgOrder where
+    fmap _ Permute = Permute
 
 
 -- | Return a string describing the usage of a command, derived from
---   the header (first argument) and the options described by the 
+--   the header (first argument) and the options described by the
 --   second argument.
 usageInfo :: String -> [OptDescr a] -> String
 usageInfo desc flags = unlines $ desc : drop 2 (lines $ show $ convert "" flags)
@@ -58,7 +35,7 @@ usageInfo desc flags = unlines $ desc : drop 2 (lines $ show $ convert "" flags)
 --
 --   * The option descriptions (see 'OptDescr')
 --
---   * The actual command line arguments (presumably got from 
+--   * The actual command line arguments (presumably got from
 --     'System.Environment.getArgs').
 --
 --   'getOpt' returns a triple consisting of the option arguments, a list
