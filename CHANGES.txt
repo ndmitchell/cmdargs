@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+0.10.20, released 2018-01-22
     #54, use the getopt data types from base
 0.10.19, released 2018-01-01
     #47, ensure Semigroup instance on all GHC versions
