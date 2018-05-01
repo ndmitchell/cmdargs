@@ -44,7 +44,7 @@ test1 = do
     ["--listbool","--listbool=true","--listbool=false"] === def1{listBool=[True,True,False]}
     ["--int64=12"] === def1{int64=12}
     fails ["--listbool=fred"]
-    invalid $ \_ -> def1{listBool = def &= opt "yes"}
+    invalid $ const def1{listBool = def &= opt "yes"}
 
 
 -- from bug #230
