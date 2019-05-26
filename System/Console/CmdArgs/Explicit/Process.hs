@@ -147,4 +147,3 @@ lookupName names value =
         (xs,_) -> Ambiguous $ map fst xs
     where
         match op = [(head ys,v) | (xs,v) <- names, let ys = filter (op value) xs, ys /= []]
-    

@@ -70,4 +70,3 @@ test = do
     completion [] (0,0) [CompleteValue "create",CompleteValue "diff",CompleteValue "--out",CompleteValue "--help",CompleteValue "--version",CompleteValue "--numeric-version"]
     completion ["d"] (0,1) [CompleteValue "diff"]
     completion ["dd"] (0,2) []
-

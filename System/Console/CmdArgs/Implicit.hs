@@ -14,13 +14,13 @@ sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\
     @main = print =<< 'cmdArgs' sample@
 
     Attributes are used to control a number of behaviours:
-    
+
     * The help message: 'help', 'typ', 'details', 'summary', 'program', 'groupname'
-    
+
     * Flag behaviour: 'opt', 'enum', 'verbosity', 'ignore'
-    
+
     * Flag name assignment: 'name', 'explicit'
-    
+
     * Controlling non-flag arguments: 'args', 'argPos'
 
     * multi-mode programs: 'modes', 'auto'
@@ -56,7 +56,7 @@ sample = Sample{hello = 'def' '&=' 'help' \"World argument\" '&=' 'opt' \"world\
 
     All the examples are written using impure annotations. To convert to pure
     annotations follow the rules:
-    
+
     > Ctor {field1 = value1 &= ann1, field2 = value2} &= ann2 ==> record Ctor{} [field1 := value1 += ann1, field2 := value2] += ann2
     > Ctor (value1 &= ann1) value2 &= ann2 ==> record Ctor{} [atom value1 += ann1, atom value2] += ann2
     > modes [Ctor1{...}, Ctor2{...}] ==> modes_ [record Ctor1{} [...], record Ctor2{} [...]]

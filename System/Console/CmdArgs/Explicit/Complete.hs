@@ -60,7 +60,7 @@ followModes m xs = (m,xs)
 
 
 pickBy :: (a -> [String]) -> String -> [a] -> Maybe a
-pickBy f name xs = find (\x -> name `elem` f x) xs `mplus` 
+pickBy f name xs = find (\x -> name `elem` f x) xs `mplus`
                    find (\x -> any (name `isPrefixOf`) (f x)) xs
 
 

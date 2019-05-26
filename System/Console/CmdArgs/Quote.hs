@@ -13,7 +13,7 @@
 -- > $(cmdArgsQuote [d|
 -- >     sample = Sample{hello = def &=# help "World argument" &=# opt "world"}
 -- >                    &=# summary "Sample v1"
--- > 
+-- >
 -- >     run = cmdArgs# sample :: IO Sample
 -- >     |])
 -- >
@@ -114,7 +114,7 @@ translate = descendBiM f
                 bind = [ValD (VarP name) (NormalB val) [] | (name,val) <- zip names vals]
                 args = [anns (VarE 'atom `AppE` VarE name) as | (name,as) <- zip names ass]
             return $ LetE bind $ VarE 'record `AppE` (ConE x `apps` map VarE names) `AppE` ListE args
-        
+
         f x = descendM f x
 
         apps x [] = x
@@ -171,7 +171,7 @@ inline xs = map (dec $ addEnv xs []) xs
             where
                 -- create an environment where everything in ns is missing, recursively drop one thing each time
                 without ns new = [(n, exp (new2 ++ env) e) | (n,e) <- new, n `notElem` ns, let new2 = without (n:ns) new]
-                
+
 
         dec env (FunD n cs) = FunD n $ map (clause env) cs
         dec env (ValD p x ds) = ValD p (body (addEnv ds env) x) ds

@@ -110,4 +110,3 @@ matchLine (' ':' ':x) (' ':' ':y) = matchLine (dropWhile isSpace x) (dropWhile i
 matchLine (x:xs) (y:ys) | x == y = matchLine xs ys
 matchLine [] [] = True
 matchLine _ _ = False
-

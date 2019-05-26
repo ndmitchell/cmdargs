@@ -119,7 +119,7 @@ processArgs m = do
                         Left err -> do
                             hPutStrLn stderr $ "Error when running helper " ++ cmd
                             hPutStrLn stderr err
-                            exitFailure               
+                            exitFailure
                         Right args -> processValueIO m args
 
 

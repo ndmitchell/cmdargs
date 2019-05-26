@@ -264,7 +264,7 @@ instance Packer a => Packer (Group a) where
     unpack x = let y = ctor "Group" x in Group
         {groupUnnamed = get "groupUnnamed" y
         ,groupHidden = get "groupHidden" y
-        ,groupNamed = get "groupNamed" y}       
+        ,groupNamed = get "groupNamed" y}
 
 instance Packer a => Packer (Mode a) where
     pack Mode{..} = Ctor "Mode"

@@ -47,7 +47,7 @@ mode_ = cmdArgsMode_ $ modes_ [build,wipe,test_] += help "Build helper program" 
         ] += help "Run the test suite"
 
     build = record Build{}
-        [threads_ 
+        [threads_
         ,enum_ method
             [atom Release += help "Release build"
             ,atom Debug += help "Debug build"

@@ -229,7 +229,7 @@ assignNames x = x{progModes = map f $ namesOn fromMode toMode $ progModes x}
         isFlag_ _ = False
 
 
-asName s = map (\x -> if x == '_' then '-' else toLower x) $ if last s == '_' then init s else s 
+asName s = map (\x -> if x == '_' then '-' else toLower x) $ if last s == '_' then init s else s
 
 -- have are already assigned, want are a list of ones I might want
 data Names = Names {have :: [String], want :: [String]}
