@@ -98,9 +98,9 @@ followArgs m = first
 
 
 expectArgFlagMode :: [Mode a] -> Maybe (Arg a) -> [Flag a] -> String -> [Complete]
-expectArgFlagMode mode arg flag x
-    | "-" `isPrefixOf` x = expectFlag flag x ++ [CompleteValue "-" | x == "-", isJust arg]
-    | otherwise = expectMode mode x ++ expectArg arg x ++ expectFlag flag x
+expectArgFlagMode mode arg flag x =
+    (if "-" `isPrefixOf` x then [] else expectMode mode x) ++
+    expectArgFlag arg flag x
 
 expectArgFlag :: Maybe (Arg a) -> [Flag a] -> String -> [Complete]
 expectArgFlag arg flag x
