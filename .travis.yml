@@ -1,5 +1,4 @@
 language: minimal
-
 env:
 - GHCVER=7.10
 - GHCVER=8.0
