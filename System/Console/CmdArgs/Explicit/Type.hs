@@ -165,11 +165,11 @@ checkMode x = msum
     where
         checkGroup :: Group a -> Maybe String
         checkGroup x = msum
-            [check "Empty group name" $ all (not . null . fst) $ groupNamed x
-            ,check "Empty group contents" $ all (not . null . snd) $ groupNamed x]
+            [check "Empty group name" $ not $ any (null . fst) $ groupNamed x
+            ,check "Empty group contents" $ not $ any (null . snd) $ groupNamed x]
 
         checkNames :: String -> [Name] -> Maybe String
-        checkNames msg xs = check "Empty names" (all (not . null) xs) `mplus` do
+        checkNames msg xs = check "Empty names" (not (any null xs)) `mplus` do
             bad <- listToMaybe $ xs \\ nub xs
             let dupe = filter (== bad) xs
             return $ "Sanity check failed, multiple " ++ msg ++ ": " ++ unwords (map show dupe)
