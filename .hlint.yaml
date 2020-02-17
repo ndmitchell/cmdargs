@@ -30,7 +30,16 @@
 - ignore: {name: "Use >=>"}
 - ignore: {name: "Use first"}
 - ignore: {name: "Use lambda-case"}
-
+- ignore: {name: "Use zipFrom"}
+- ignore: {name: "Use zipWithFrom"}
+- ignore: {name: "Use upper"}
+- ignore: {name: "Use headDef"}
+- ignore: {name: "Use whenJust"}
+- ignore: {name: "Use alternative"}
+- ignore: {name: "Use drop1"}
+- ignore: {name: "Use lower"}
+- ignore: {name: "Use dropPrefix"}
+- ignore: {name: "Use trimStart"}
 
 # Specify additional command line arguments
 #
