@@ -40,6 +40,7 @@
 - ignore: {name: "Use lower"}
 - ignore: {name: "Use dropPrefix"}
 - ignore: {name: "Use trimStart"}
+- ignore: {name: "Use pure"}
 
 # Specify additional command line arguments
 #
