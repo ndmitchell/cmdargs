@@ -82,7 +82,7 @@ function updateCmdLine()
 
 function createModes(m)
 {
-    $(".main input").live("input", updateCmdLine);
+    $(document).on("input", ".main input", updateCmdLine);
     return div([div({"class":"left"}, createTree(m,null))
               ,div({"class":"main"}, [])
               ,div({"class":"bottom"}, createCmdLine())
