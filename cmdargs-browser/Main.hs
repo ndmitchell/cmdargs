@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards, ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances, OverlappingInstances #-}
 
-module Main where
+module Main(main) where
 
 import Network.Wai
 import Network.Wai.Handler.Launch
