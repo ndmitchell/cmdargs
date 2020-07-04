@@ -1,4 +1,4 @@
-cabal-version:      >= 1.6
+cabal-version:      >= 1.10
 build-type:         Simple
 name:               cmdargs-browser
 version:            0.1.4
@@ -26,6 +26,7 @@ source-repository head
     location: http://community.haskell.org/~ndm/darcs/cmdargs/
 
 executable cmdargs-browser
+    default-language: Haskell2010
     main-is: Main.hs
     build-depends:
         base == 4.*,
