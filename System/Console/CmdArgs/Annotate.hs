@@ -1,4 +1,5 @@
 {-# LANGUAGE PatternGuards, ScopedTypeVariables, ExistentialQuantification, DeriveDataTypeable #-}
+{-# OPTIONS_GHC -O0 #-}
 
 -- | This module captures annotations on a value, and builds a 'Capture' value.
 --   This module has two ways of writing annotations:

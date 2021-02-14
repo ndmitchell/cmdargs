@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, RecordWildCards, TemplateHaskell, MagicHash #-}
-{-# OPTIONS_GHC -fno-warn-missing-fields -fno-warn-unused-binds #-}
+{-# OPTIONS_GHC -fno-warn-missing-fields -fno-warn-unused-binds -fno-cse #-}
 
 module System.Console.CmdArgs.Test.Implicit.Tests(test, demos) where
 
