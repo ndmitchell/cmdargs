@@ -28,7 +28,7 @@ generateTests = withTempFile $ \src -> do
     writeFile src "import System.Environment\nmain = print =<< getArgs\n"
     quickCheckWith stdArgs{chatty=False} $ \(CmdLine x) -> unsafePerformIO $ do
         putStr $ ",(,) " ++ (show x) ++ " "
-        system $ "runhaskell \"" ++ src ++ "\" " ++ x
+        system $ "runghc \"" ++ src ++ "\" " ++ x
         return True
 
 

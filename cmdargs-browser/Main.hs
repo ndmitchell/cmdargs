@@ -61,7 +61,7 @@ findHelper = do
         poss <- filterM (\x -> doesFileExist $ x ++ "/cmdargs/Main.hs") poss
         case poss of
             [] -> error "Running cmdargs-browser in GHCi, but can't find source code"
-            x:_ -> return $ "(cd " ++ x ++ "/cmdargs/cmdargs-browser && runhaskell -i..:Paths Main.hs)"
+            x:_ -> return $ "(cd " ++ x ++ "/cmdargs/cmdargs-browser && runghc -i..:Paths Main.hs)"
      else do
         -- Check it is on the path
         res <- findExecutable "cmdargs-browser"

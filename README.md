@@ -16,10 +16,10 @@ main = print =<< cmdArgs sample
 ```
 Despite being very concise, this processor is already fairly well featured:
 
-    $ runhaskell Sample.hs --hello=world
+    $ runghc Sample.hs --hello=world
     Sample {hello = "world"}
 
-    $ runhaskell Sample.hs --help
+    $ runghc Sample.hs --help
     Sample v1, (C) Neil Mitchell 2009
 
     sample [FLAG]
@@ -67,13 +67,13 @@ To use the CmdArgs library there are three steps:
 
 Now we have a reasonably functional command line argument processor. Some sample interactions are:
 
-    $ runhaskell Sample.hs --hello=world
+    $ runghc Sample.hs --hello=world
     Sample {hello = "world"}
 
-    $ runhaskell Sample.hs --version
+    $ runghc Sample.hs --version
     The sample program
 
-    $ runhaskell Sample.hs --help
+    $ runghc Sample.hs --help
     The sample program
 
     sample [OPTIONS]
@@ -116,13 +116,13 @@ main = print =<< cmdArgs (modes [hello,goodbye])
 ```
 Compared to the first example, we now have multiple constructors, and a sample value for each constructor is passed to `cmdArgs`. Some sample interactions with this command line are:
 
-    $ runhaskell Sample.hs hello --whom=world
+    $ runghc Sample.hs hello --whom=world
     Hello {whom = "world"}
 
-    $ runhaskell Sample.hs goodbye
+    $ runghc Sample.hs goodbye
     Goodbye
 
-    $ runhaskell Sample.hs --help
+    $ runghc Sample.hs --help
     The sample program
 
     sample [OPTIONS]
