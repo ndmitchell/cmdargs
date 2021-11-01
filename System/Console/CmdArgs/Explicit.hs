@@ -173,7 +173,7 @@ flagHelpFormat f = (flagOpt "" ["help","?"] upd "" "Display help message"){flagI
             Right (a,b) -> Right $ f a b v
 
         format :: String -> Either String (HelpFormat,TextFormat)
-        format xs = foldl (\acc x -> either Left (f x) acc) (Right def) (sep xs)
+        format xs = foldl (\acc x -> f x =<< acc) (Right def) (sep xs)
             where
                 sep = words . map (\x -> if x `elem` ":," then ' ' else toLower x)
                 f x (a,b) = case x of

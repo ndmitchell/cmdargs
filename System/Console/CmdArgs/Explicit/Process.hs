@@ -23,7 +23,7 @@ processMode m args =
             | null (fst $ modeArgs m) && isNothing (snd $ modeArgs m) && args /= [] &&
               not (null $ modeModes m) && not ("-" `isPrefixOf` concat args)
                 -> Left $ missing "mode" $ concatMap modeNames $ modeModes m
-            | otherwise -> either Left (modeCheck m) $ processFlags m (modeValue m) args
+            | otherwise -> modeCheck m =<< processFlags m (modeValue m) args
     where
         (find,a,as) = case args of
             [] -> (NotFound,"",[])
