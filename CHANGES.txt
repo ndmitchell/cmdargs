@@ -1,5 +1,6 @@
 Changelog for CmdArgs
 
+    #68, support GHC 9.6
 0.10.21, released 2021-02-14
     Handle GHC 9.0 optimisations
     Remove support for GHC 7.4 to 7.8
