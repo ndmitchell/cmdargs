@@ -46,7 +46,9 @@ reverse xs | isList xs = rev xs (nil_ xs)
 
 
 isString x = typeName x == "[Char]"
-isList x = typeShell x == "[]"
+-- GHC 9.6 changes from [] to List, so accept either
+isList x = ts == "[]" || ts == "List"
+    where ts = typeShell x
 isMaybe x = typeShell x == "Maybe"
 isTuple x = isJust $ readTupleType $ typeShell x
 
