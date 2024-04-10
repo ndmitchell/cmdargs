@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, PatternGuards, MagicHash #-}
+{-# LANGUAGE TemplateHaskell, PatternGuards, MagicHash, CPP #-}
 
 -- | This module provides a quotation feature to let you write command line
 --   arguments in the impure style, but have them translated into the pure style,
@@ -150,7 +150,11 @@ rename = transformBi f
 simplify :: [Dec] -> [Dec]
 simplify = transformBi f
     where
+#if MIN_VERSION_template_haskell(2,22,0)
+        f (AppE (LamE [VisAP (VarP v)] bod) x) = f $ subst v x bod
+#else
         f (AppE (LamE [VarP v] bod) x) = f $ subst v x bod
+#endif
         f x = x
 
         subst v x bod = transform f bod
